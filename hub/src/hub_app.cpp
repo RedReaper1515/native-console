@@ -44,7 +44,7 @@
 #endif
 
 #ifndef HUB_VERSION
-#define HUB_VERSION "0.1.1"
+#define HUB_VERSION "0.1.2"
 #endif
 
 namespace hub {

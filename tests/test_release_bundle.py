@@ -18,7 +18,9 @@ Where the release carries SDL2's development files (SDL2/, Windows), every
 project is built against those and not against the SDL2 the test was given,
 and the hub is used as somebody who has just unpacked the release would use
 it: with nothing set up, it has to import, build and run the Game Boy
-fixture, having found that SDL2 beside itself.
+fixture, having found that SDL2 beside itself. And then as somebody would who
+had the release before it: with settings that name a release that is gone,
+it has to use its own recompilers and SDL2 and find the compiler again.
 
 Tests an extracted archive (--distribution-dir), or a build's bin folder
 (--bin-dir), which is first packaged with tools/create_distribution.py.
@@ -278,6 +280,51 @@ def hub_first_use(smoke: Smoke, hub: Path, sdl2_cmake: Path) -> str:
     return "with nothing set up, imported, built and ran the Game Boy fixture"
 
 
+def hub_after_upgrade(smoke: Smoke, hub: Path, sdl2_cmake: Path) -> str:
+    """The hub as it is first used after the release before it: the settings
+    that release saved are still there, and name its folder. One of its
+    recompilers is still on disk and the rest of it has been deleted. The hub
+    has to use what is beside itself, and find again what has gone."""
+    installed = hub.parent
+    older = smoke.root / "older-release"
+    older.mkdir()
+    shutil.copy2(installed / ("gbrecomp" + EXE_SUFFIX), older / ("gbrecomp" + EXE_SUFFIX))
+    gone = smoke.root / "deleted-release"
+    data = smoke.root / "hubdata-upgrade"
+    data.mkdir()
+    saved = {
+        "recompilers": {
+            "gb": str(older / ("gbrecomp" + EXE_SUFFIX)),
+            "gba": str(gone / ("gbarecomp" + EXE_SUFFIX)),
+        },
+        "cmake_exe": str(gone / "cmake.exe"),
+        "ninja_exe": str(gone / "ninja.exe"),
+        "vcvars_bat": str(gone / "vcvars64.bat"),
+        "sdl2_cmake_dir": str(gone / "SDL2" / "cmake"),
+        "sdl2_dll": str(gone / "SDL2.dll"),
+    }
+    (data / "settings.json").write_text(json.dumps(saved, indent=2), encoding="utf-8")
+    rom = smoke.root / "hubgame.gb"
+    run([hub, "--data-dir", data, "--batch", "--import", rom], cwd=smoke.root, env=smoke.env, timeout=900)
+    settings = json.loads((data / "settings.json").read_text(encoding="utf-8"))
+    expected = {
+        "the Game Boy recompiler": (settings["recompilers"].get("gb", ""), installed / ("gbrecomp" + EXE_SUFFIX)),
+        "the GBA recompiler": (settings["recompilers"].get("gba", ""), installed / ("gbarecomp" + EXE_SUFFIX)),
+        "SDL2's cmake folder": (settings.get("sdl2_cmake_dir", ""), sdl2_cmake),
+        "SDL2.dll": (settings.get("sdl2_dll", ""), installed / "SDL2.dll"),
+    }
+    for what, (found, wanted) in expected.items():
+        if not found or Path(found).resolve() != wanted.resolve():
+            raise RuntimeError(f"after an upgrade the hub took {what} from {found!r}, not from {wanted}")
+    for key in ("cmake_exe", "ninja_exe", "vcvars_bat"):
+        if not Path(settings.get(key, "")).is_file():
+            raise RuntimeError(f"after an upgrade the hub kept {key} = {settings.get(key)!r}, which is not there")
+    games = sorted((data / "games").glob("*/game/*" + EXE_SUFFIX))
+    if len(games) != 1:
+        raise RuntimeError(f"after an upgrade the hub built no game, or more than one: {games}")
+    return "with the settings of a release that is gone, used its own tools and built the fixture"
+
+
 def verify_manifest(installed: Path) -> dict:
     manifest = json.loads((installed / distribution.MANIFEST_NAME).read_text(encoding="utf-8"))
     if (
@@ -424,6 +471,7 @@ def main() -> int:
             print("ok   hub: --help")
             if sdl2_cmake is not None:
                 print(f"ok   hub: {hub_first_use(smoke, hub, sdl2_cmake)}")
+                print(f"ok   hub: {hub_after_upgrade(smoke, hub, sdl2_cmake)}")
         if sdl2_cmake is not None:
             print("ok   sdl2: every project was built against the release's own SDL2")
 

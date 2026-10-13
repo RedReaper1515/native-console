@@ -72,8 +72,11 @@ built from `hub/` alongside `gbrecomp`.
 - **Settings**: every toolchain path is editable and auto-detected
   (one recompiler per console, CMake, Ninja, vcvars64.bat, SDL2), plus build type, compile jobs,
   launch defaults, and cover-capture frame. A release for Windows carries
-  SDL2's development files in `SDL2/` beside the hub, which is where the
-  hub looks first. "Wii common key file" names
+  SDL2's development files in `SDL2/` beside the hub. What is beside the
+  hub is what the hub uses, whatever was saved: its own recompilers, its
+  `SDL2.dll` and that `SDL2/` folder, since settings outlive the folder a
+  release was unpacked into. Any other saved path is kept while what it
+  names exists, and looked for again when it does not. "Wii common key file" names
   the key a retail Wii disc needs to be built (yours to supply; see
   `WII.md`), and "Try Wii games" turns the Wii on, which is not supported
   yet and is off until it is. "GameCube renderer" under

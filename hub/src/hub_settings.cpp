@@ -169,13 +169,30 @@ void Settings::detect_defaults() {
     const std::string exe_suffix = "";
 #endif
 
-    // Each console's recompiler: next to the hub, in bin/, or on PATH.
+    // A path that was saved is kept only while what it names is still there.
+    // Settings outlive the folder a hub was run from: a release that has
+    // been replaced by the next one leaves its paths behind, and they must
+    // not stop the hub that is running now from finding its own tools.
+    auto gone = [](const std::string& path) { return path.empty() || !platform::exists(path); };
+    auto found_again = [&](std::string& path, const std::vector<std::string>& candidates) {
+        if (!gone(path)) return;
+        const std::string found = first_existing(candidates);
+        if (!found.empty()) path = found;
+    };
+
+    // Each console's recompiler. The one beside the hub is the one the hub
+    // was built and released with, and is used whatever was saved: a hub and
+    // its recompilers are one version. Otherwise the saved one while it
+    // exists, then bin/ and PATH.
     for (const auto& backend : backends()) {
         std::string& path = recompilers[backend->family_id()];
-        if (!path.empty()) continue;
         const std::string name = backend->recompiler_name();
-        path = first_existing({
-            platform::join(exe_dir, name + exe_suffix),
+        const std::string beside = platform::join(exe_dir, name + exe_suffix);
+        if (platform::exists(beside)) {
+            path = beside;
+            continue;
+        }
+        found_again(path, {
             platform::join(platform::join(exe_dir, "bin"), name + exe_suffix),
             platform::find_on_path(name),
         });
@@ -192,30 +209,41 @@ void Settings::detect_defaults() {
         vcvars_candidates.push_back(platform::join(root, "VC\\Auxiliary\\Build\\vcvars64.bat"));
     }
 #endif
-    if (cmake_exe.empty()) cmake_exe = first_existing(cmake_candidates);
-    if (ninja_exe.empty()) ninja_exe = first_existing(ninja_candidates);
-    if (vcvars_bat.empty()) vcvars_bat = first_existing(vcvars_candidates);
+    found_again(cmake_exe, cmake_candidates);
+    found_again(ninja_exe, ninja_candidates);
+    found_again(vcvars_bat, vcvars_candidates);
 
-    if (sdl2_cmake_dir.empty()) {
-        // A release carries SDL2's development files beside the hub, in
-        // SDL2/; a hub run from its build tree has the SDL2 it was built with.
+    // SDL2 the same way: a release carries its development files beside the
+    // hub, in SDL2/, and those are the ones its games are built against. A
+    // hub run from its build tree has the SDL2 it was built with.
+    {
         const std::string beside = platform::join(platform::join(exe_dir, "SDL2"), "cmake");
-        std::string compiled_in = HUB_SDL2_DIR;
-        if (platform::is_directory(beside)) sdl2_cmake_dir = beside;
-        else if (platform::is_directory(compiled_in)) sdl2_cmake_dir = platform::absolute(compiled_in);
+        const std::string compiled_in = HUB_SDL2_DIR;
+        if (platform::is_directory(beside)) {
+            sdl2_cmake_dir = beside;
+        } else if ((sdl2_cmake_dir.empty() || !platform::is_directory(sdl2_cmake_dir)) &&
+                   platform::is_directory(compiled_in)) {
+            sdl2_cmake_dir = platform::absolute(compiled_in);
+        }
     }
 #ifdef _WIN32
-    if (sdl2_dll.empty()) {
-        std::vector<std::string> dll_candidates = {platform::join(exe_dir, "SDL2.dll")};
-        if (!sdl2_cmake_dir.empty()) {
-            std::string sdl_root = platform::parent_path(sdl2_cmake_dir);
-            dll_candidates.push_back(platform::join(sdl_root, "lib\\x64\\SDL2.dll"));
-            dll_candidates.push_back(platform::join(sdl_root, "bin\\SDL2.dll"));
+    {
+        // The SDL2.dll beside the hub is the one the hub itself is running with.
+        const std::string beside = platform::join(exe_dir, "SDL2.dll");
+        if (platform::exists(beside)) {
+            sdl2_dll = beside;
+        } else {
+            std::vector<std::string> dll_candidates;
+            if (!sdl2_cmake_dir.empty()) {
+                std::string sdl_root = platform::parent_path(sdl2_cmake_dir);
+                dll_candidates.push_back(platform::join(sdl_root, "lib\\x64\\SDL2.dll"));
+                dll_candidates.push_back(platform::join(sdl_root, "bin\\SDL2.dll"));
+            }
+            found_again(sdl2_dll, dll_candidates);
         }
-        sdl2_dll = first_existing(dll_candidates);
     }
 #endif
-    if (docker_exe.empty()) {
+    {
         std::vector<std::string> docker_candidates = {platform::find_on_path("docker")};
 #ifdef _WIN32
         docker_candidates.push_back(platform::join(platform::getenv_utf8("ProgramFiles"), "Docker\\Docker\\resources\\bin\\docker.exe"));
@@ -223,7 +251,7 @@ void Settings::detect_defaults() {
         docker_candidates.push_back("/usr/local/bin/docker");
         docker_candidates.push_back("/usr/bin/docker");
 #endif
-        docker_exe = first_existing(docker_candidates);
+        found_again(docker_exe, docker_candidates);
     }
     if (steam_runtime_image.empty()) steam_runtime_image = "registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest";
     if (build_type.empty()) build_type = "Release";
