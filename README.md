@@ -8,14 +8,24 @@ recompiled to C, linked against a shared SDL2 runtime, compiled with your host
 toolchain, and added to a library with cover art, descriptions, and favorites.
 Click a game to play the native build.
 
-Game Boy and Game Boy Color are supported today. Game Boy Advance, Super
-Nintendo, NES, Nintendo DS and GameCube support is in progress: the hub
-builds and plays `.gba`, `.sfc`, `.smc`, `.nes`, `.nds` and GameCube discs,
-and one commercial game each has been validated so far (The Minish Cap, see
-[GBA.md](GBA.md); Kirby's Dream Land 3, an SA-1 cartridge, see
-[SNES.md](SNES.md); Final Fantasy, an MMC1 cartridge, see [NES.md](NES.md);
-Phantom Hourglass, see [NDS.md](NDS.md)). Games build for Windows, Linux /
-SteamOS and macOS (NES and Nintendo DS on Windows only so far).
+How far each console has come is not the same:
+
+- **Game Boy, Game Boy Color and Game Boy Advance** have had the most
+  testing, and are the ones to start with ([ACCURACY.md](ACCURACY.md),
+  [GBC.md](GBC.md), [GBA.md](GBA.md)).
+- **Super Nintendo, NES, Nintendo DS and Nintendo 64** are in progress. The
+  hub builds and plays their games, and one commercial game each has been
+  checked so far: Kirby's Dream Land 3, an SA-1 cartridge
+  ([SNES.md](SNES.md)); Final Fantasy, an MMC1 cartridge ([NES.md](NES.md));
+  Phantom Hourglass ([NDS.md](NDS.md)); and Ocarina of Time
+  ([N64.md](N64.md)).
+- **GameCube** is in progress and has been tested with one game only,
+  Shrek 2, which is playable but still needs work
+  ([docs/GC-PLAN.md](docs/GC-PLAN.md)).
+- **Wii** is not supported yet ([WII.md](WII.md)).
+
+Games build for Windows, Linux / SteamOS and macOS (NES, Nintendo DS,
+Nintendo 64 and GameCube on Windows only so far).
 
 The project contains no games: bring your own, dumped from cartridges and
 discs you own. See [ROMs, piracy and preservation](#roms-piracy-and-preservation).
@@ -60,10 +70,10 @@ copyrighted game data will be closed.
 - **Cover art**: import PNG/JPEG/BMP/GIF, or capture a frame from the game.
   After each successful build the hub captures a title-screen frame so no
   game is blank.
-- **Consoles**: one backend per hardware family. Game Boy / Game Boy Color
-  build today; Game Boy Advance builds with `gbarecomp`, Super Nintendo with
-  `snesrecomp`, NES with `nesrecomp`, Nintendo DS with `ndsrecomp` and
-  GameCube with `gcrecomp` (all in progress).
+- **Consoles**: one backend per hardware family, each with its own
+  recompiler: `gbrecomp` (Game Boy, Game Boy Color), `gbarecomp`,
+  `snesrecomp`, `nesrecomp`, `ndsrecomp`, `n64recomp` and `gcrecomp`
+  (GameCube). How far each has been tested is at the top of this page.
   [Adding a console](docs/ADDING-A-CONSOLE.md) describes how a new family
   gets in.
 - **Playing together**: families whose runtimes have a link open two windows
@@ -87,6 +97,19 @@ re-runnable build script and its own battery save next to the executable.
 Details, the data layout, and how to add a console are in the
 [hub guide](hub/README.md).
 
+## Get a release
+
+The [releases page](https://github.com/RedReaper1515/native-console/releases)
+has the hub and the recompilers built for Windows (x64).
+
+Every game is compiled on your own computer, so you still need a compiler:
+install Visual Studio Build Tools (or Visual Studio) with the *Desktop
+development with C++* workload. The hub finds it, and the CMake and Ninja
+that come with it, by itself; SDL2 is in the archive. Then unzip, run
+`native_console_hub.exe`, and drop a ROM on the window.
+
+Linux, SteamOS and macOS are built from source for now.
+
 ## Build from source
 
 Install CMake 3.20 or newer, Ninja, SDL2 development files, and a
@@ -96,11 +119,12 @@ C11/C++20 compiler (MSVC Build Tools on Windows).
 git clone https://github.com/RedReaper1515/native-console.git
 cd native-console
 cmake -G Ninja -B build . -DSDL2_DIR=<path-to-sdl2-cmake-dir>
-ninja -C build gbrecomp gbarecomp snesrecomp nesrecomp ndsrecomp native_console_hub
+ninja -C build gbrecomp gbarecomp snesrecomp nesrecomp ndsrecomp n64recomp gcrecomp native_console_hub
 ./build/bin/native_console_hub --data-dir ~/native-console-hub
 ```
 
-The hub finds the recompilers (`gbrecomp`, `gbarecomp`, `snesrecomp`, `nesrecomp`, `ndsrecomp`) next to itself and
+The hub finds the recompilers (`gbrecomp`, `gbarecomp`, `snesrecomp`,
+`nesrecomp`, `ndsrecomp`, `n64recomp`, `gcrecomp`) next to itself and
 detects the rest of the toolchain; anything it cannot find is editable in
 Settings. A console whose recompiler was not built cannot be built by the
 hub.
@@ -152,7 +176,7 @@ This is an experimental recompiler, not a whole-catalogue compatibility claim.
 Hardware accuracy and game coverage remain active work, and a successful
 build does not guarantee that every scene runs correctly.
 
-## Game Boy Advance (in progress)
+## Game Boy Advance
 
 `recompiler-gba/` (`gbarecomp`) and `runtime-gba/` recompile `.gba` ROMs the
 same way; the hub builds them like Game Boy games. [GBA.md](GBA.md) describes
@@ -198,6 +222,15 @@ and plays from the hub on Windows. [N64.md](N64.md) describes what works, and
 [docs/N64-PLAN.md](docs/N64-PLAN.md) holds the plan, the test strategy and
 the current results.
 
+## GameCube (in progress)
+
+`recompiler-gc/` (`gcrecomp`) and `runtime-gc/` recompile GameCube discs: the
+processor's code to C, with the graphics processor, sound, the disc, memory
+cards and controllers in the runtime. One game has been tested, Shrek 2. It
+builds and is playable from the hub on Windows, and it still needs work, so
+expect other games to need more. [docs/GC-PLAN.md](docs/GC-PLAN.md) holds
+the plan and a dated log of the results.
+
 ## Wii (in progress, not yet supported)
 
 The Wii is the GameCube's design with more of everything, and is built here
@@ -233,6 +266,7 @@ backend.
 - [NES](NES.md) — status, tools and usage; [plan](docs/NES-PLAN.md)
 - [Nintendo DS](NDS.md) — status, tools and usage; [plan](docs/NDS-PLAN.md)
 - [Nintendo 64](N64.md) — status, tools and usage; [plan](docs/N64-PLAN.md)
+- [GameCube](docs/GC-PLAN.md) — the plan and a dated log of results
 - [Wii](WII.md) — status, the key a disc needs, usage; [plan](docs/WII-PLAN.md)
 - [Adding a console](docs/ADDING-A-CONSOLE.md) — contract, phases and gates, file checklist
 - [Runtime usage](RUNTIME.md) — controls, persistence, diagnostics, profiling

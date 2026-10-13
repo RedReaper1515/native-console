@@ -9,7 +9,8 @@ if(DEFINED SDL2_DIR AND NOT SDL2_DIR STREQUAL "SDL2_DIR-NOTFOUND")
 endif()
 
 # Windows releases ship SDL2.dll and its license next to the recompilers and
-# the hub.
+# the hub, and SDL2's development files in SDL2/ where SDL2_DIR is the cmake
+# folder of an unpacked SDL2-devel-*-VC package.
 set(GBRECOMP_SDL2_RELEASE_ARGS)
 if(WIN32 AND TARGET SDL2::SDL2 AND DEFINED SDL2_DIR)
     get_target_property(_gbrecomp_sdl2_type SDL2::SDL2 TYPE)
@@ -25,6 +26,9 @@ if(WIN32 AND TARGET SDL2::SDL2 AND DEFINED SDL2_DIR)
         list(APPEND GBRECOMP_SDL2_RELEASE_ARGS
             "--extra-file=$<TARGET_FILE:SDL2::SDL2>=SDL2.dll"
             "--extra-file=${_gbrecomp_sdl2_license}=THIRD_PARTY/SDL2-LICENSE.txt")
+        if(EXISTS "${SDL2_DIR}/sdl2-config.cmake" AND EXISTS "${_gbrecomp_sdl2_root}/lib/x64/SDL2.lib")
+            list(APPEND GBRECOMP_SDL2_RELEASE_ARGS "--sdl2-dev=${_gbrecomp_sdl2_root}")
+        endif()
     endif()
 endif()
 

@@ -71,7 +71,9 @@ built from `hub/` alongside `gbrecomp`.
   See [Compile for export](#compile-for-export).
 - **Settings**: every toolchain path is editable and auto-detected
   (one recompiler per console, CMake, Ninja, vcvars64.bat, SDL2), plus build type, compile jobs,
-  launch defaults, and cover-capture frame. "Wii common key file" names
+  launch defaults, and cover-capture frame. A release for Windows carries
+  SDL2's development files in `SDL2/` beside the hub, which is where the
+  hub looks first. "Wii common key file" names
   the key a retail Wii disc needs to be built (yours to supply; see
   `WII.md`), and "Try Wii games" turns the Wii on, which is not supported
   yet and is off until it is. "GameCube renderer" under

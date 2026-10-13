@@ -12,6 +12,13 @@ must carry its own runtime snapshot) and runs it headless with a verdict:
   nds  tests/fixtures/make_nds_save_rom.py: its save chip holds A5 5A C3 3C
   gc   tests/fixtures/make_gc_dol.py: ends at its idle branch, clean under
        --differential
+  n64  tests/fixtures/make_n64_rom.py: passes its own check (r30 = -1)
+
+Where the release carries SDL2's development files (SDL2/, Windows), every
+project is built against those and not against the SDL2 the test was given,
+and the hub is used as somebody who has just unpacked the release would use
+it: with nothing set up, it has to import, build and run the Game Boy
+fixture, having found that SDL2 beside itself.
 
 Tests an extracted archive (--distribution-dir), or a build's bin folder
 (--bin-dir), which is first packaged with tools/create_distribution.py.
@@ -220,6 +227,25 @@ def smoke_gc(smoke: Smoke, recompiler: Path) -> str:
     return "DOL fixture reached its idle branch, clean under --differential"
 
 
+def smoke_n64(smoke: Smoke, recompiler: Path) -> str:
+    rom = smoke.root / "release_smoke.z64"
+    run([sys.executable, TESTS / "fixtures/make_n64_rom.py", "--output", rom], cwd=smoke.root)
+    project = smoke.root / "n64"
+    run([recompiler, rom, "-o", project, "--name", "release_smoke_n64"], cwd=smoke.root)
+    # Dear ImGui comes from the Game Boy runtime beside runtime-n64.
+    require_snapshot(project / "runtime-n64", "include/n64_recomp.h", "vendor/imgui/imgui.h")
+    executable = smoke.build(project, "release_smoke_n64")
+    # The fixture checks itself and leaves -1 in r30 when everything held.
+    output = run(
+        [executable, "--frames", "30", "--until-gpr", "r30=-1"],
+        cwd=smoke.root,
+        env=smoke.env,
+    )
+    if "PASS" not in output:
+        raise RuntimeError(f"the Nintendo 64 smoke ROM did not pass:\n{output}")
+    return "fixture passed its own check (r30 = -1)"
+
+
 # One recipe per console in tools/create_distribution.py CONSOLES.
 SMOKES: dict[str, Callable[[Smoke, Path], str]] = {
     "gb": smoke_gb,
@@ -228,7 +254,28 @@ SMOKES: dict[str, Callable[[Smoke, Path], str]] = {
     "nes": smoke_nes,
     "nds": smoke_nds,
     "gc": smoke_gc,
+    "n64": smoke_n64,
 }
+
+
+def hub_first_use(smoke: Smoke, hub: Path, sdl2_cmake: Path) -> str:
+    """The hub as it is first used from an unpacked release: no settings, one
+    ROM imported. It has to find the release's SDL2 and build the game."""
+    rom = smoke.root / "hubgame.gb"
+    run(
+        [sys.executable, TESTS / "fixtures/make_mapper_rom.py", "--mapper", "mbc1", "--output", rom],
+        cwd=smoke.root,
+    )
+    data = smoke.root / "hubdata"
+    run([hub, "--data-dir", data, "--batch", "--import", rom], cwd=smoke.root, env=smoke.env, timeout=900)
+    settings = json.loads((data / "settings.json").read_text(encoding="utf-8"))
+    found = settings.get("sdl2_cmake_dir", "")
+    if not found or Path(found).resolve() != sdl2_cmake.resolve():
+        raise RuntimeError(f"the hub took SDL2 from {found!r}, not from the release ({sdl2_cmake})")
+    games = sorted((data / "games").glob("*/game/*" + EXE_SUFFIX))
+    if len(games) != 1:
+        raise RuntimeError(f"the hub built no game, or more than one: {games}")
+    return "with nothing set up, imported, built and ran the Game Boy fixture"
 
 
 def verify_manifest(installed: Path) -> dict:
@@ -272,7 +319,7 @@ def verify_manifest(installed: Path) -> dict:
     return manifest
 
 
-def package(bin_dir: Path, output: Path, extra_files: list[str]) -> None:
+def package(bin_dir: Path, output: Path, extra_files: list[str], sdl2_dev: Path | None) -> None:
     command: list[object] = [
         sys.executable,
         REPOSITORY / "tools/create_distribution.py",
@@ -287,6 +334,8 @@ def package(bin_dir: Path, output: Path, extra_files: list[str]) -> None:
     if hub.is_file():
         command += ["--hub", hub]
     command += [f"--extra-file={specification}" for specification in extra_files]
+    if sdl2_dev is not None:
+        command += ["--sdl2-dev", sdl2_dev]
     run(command, cwd=REPOSITORY)
 
 
@@ -300,6 +349,12 @@ def main() -> int:
         action="append",
         default=[],
         metavar="SOURCE=DESTINATION",
+        help="with --bin-dir: passed to create_distribution.py",
+    )
+    parser.add_argument(
+        "--sdl2-dev",
+        type=Path,
+        metavar="DIR",
         help="with --bin-dir: passed to create_distribution.py",
     )
     parser.add_argument("--gba-rom", type=Path, help="jsmolka arm.gba")
@@ -324,8 +379,19 @@ def main() -> int:
             # A copy, so nothing can depend on where the archive was extracted.
             shutil.copytree(args.distribution_dir, installed)
         else:
-            package(args.bin_dir.resolve(), installed, args.extra_file)
+            package(args.bin_dir.resolve(), installed, args.extra_file, args.sdl2_dev)
         manifest = verify_manifest(installed)
+
+        # The release's own SDL2, where it has one, is what its user builds
+        # against, so it is what the projects here are built against.
+        cmake_args = list(args.cmake_arg)
+        sdl2_cmake = None
+        if "sdl2" in manifest:
+            sdl2_cmake = installed / manifest["sdl2"]["cmake_dir"]
+            if not (sdl2_cmake / "sdl2-config.cmake").is_file():
+                raise RuntimeError(f"the release's SDL2 has no sdl2-config.cmake in {sdl2_cmake}")
+            cmake_args = [arg for arg in cmake_args if not arg.startswith("-DSDL2_DIR=")]
+            cmake_args.append(f"-DSDL2_DIR={sdl2_cmake.as_posix()}")
 
         executables = [entry["cli"]["path"] for entry in manifest["consoles"].values()]
         if "hub" in manifest:
@@ -339,7 +405,7 @@ def main() -> int:
         environment["PATH"] = str(installed) + os.pathsep + environment.get("PATH", "")
         smoke = Smoke(
             root=root,
-            cmake_args=args.cmake_arg,
+            cmake_args=cmake_args,
             env=environment,
             gba_rom=args.gba_rom.resolve() if args.gba_rom else None,
         )
@@ -356,6 +422,10 @@ def main() -> int:
             if "Native Console Hub" not in output:
                 raise RuntimeError(f"hub --help printed no banner:\n{output}")
             print("ok   hub: --help")
+            if sdl2_cmake is not None:
+                print(f"ok   hub: {hub_first_use(smoke, hub, sdl2_cmake)}")
+        if sdl2_cmake is not None:
+            print("ok   sdl2: every project was built against the release's own SDL2")
 
     print("relocated release generated, built, and ran a project for every console")
     return 0

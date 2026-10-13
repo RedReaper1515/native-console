@@ -197,8 +197,12 @@ void Settings::detect_defaults() {
     if (vcvars_bat.empty()) vcvars_bat = first_existing(vcvars_candidates);
 
     if (sdl2_cmake_dir.empty()) {
+        // A release carries SDL2's development files beside the hub, in
+        // SDL2/; a hub run from its build tree has the SDL2 it was built with.
+        const std::string beside = platform::join(platform::join(exe_dir, "SDL2"), "cmake");
         std::string compiled_in = HUB_SDL2_DIR;
-        if (platform::is_directory(compiled_in)) sdl2_cmake_dir = platform::absolute(compiled_in);
+        if (platform::is_directory(beside)) sdl2_cmake_dir = beside;
+        else if (platform::is_directory(compiled_in)) sdl2_cmake_dir = platform::absolute(compiled_in);
     }
 #ifdef _WIN32
     if (sdl2_dll.empty()) {

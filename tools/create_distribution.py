@@ -7,6 +7,11 @@ the root when --hub is given, so its auto-detection finds the recompilers
 next to it. native-console-release.json records every file's hash, each
 recompiler's --version-json identity and each runtime's tree hash.
 
+A Windows release also carries SDL2's development files (--sdl2-dev, the
+unpacked SDL2-devel-*-VC package) in SDL2/: every game is compiled on the
+user's computer against SDL2, and the hub looks for SDL2/cmake beside
+itself, so that nothing has to be downloaded and pointed at by hand.
+
 Adding a console to the release is one CONSOLES row here plus its smoke
 recipe in tests/test_release_bundle.py.
 """
@@ -119,7 +124,33 @@ CONSOLES = (
             "platform/gc_sdl.cpp",
         ),
     ),
+    Console(
+        "n64",
+        "n64recomp",
+        "runtime-n64",
+        (
+            "include/n64_recomp.h",
+            "include/n64.h",
+            "src/n64.c",
+            "src/n64_runner.c",
+            "platform/n64_sdl.cpp",
+            "cmake/NativeConsoleMacBundle.cmake",
+        ),
+    ),
 )
+
+# SDL2's development files as a release carries them: the layout of the
+# SDL2-devel-*-VC package, which its own sdl2-config.cmake expects, with only
+# what a generated project needs to configure, compile, link and run.
+SDL2_DEV_FOLDER = "SDL2"
+SDL2_DEV_FILES = (
+    "cmake/sdl2-config.cmake",
+    "cmake/sdl2-config-version.cmake",
+    "lib/x64/SDL2.dll",
+    "lib/x64/SDL2.lib",
+    "lib/x64/SDL2main.lib",
+)
+SDL2_DEV_LICENSES = ("LICENSE.txt", "COPYING.txt")
 
 
 class DistributionError(RuntimeError):
@@ -235,6 +266,31 @@ def load_identity(executable: Path, tool: str) -> dict[str, Any]:
     return value
 
 
+def copy_sdl2_dev(package: Path, output: Path) -> str:
+    """Copies the part of an unpacked SDL2-devel-*-VC package a generated
+    project builds against into output/SDL2, and returns its cmake folder."""
+    package = require_directory(package, "SDL2 development package")
+    destination = output / SDL2_DEV_FOLDER
+    if destination.exists():
+        raise DistributionError(f"two things would be written to {destination}")
+    headers = sorted(path for path in (package / "include").glob("*.h") if path.is_file())
+    if not headers:
+        raise DistributionError(f"no SDL2 headers in {package / 'include'}")
+    license_path = next(
+        (package / name for name in SDL2_DEV_LICENSES if (package / name).is_file()), None
+    )
+    if license_path is None:
+        raise DistributionError(f"no SDL2 license in {package}")
+    files = [(require_file(package / relative, "SDL2 development file"), relative) for relative in SDL2_DEV_FILES]
+    files += [(header, f"include/{header.name}") for header in headers]
+    files.append((license_path, "LICENSE.txt"))
+    for source, relative in files:
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    return f"{SDL2_DEV_FOLDER}/cmake"
+
+
 def inventory(root: Path) -> list[dict[str, object]]:
     files = []
     for path in sorted(candidate for candidate in root.rglob("*") if candidate.is_file()):
@@ -284,6 +340,13 @@ def main() -> int:
         default=[],
         metavar="SOURCE=DESTINATION",
         help="copy an additional platform file into a safe relative path",
+    )
+    parser.add_argument(
+        "--sdl2-dev",
+        type=Path,
+        metavar="DIR",
+        help="an unpacked SDL2-devel-*-VC package: its cmake, include and lib/x64 "
+        "are shipped in SDL2/, where the hub finds them (Windows)",
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--platform", dest="platform_name")
@@ -368,6 +431,7 @@ def main() -> int:
             raise DistributionError(f"extra-file destination exists: {destination}")
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
+    sdl2_cmake = copy_sdl2_dev(args.sdl2_dev, output) if args.sdl2_dev else None
 
     payload: dict[str, Any] = {
         "schema": MANIFEST_SCHEMA,
@@ -382,6 +446,8 @@ def main() -> int:
     }
     if hub_entry is not None:
         payload["hub"] = hub_entry
+    if sdl2_cmake is not None:
+        payload["sdl2"] = {"cmake_dir": sdl2_cmake}
     manifest = output / MANIFEST_NAME
     manifest.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
@@ -396,6 +462,8 @@ def main() -> int:
         )
     if hub_entry is not None:
         print(f"    hub: {hub_entry['path']}")
+    if sdl2_cmake is not None:
+        print(f"    sdl2: {sdl2_cmake}")
     print(f"    manifest_sha256={sha256(manifest)}")
     return 0
 

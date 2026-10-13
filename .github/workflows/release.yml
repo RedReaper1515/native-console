@@ -217,6 +217,7 @@ jobs:
             --extra-file "THIRD_PARTY.md=THIRD_PARTY.md" `
             --extra-file "SDL2/lib/x64/SDL2.dll=SDL2.dll" `
             --extra-file "SDL2/COPYING.txt=THIRD_PARTY/SDL2-LICENSE.txt" `
+            --sdl2-dev SDL2 `
             --output package/native-console-windows-x64 `
             --platform windows `
             --architecture x64

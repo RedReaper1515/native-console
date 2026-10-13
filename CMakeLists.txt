@@ -10,7 +10,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 project(gameboy-recompiled 
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "Static recompiler for Game Boy (DMG/CGB) ROMs"
     LANGUAGES C CXX
 )
