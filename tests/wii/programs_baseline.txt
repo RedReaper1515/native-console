@@ -1,0 +1,23 @@
+# Failing subtests per test program on the Wii machine, from
+# tools/gc/run_gc_tests.py --runner-arg=--wii (CTest wii_programs_baseline).
+# wii_* are tests/wii/programs; gc_* are tests/gc/programs built for the Wii
+# (tools/wii/build_wii_programs.py), which have to pass on either console.
+# Zero means the program passes outright. A number is a debt, not a target:
+# wii_cputest's is the count of instructions whose results differ from a
+# 750CL's (achurch ppc750cl.s), nearly all of them floating-point status
+# details in the processor core both consoles share. docs/WII-PLAN.md.
+gc_audiotest 0
+gc_blendtest 0
+gc_cardtest 0
+gc_disctest 0
+gc_drawtest 0
+gc_fogtest 0
+gc_memtest 0
+gc_padtest 0
+gc_tevtest 0
+gc_textest 0
+gc_timetest 0
+wii_cputest 268
+wii_fstest 0
+wii_hello 0
+wii_padtest 0

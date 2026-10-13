@@ -1,0 +1,71 @@
+# SNES test ROMs that pass in the interpreter (tools/snes/run_snes_tests.py).
+# CTest snes_test_roms_baseline fails if any of these stops passing.
+# Not listed: higan/blargg-spc-6/spc_smp.sfc, whose 'verify IPL ROM' test checks
+# for Nintendo's boot ROM, which is not used; krom PPU demos whose reference
+# screenshot is animated, joypad-scrolled or colour-quantized (docs/SNES-PLAN.md);
+# absindx SA1RamProtectionTest(NO SRAM).sfc, whose header declares no BW-RAM
+# (no hardware result is published for that variant).
+gilyon/cputest/cputest-full.sfc
+gilyon/cputest/cputest-basic.sfc
+gilyon/spctest/spctest.sfc
+absindx/SnesTestRoms/SA1RebootTest/SA1RebootTest.sfc
+absindx/SnesTestRoms/SA1RamProtectionTest/SA1RamProtectionTest.sfc
+peterlemon/CPUTest/CPU/ADC/CPUADC.sfc
+peterlemon/CPUTest/CPU/AND/CPUAND.sfc
+peterlemon/CPUTest/CPU/ASL/CPUASL.sfc
+peterlemon/CPUTest/CPU/BIT/CPUBIT.sfc
+peterlemon/CPUTest/CPU/BRA/CPUBRA.sfc
+peterlemon/CPUTest/CPU/CMP/CPUCMP.sfc
+peterlemon/CPUTest/CPU/DEC/CPUDEC.sfc
+peterlemon/CPUTest/CPU/EOR/CPUEOR.sfc
+peterlemon/CPUTest/CPU/INC/CPUINC.sfc
+peterlemon/CPUTest/CPU/JMP/CPUJMP.sfc
+peterlemon/CPUTest/CPU/LDR/CPULDR.sfc
+peterlemon/CPUTest/CPU/LSR/CPULSR.sfc
+peterlemon/CPUTest/CPU/MOV/CPUMOV.sfc
+peterlemon/CPUTest/CPU/MSC/CPUMSC.sfc
+peterlemon/CPUTest/CPU/ORA/CPUORA.sfc
+peterlemon/CPUTest/CPU/PHL/CPUPHL.sfc
+peterlemon/CPUTest/CPU/PSR/CPUPSR.sfc
+peterlemon/CPUTest/CPU/RET/CPURET.sfc
+peterlemon/CPUTest/CPU/ROL/CPUROL.sfc
+peterlemon/CPUTest/CPU/ROR/CPUROR.sfc
+peterlemon/CPUTest/CPU/SBC/CPUSBC.sfc
+peterlemon/CPUTest/CPU/STR/CPUSTR.sfc
+peterlemon/CPUTest/CPU/TRN/CPUTRN.sfc
+peterlemon/CPUTest/SPC700/ADC/SPC700ADC.sfc
+peterlemon/CPUTest/SPC700/AND/SPC700AND.sfc
+peterlemon/CPUTest/SPC700/DEC/SPC700DEC.sfc
+peterlemon/CPUTest/SPC700/EOR/SPC700EOR.sfc
+peterlemon/CPUTest/SPC700/INC/SPC700INC.sfc
+peterlemon/CPUTest/SPC700/ORA/SPC700ORA.sfc
+peterlemon/CPUTest/SPC700/SBC/SPC700SBC.sfc
+higan/blargg-spc-6/spc_dsp6.sfc
+higan/blargg-spc-6/spc_mem_access_times.sfc
+higan/blargg-spc-6/spc_timer.sfc
+peterlemon/PPU/BGMAP/8x8/2BPP/8x8BG1Map2BPP32x328PAL/8x8BG1Map2BPP32x328PAL.sfc
+peterlemon/PPU/BGMAP/8x8/2BPP/8x8BG2Map2BPP32x328PAL/8x8BG2Map2BPP32x328PAL.sfc
+peterlemon/PPU/BGMAP/8x8/2BPP/8x8BG3Map2BPP32x328PAL/8x8BG3Map2BPP32x328PAL.sfc
+peterlemon/PPU/BGMAP/8x8/2BPP/8x8BG4Map2BPP32x328PAL/8x8BG4Map2BPP32x328PAL.sfc
+peterlemon/PPU/BGMAP/8x8/4BPP/8x8BGMap4BPP32x328PAL/8x8BGMap4BPP32x328PAL.sfc
+peterlemon/PPU/BGMAP/8x8/8BPP/TileFlip/8x8BGMapTileFlip.sfc
+peterlemon/PPU/Blend/HiColor/HiColor3840/HiColor3840.sfc
+peterlemon/PPU/Blend/HiColor/HiColor575Myst/HiColor575Myst.sfc
+peterlemon/PPU/GreenSpace/GreenSpace.sfc
+peterlemon/PPU/HDMA/HiColor128PerTileRow/HiColor128PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor128PerTileRow/TEST/DQ128PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor128PerTileRow/TEST/lenna128PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor128PerTileRow/TEST/mandrill128PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor128PerTileRow/TEST/RGB_24bits_palette_color_test_chart128PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor64PerTileRow/HiColor64PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor64PerTileRow/TEST/DQ64PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor64PerTileRow/TEST/lenna64PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor64PerTileRow/TEST/mandrill64PerTileRow.sfc
+peterlemon/PPU/HDMA/HiColor64PerTileRow/TEST/RGB_24bits_palette_color_test_chart64PerTileRow.sfc
+peterlemon/PPU/HDMA/Mode7HDMA/Mode7HDMA.sfc
+peterlemon/PPU/HDMA/RedSpaceHDMA/RedSpaceHDMA.sfc
+peterlemon/PPU/HDMA/RedSpaceIndirectHDMA/RedSpaceIndirectHDMA.sfc
+peterlemon/PPU/Interlace/InterlaceRPG/InterlaceRPG.sfc
+peterlemon/PPU/Mode7/Perspective/Perspective.sfc
+peterlemon/PPU/Rings/Rings.sfc
+peterlemon/PPU/Window/WindowHDMA/WindowHDMA.sfc

@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""Generate a minimal GameBoy ROM for testing the recompiler."""
+
+import struct
+
+# Minimal GB ROM
+rom = bytearray(32768)  # 32KB ROM (smallest valid size)
+
+# Nintendo logo at 0x0104-0x0133 (required for boot)
+# Using the actual Nintendo logo bytes
+nintendo_logo = bytes([
+    0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B,
+    0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D,
+    0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E,
+    0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99,
+    0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC,
+    0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E
+])
+
+# ROM header at 0x0100
+rom[0x0100] = 0x00  # NOP
+rom[0x0101] = 0xC3  # JP
+rom[0x0102] = 0x50  # Low byte of 0x0150
+rom[0x0103] = 0x01  # High byte of 0x0150
+
+# Nintendo logo
+rom[0x0104:0x0104 + len(nintendo_logo)] = nintendo_logo
+
+# Title (11 bytes max for new format, 16 for old)
+title = b"TEST\x00\x00\x00\x00\x00\x00\x00"
+rom[0x0134:0x0134 + 11] = title
+
+# Color GB flag
+rom[0x0143] = 0x00  # DMG only
+
+# Licensee code
+rom[0x0144] = 0x00
+rom[0x0145] = 0x00
+
+# SGB flag
+rom[0x0146] = 0x00
+
+# Cartridge type (ROM only)
+rom[0x0147] = 0x00
+
+# ROM size (32KB)
+rom[0x0148] = 0x00
+
+# RAM size (none)
+rom[0x0149] = 0x00
+
+# Destination code (Japanese)
+rom[0x014A] = 0x00
+
+# Old licensee code
+rom[0x014B] = 0x00
+
+# ROM version
+rom[0x014C] = 0x00
+
+# Header checksum (computed)
+checksum = 0
+for i in range(0x0134, 0x014D):
+    checksum = (checksum - rom[i] - 1) & 0xFF
+rom[0x014D] = checksum
+
+# Global checksum (sum of all bytes except 0x014E-0x014F)
+# This is optional and often ignored
+
+# Entry point at 0x0150 (simple test code)
+code = [
+    # Initialize
+    0x31, 0xFE, 0xFF,  # LD SP, 0xFFFE
+    0x3E, 0x42,        # LD A, 0x42
+    0x06, 0x10,        # LD B, 0x10
+    
+    # Simple loop
+    # loop:
+    0x05,              # DEC B
+    0x20, 0xFD,        # JR NZ, loop (-3 bytes)
+    
+    # Store result
+    0xEA, 0x00, 0xC0,  # LD (0xC000), A
+    
+    # Halt
+    0x76,              # HALT
+]
+
+for i, byte in enumerate(code):
+    rom[0x0150 + i] = byte
+
+# RST vectors (simple return for each)
+for vec in [0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38]:
+    rom[vec] = 0xC9  # RET
+
+# Interrupt vectors (RETI for each)
+for vec in [0x40, 0x48, 0x50, 0x58, 0x60]:
+    rom[vec] = 0xD9  # RETI
+
+# Write ROM file
+with open('test.gb', 'wb') as f:
+    f.write(rom)
+
+print(f"Created test.gb ({len(rom)} bytes)")
+print(f"Header checksum: 0x{checksum:02X}")

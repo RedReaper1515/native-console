@@ -1,0 +1,3 @@
+// Windows resources for native_console_hub: application icon (ID 1 is what
+// Explorer, the taskbar, and shortcuts pick up by default).
+1 ICON "hub.ico"

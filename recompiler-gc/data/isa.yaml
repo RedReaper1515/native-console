@@ -1,0 +1,5252 @@
+fields:
+  # Immediates
+  - name: simm
+    arg: Simm
+    desc: Signed Immediate
+    bits: 16..32
+    signed: true
+  - name: uimm
+    arg: Uimm
+    desc: Unsigned Immediate
+    bits: 16..32
+  - name: offset
+    arg: Offset
+    desc: Branch Offset
+    bits: 16..32
+    signed: true
+  # Branch fields
+  - name: BO
+    arg: OpaqueU
+    desc: Branch Options
+    bits: 6..11
+  - name: BI
+    arg: CRBit
+    desc: Branch Condition Register Bit
+    bits: 11..16
+  - name: BD
+    arg: BranchDest
+    desc: Branch Destination (14-bit)
+    bits: 16..30
+    shift_left: 2
+    signed: true
+  - name: LI
+    arg: BranchDest
+    desc: Branch Destination (24-bit)
+    bits: 6..30
+    signed: true
+    shift_left: 2
+  # Shift/rotate type fields
+  - name: SH
+    arg: OpaqueU
+    desc: Shift Amount
+    bits: 16..21
+  - name: MB
+    arg: OpaqueU
+    desc: Mask Begin
+    bits: 21..26
+  - name: ME
+    arg: OpaqueU
+    desc: Mask End
+    bits: 26..31
+  # Registers
+  - name: rS
+    arg: GPR
+    desc: Source Register
+    bits: 6..11
+  - name: rD
+    arg: GPR
+    desc: Destination Register
+    bits: 6..11
+  - name: rA
+    arg: GPR
+    desc: Register A
+    bits: 11..16
+  - name: rA.nz
+    arg: GPR
+    desc: Register A (non-zero)
+    bits: 11..16
+  - name: rB
+    arg: GPR
+    desc: Register B
+    bits: 16..21
+  - name: sr
+    arg: SR
+    desc: Segment Register
+    bits: 12..16
+  - name: spr
+    arg: SPR
+    desc: Special Purpose Register
+    bits: 16..21,11..16
+  # Floating-point registers
+  - name: frS
+    arg: FPR
+    desc: Source Floating-Point Register
+    bits: 6..11
+  - name: frD
+    arg: FPR
+    desc: Destination Floating-Point Register
+    bits: 6..11
+  - name: frA
+    arg: FPR
+    desc: Floating-Point Register A
+    bits: 11..16
+  - name: frB
+    arg: FPR
+    desc: Floating-Point Register B
+    bits: 16..21
+  - name: frC
+    arg: FPR
+    desc: Floating-Point Register C
+    bits: 21..26
+  # Condition register bits
+  - name: crbD
+    arg: CRBit
+    desc: Condition Register Bit Destination
+    bits: 6..11
+  - name: crbA
+    arg: CRBit
+    desc: Condition Register Bit A
+    bits: 11..16
+  - name: crbB
+    arg: CRBit
+    desc: Condition Register Bit B
+    bits: 16..21
+  # Condition register fields
+  - name: crfD
+    arg: CRField
+    desc: Condition Register Field Destination
+    bits: 6..9
+  - name: crfS
+    arg: CRField
+    desc: Condition Register Field Source
+    bits: 11..14
+  # Condition register misc
+  - name: crm
+    arg: OpaqueU
+    desc: Condition Register Mask
+    bits: 12..20
+  # Misc
+  - name: NB
+    arg: OpaqueU
+    bits: 16..21
+  - name: tbr
+    arg: OpaqueU
+    desc: Time Base
+    bits: 16..21,11..16
+  - name: mtfsf_FM
+    arg: OpaqueU
+    desc: Field Mask for mtfsf
+    bits: 7..15
+  - name: mtfsf_IMM
+    arg: OpaqueU
+    desc: Immediate for mtfsfi
+    bits: 16..20
+  - name: spr_SPRG
+    arg: OpaqueU
+    desc: SPRG index for m[tf]sprg
+    bits: 14..16
+  - name: spr_BAT
+    arg: OpaqueU
+    desc: IBAT/DBAT index for m[tf][id]bat[ul]
+    bits: 13..15
+  - name: TO
+    arg: OpaqueU
+    desc: Bitset for tw and twi
+    bits: 6..11
+  - name: L
+    arg: OpaqueU
+    desc: Bitset for cmp, cmpi, cmpl, cmpli
+    bits: 10..11
+  - name: xer
+    desc: Fixed-Point Exception Register
+  - name: ctr
+    desc: Count Register
+  - name: lr
+    desc: Link Register
+  - name: sync_L
+    arg: OpaqueU
+    desc: L field for sync
+    bits: 9..11
+
+modifiers:
+  - name: OE
+    desc: Field used by XO-form instructions to enable setting OV and SO in the XER.
+    suffix: o
+    bit: 21
+    side_effects: [ xer ]
+  - name: Rc
+    desc: Record Bit
+    suffix: .
+    bit: 31
+    side_effects: [ cr0 ]
+  - name: LK
+    desc: Link Bit
+    suffix: l
+    bit: 31
+    side_effects: [ lr ]
+  - name: AA
+    desc: Absolute Address Bit
+    suffix: a
+    bit: 30
+  - name: BP
+    desc: Predict branch to be taken
+    suffix: +
+    bit: 10
+    condition: BD >= 0
+  - name: BNP
+    desc: Predict branch not to be taken (fall through)
+    suffix: '-'
+    bit: 10
+    condition: BD < 0
+  - name: BP_ND
+    desc: Predict branch to be taken (implicit dest for LR/CTR)
+    suffix: +
+    bit: 10
+
+opcodes:
+  - name: add
+    desc: Add
+    bitmask: 0xfc0003fe
+    pattern: 0x7c000214
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: addc
+    aliases: [ a ]
+    desc: Add Carrying
+    bitmask: 0xfc0003fe
+    pattern: 0x7c000014
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: adde
+    aliases: [ ae ]
+    desc: Add Extended
+    bitmask: 0xfc0003fe
+    pattern: 0x7c000114
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: addi
+    aliases: [ cal ]
+    desc: Add Immediate
+    bitmask: 0xfc000000
+    pattern: 0x38000000
+    args: [ rD, rA, simm ]
+    defs: [ rD ]
+    uses: [ rA.nz ]
+
+  - name: addic
+    aliases: [ ai ]
+    desc: Add Immediate Carrying
+    bitmask: 0xfc000000
+    pattern: 0x30000000
+    args: [ rD, rA, simm ]
+    side_effects: [ xer ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: addic.
+    aliases: [ ai. ]
+    desc: Add Immediate Carrying and Record
+    bitmask: 0xfc000000
+    pattern: 0x34000000
+    args: [ rD, rA, simm ]
+    side_effects: [ xer, cr0 ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: addis
+    aliases: [ cau ]
+    desc: Add Immediate Shifted
+    bitmask: 0xfc000000
+    pattern: 0x3c000000
+    args: [ rD, rA, uimm ]
+    defs: [ rD ]
+    uses: [ rA.nz ]
+
+  - name: addme
+    aliases: [ ame ]
+    desc: Add to Minus One Extended
+    bitmask: 0xfc00fbfe
+    pattern: 0x7c0001d4
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: addze
+    aliases: [ aze ]
+    desc: Add to Zero Extended
+    bitmask: 0xfc00fbfe
+    pattern: 0x7c000194
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: and
+    desc: AND
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000038
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: andc
+    desc: AND with Complement
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000078
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: andi.
+    aliases: [ andil. ]
+    desc: AND Immediate
+    bitmask: 0xfc000000
+    pattern: 0x70000000
+    side_effects: [ Rc ]
+    args: [ rA, rS, uimm ]
+    defs: [ rA ]
+    uses: [ rB ]
+
+  - name: andis.
+    aliases: [ andiu. ]
+    desc: AND Immediate Shifted
+    bitmask: 0xfc000000
+    pattern: 0x74000000
+    side_effects: [ Rc ]
+    args: [ rA, rS, uimm ]
+    defs: [ rA ]
+    uses: [ rB ]
+
+  - name: b
+    desc: Branch
+    bitmask: 0xfc000000
+    pattern: 0x48000000
+    modifiers: [ LK, AA ]
+    args: [ LI ]
+
+  - name: bc
+    desc: Branch Conditional
+    bitmask: 0xfc000000
+    pattern: 0x40000000
+    modifiers: [ LK, AA, BP, BNP ]
+    args: [ BO, BI, BD ]
+
+  - name: bcctr
+    aliases: [ bcc ]
+    desc: Branch Conditional to Count Register
+    bitmask: 0xfc00fffe
+    pattern: 0x4c000420
+    modifiers: [ LK, BP_ND ]
+    args: [ BO, BI ]
+    uses: [ ctr ]
+
+  - name: bclr
+    aliases: [ bcr ]
+    desc: Branch Conditional to Link Register
+    bitmask: 0xfc00fffe
+    pattern: 0x4c000020
+    modifiers: [ LK, BP_ND ]
+    args: [ BO, BI ]
+    uses: [ lr ]
+
+  - name: cmp
+    desc: Compare
+    bitmask: 0xfc4007ff
+    pattern: 0x7c000000
+    args: [ crfD, L, rA, rB ]
+    defs: [ crfD ]
+    uses: [ rA, rB ]
+
+  - name: cmpi
+    desc: Compare Immediate
+    bitmask: 0xfc400000
+    pattern: 0x2c000000
+    args: [ crfD, L, rA, simm ]
+    defs: [ crfD ]
+    uses: [ rA ]
+
+  - name: cmpl
+    desc: Compare Logical
+    bitmask: 0xfc4007ff
+    pattern: 0x7c000040
+    args: [ crfD, L, rA, rB ]
+    defs: [ crfD ]
+    uses: [ rA, rB ]
+
+  - name: cmpli
+    desc: Compare Logical Immediate
+    bitmask: 0xfc400000
+    pattern: 0x28000000
+    args: [ crfD, L, rA, uimm ]
+    defs: [ crfD ]
+    uses: [ rA ]
+
+  - name: cntlzw
+    aliases: [ cntlz ]
+    desc: Count Leading Zeros Word
+    bitmask: 0xfc00fffe
+    pattern: 0x7c000034
+    modifiers: [ Rc ]
+    args: [ rA, rS ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: crand
+    desc: Condition Register AND
+    bitmask: 0xfc0007ff
+    pattern: 0x4c000202
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: crandc
+    desc: Condition Register AND with Complement
+    bitmask: 0xfc0007ff
+    pattern: 0x4c000102
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: creqv
+    desc: Condition Register Equivalent
+    bitmask: 0xfc0007ff
+    pattern: 0x4c000242
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: crnand
+    desc: Condition Register NAND
+    bitmask: 0xfc0007ff
+    pattern: 0x4c0001c2
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: crnor
+    desc: Condition Register NOR
+    bitmask: 0xfc0007ff
+    pattern: 0x4c000042
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: cror
+    desc: Condition Register OR
+    bitmask: 0xfc0007ff
+    pattern: 0x4c000382
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: crorc
+    desc: Condition Register OR with Complement
+    bitmask: 0xfc0007ff
+    pattern: 0x4c000342
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: crxor
+    desc: Condition Register XOR
+    bitmask: 0xfc0007ff
+    pattern: 0x4c000182
+    args: [ crbD, crbA, crbB ]
+    defs: [ crbD ]
+    uses: [ crbA, crbB ]
+
+  - name: dcbf
+    desc: Data Cache Block Flush
+    bitmask: 0xffe007ff
+    pattern: 0x7c0000ac
+    args: [ rA, rB ]
+    uses: [ rA.nz, rB ]
+
+  - name: dcbi
+    desc: Data Cache Block Invalidate
+    bitmask: 0xffe007ff
+    pattern: 0x7c0003ac
+    args: [ rA, rB ]
+    uses: [ rA.nz, rB ]
+
+  - name: dcbst
+    desc: Data Cache Block Store
+    bitmask: 0xffe007ff
+    pattern: 0x7c00006c
+    args: [ rA, rB ]
+    uses: [ rA.nz, rB ]
+
+  - name: dcbt
+    desc: Data Cache Block Touch
+    bitmask: 0xffe007ff
+    pattern: 0x7c00022c
+    args: [ rA, rB ]
+    uses: [ rA.nz, rB ]
+
+  - name: dcbtst
+    desc: Data Cache Block Touch for Store
+    bitmask: 0xffe007ff
+    pattern: 0x7c0001ec
+    args: [ rA, rB ]
+    uses: [ rA.nz, rB ]
+
+  - name: dcbz
+    aliases: [ dclz ]
+    desc: Data Cache Block Clear to Zero
+    bitmask: 0xffe007ff
+    pattern: 0x7c0007ec
+    args: [ rA, rB ]
+    uses: [ rA.nz, rB ]
+
+  - name: divw
+    desc: Divide Word
+    bitmask: 0xfc0003fe
+    pattern: 0x7c0003d6
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: divwu
+    desc: Divide Word Unsigned
+    bitmask: 0xfc0003fe
+    pattern: 0x7c000396
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: eciwx
+    desc: External Control In Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00026c
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: ecowx
+    desc: External Control Out Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00036c
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: eieio
+    desc: Enforce In-Order Execution of I/O
+    bitmask: 0xffffffff
+    pattern: 0x7c0006ac
+
+  - name: eqv
+    desc: Equivalent
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000238
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: extsb
+    desc: Extend Sign Byte
+    bitmask: 0xfc00fffe
+    pattern: 0x7c000774
+    modifiers: [ Rc ]
+    args: [ rA, rS ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: extsh
+    aliases: [ exts ]
+    desc: Extend Sign Half Word
+    bitmask: 0xfc00fffe
+    pattern: 0x7c000734
+    modifiers: [ Rc ]
+    args: [ rA, rS ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: fabs
+    desc: Floating Absolute Value
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc000210
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: fadd
+    aliases: [ fa ]
+    desc: Floating Add (Double-Precision)
+    bitmask: 0xfc0007fe
+    pattern: 0xfc00002a
+    modifiers: [ Rc ]
+    args: [ frD, frA, frB ]
+    defs: [ frD ]
+    uses: [ frA, frB ]
+
+  - name: fadds
+    desc: Floating Add (Single-Precision)
+    bitmask: 0xfc0007fe
+    pattern: 0xec00002a
+    modifiers: [ Rc ]
+    args: [ frD, frA, frB ]
+    defs: [ frD ]
+    uses: [ frA, frB ]
+
+  - name: fcmpo
+    desc: Floating Compare Ordered
+    bitmask: 0xfc6007ff
+    pattern: 0xfc000040
+    args: [ crfD, frA, frB ]
+    defs: [ crfD ]
+    uses: [ frA, frB ]
+
+  - name: fcmpu
+    desc: Floating Compare Unordered
+    bitmask: 0xfc6007ff
+    pattern: 0xfc000000
+    args: [ crfD, frA, frB ]
+    defs: [ crfD ]
+    uses: [ frA, frB ]
+
+  - name: fctiw
+    aliases: [ fcir ]
+    desc: Floating Convert to Integer Word
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc00001c
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: fctiwz
+    aliases: [ fcirz ]
+    desc: Floating Convert to Integer Word with Round toward Zero
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc00001e
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: fdiv
+    aliases: [ fd ]
+    desc: Floating Divide (Double-Precision)
+    bitmask: 0xfc0007fe
+    pattern: 0xfc000024
+    modifiers: [ Rc ]
+    args: [ frD, frA, frB ]
+    defs: [ frD ]
+    uses: [ frA, frB ]
+
+  - name: fdivs
+    desc: Floating Divide (Single-Precision)
+    bitmask: 0xfc0007fe
+    pattern: 0xec000024
+    modifiers: [ Rc ]
+    args: [ frD, frA, frB ]
+    defs: [ frD ]
+    uses: [ frA, frB ]
+
+  - name: fmadd
+    aliases: [ fma ]
+    desc: Floating Multiply-Add (Double-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xfc00003a
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fmadds
+    desc: Floating Multiply-Add (Single-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xec00003a
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fmr
+    desc: Floating Move Register (Double-Precision)
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc000090
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: fmsub
+    aliases: [ fms ]
+    desc: Floating Multiply-Subtract (Double-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xfc000038
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fmsubs
+    desc: Floating Multiply-Subtract (Single-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xec000038
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fmul
+    aliases: [ fm ]
+    desc: Floating Multiply (Double-Precision)
+    bitmask: 0xfc00f83e
+    pattern: 0xfc000032
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC ]
+    defs: [ frD ]
+    uses: [ frA, frC ]
+
+  - name: fmuls
+    desc: Floating Multiply (Single-Precision)
+    bitmask: 0xfc00f83e
+    pattern: 0xec000032
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC ]
+    defs: [ frD ]
+    uses: [ frA, frC ]
+
+  - name: fnabs
+    desc: Floating Negative Absolute Value
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc000110
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: fneg
+    desc: Floating Negate
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc000050
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: fnmadd
+    aliases: [ fnma ]
+    desc: Floating Negative Multiply-Add (Double-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xfc00003e
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fnmadds
+    desc: Floating Negative Multiply-Add (Single-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xec00003e
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fnmsub
+    aliases: [ fnms ]
+    desc: Floating Negative Multiply-Subtract (Double-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xfc00003c
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fnmsubs
+    desc: Floating Negative Multiply-Subtract (Single-Precision)
+    bitmask: 0xfc00003e
+    pattern: 0xec00003c
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fres
+    desc: Floating Reciprocal Estimate Single
+    bitmask: 0xfc1f07fe
+    pattern: 0xec000030
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: frsp
+    desc: Floating Round to Single
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc000018
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: frsqrte
+    desc: Floating Reciprocal Square Root Estimate
+    bitmask: 0xfc1f07fe
+    pattern: 0xfc000034
+    modifiers: [ Rc ]
+    args: [ frD, frB ]
+    defs: [ frD ]
+    uses: [ frB ]
+
+  - name: fsel
+    desc: Floating Select
+    bitmask: 0xfc00003e
+    pattern: 0xfc00002e
+    modifiers: [ Rc ]
+    args: [ frD, frA, frC, frB ]
+    defs: [ frD ]
+    uses: [ frA, frC, frB ]
+
+  - name: fsub
+    aliases: [ fs ]
+    desc: Floating Subtract (Double-Precision)
+    bitmask: 0xfc0007fe
+    pattern: 0xfc000028
+    modifiers: [ Rc ]
+    args: [ frD, frA, frB ]
+    defs: [ frD ]
+    uses: [ frA, frB ]
+
+  - name: fsubs
+    desc: Floating Subtract (Single-Precision)
+    bitmask: 0xfc0007fe
+    pattern: 0xec000028
+    modifiers: [ Rc ]
+    args: [ frD, frA, frB ]
+    defs: [ frD ]
+    uses: [ frA, frB ]
+
+  - name: icbi
+    desc: Instruction Cache Block Invalidate
+    bitmask: 0xffe007fe
+    pattern: 0x7c0007ac
+    modifiers: [ Rc ]
+    args: [ rA, rB ]
+    uses: [ rA.nz, rB ]
+
+  - name: isync
+    aliases: [ ics ]
+    desc: Instruction Synchronize
+    bitmask: 0xffffffff
+    pattern: 0x4c00012c
+
+  - name: lbz
+    desc: Load Byte and Zero
+    bitmask: 0xfc000000
+    pattern: 0x88000000
+    args: [ rD, offset, rA ]
+    defs: [ rD ]
+    uses: [ offset, rA.nz ]
+
+  - name: lbzu
+    desc: Load Byte and Zero with Update
+    bitmask: 0xfc000000
+    pattern: 0x8c000000
+    args: [ rD, offset, rA ]
+    defs: [ rD, rA ]
+    uses: [ offset, rA ]
+
+  - name: lbzux
+    desc: Load Byte and Zero with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0000ee
+    args: [ rD, rA, rB ]
+    defs: [ rD, rA ]
+    uses: [ rA, rB ]
+
+  - name: lbzx
+    desc: Load Byte and Zero Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0000ae
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lfd
+    desc: Load Floating-Point Double
+    bitmask: 0xfc000000
+    pattern: 0xc8000000
+    args: [ frD, offset, rA ]
+    defs: [ frD ]
+    uses: [ offset, rA.nz ]
+
+  - name: lfdu
+    desc: Load Floating-Point Double with Update
+    bitmask: 0xfc000000
+    pattern: 0xcc000000
+    args: [ frD, offset, rA ]
+    defs: [ frD, rA ]
+    uses: [ offset, rA ]
+
+  - name: lfdux
+    desc: Load Floating-Point Double with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0004ee
+    args: [ frD, rA, rB ]
+    defs: [ frD, rA ]
+    uses: [ rA, rB ]
+
+  - name: lfdx
+    desc: Load Floating-Point Double Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0004ae
+    args: [ frD, rA, rB ]
+    defs: [ frD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lfs
+    desc: Load Floating-Point Single
+    bitmask: 0xfc000000
+    pattern: 0xc0000000
+    args: [ frD, offset, rA ]
+    defs: [ frD ]
+    uses: [ offset, rA.nz ]
+
+  - name: lfsu
+    desc: Load Floating-Point Single with Update
+    bitmask: 0xfc000000
+    pattern: 0xc4000000
+    args: [ frD, offset, rA ]
+    defs: [ frD, rA ]
+    uses: [ offset, rA ]
+
+  - name: lfsux
+    desc: Load Floating-Point Single with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00046e
+    args: [ frD, rA, rB ]
+    defs: [ frD, rA ]
+    uses: [ rA, rB ]
+
+  - name: lfsx
+    desc: Load Floating-Point Single Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00042e
+    args: [ frD, rA, rB ]
+    defs: [ frD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lha
+    desc: Load Half Word Algebraic
+    bitmask: 0xfc000000
+    pattern: 0xa8000000
+    args: [ rD, offset, rA ]
+    defs: [ rD ]
+    uses: [ offset, rA.nz ]
+
+  - name: lhau
+    desc: Load Half Word Algebraic with Update
+    bitmask: 0xfc000000
+    pattern: 0xac000000
+    args: [ rD, offset, rA ]
+    defs: [ rD, rA ]
+    uses: [ offset, rA ]
+
+  - name: lhaux
+    desc: Load Half Word Algebraic with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0002ee
+    args: [ rD, rA, rB ]
+    defs: [ rD, rA ]
+    uses: [ rA, rB ]
+
+  - name: lhax
+    desc: Load Half Word Algebraic Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0002ae
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lhbrx
+    desc: Load Half Word Byte-Reverse Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00062c
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lhz
+    desc: Load Half Word and Zero
+    bitmask: 0xfc000000
+    pattern: 0xa0000000
+    args: [ rD, offset, rA ]
+    defs: [ rD ]
+    uses: [ offset, rA.nz ]
+
+  - name: lhzu
+    desc: Load Half Word and Zero with Update
+    bitmask: 0xfc000000
+    pattern: 0xa4000000
+    args: [ rD, offset, rA ]
+    defs: [ rD, rA ]
+    uses: [ offset, rA ]
+
+  - name: lhzux
+    desc: Load Half Word and Zero with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00026e
+    args: [ rD, rA, rB ]
+    defs: [ rD, rA ]
+    uses: [ rA, rB ]
+
+  - name: lhzx
+    desc: Load Half Word and Zero Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00022e
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  # TODO lmw has much more defs
+  - name: lmw
+    aliases: [ lm ]
+    desc: Load Multiple Word
+    bitmask: 0xfc000000
+    pattern: 0xb8000000
+    args: [ rD, offset, rA ]
+    defs: [ rD ]
+    uses: [ offset, rA.nz ]
+
+  - name: lswi
+    aliases: [ lsi ]
+    desc: Load String Word Immediate
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0004aa
+    args: [ rD, rA, NB ]
+    defs: [ rD ]
+    uses: [ rA.nz ]
+
+  - name: lswx
+    aliases: [ lsx ]
+    desc: Load String Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00042a
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lwarx
+    desc: Load String Word and Reverse Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c000028
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lwbrx
+    aliases: [ lbrx ]
+    desc: Load String Word and Byte-Reverse Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00042c
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: lwz
+    aliases: [ l ]
+    desc: Load Word and Zero
+    bitmask: 0xfc000000
+    pattern: 0x80000000
+    args: [ rD, offset, rA ]
+    defs: [ rD ]
+    uses: [ offset, rA.nz ]
+
+  - name: lwzu
+    aliases: [ lu ]
+    desc: Load Word and Zero with Update
+    bitmask: 0xfc000000
+    pattern: 0x84000000
+    args: [ rD, offset, rA ]
+    defs: [ rD, rA ]
+    uses: [ offset, rA ]
+
+  - name: lwzux
+    aliases: [ lux ]
+    desc: Load Word and Zero with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00006e
+    args: [ rD, rA, rB ]
+    defs: [ rD, rA ]
+    uses: [ rA, rB ]
+
+  - name: lwzx
+    aliases: [ lx ]
+    desc: Load Word and Zero Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00002e
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA.nz, rB ]
+
+  - name: mcrf
+    desc: Move Condition Register Field
+    bitmask: 0xfc63ffff
+    pattern: 0x4c000000
+    args: [ crfD, crfS ]
+    defs: [ crfD ]
+    uses: [ crfS ]
+
+  - name: mcrfs
+    desc: Move to Condition Register from FPSCR
+    bitmask: 0xfc63ffff
+    pattern: 0xfc000080
+    args: [ crfD, crfS ]
+    defs: [ crfD ]
+    uses: [ crfS ]
+
+  - name: mcrxr
+    desc: Move to Condition Register from XER
+    bitmask: 0xfc7fffff
+    pattern: 0x7c000400
+    args: [ crfD ]
+    defs: [ crfD, xer ]
+
+  - name: mfcr
+    desc: Move from Condition Register
+    bitmask: 0xfc1fffff
+    pattern: 0x7c000026
+    args: [ rD ]
+    defs: [ rD ]
+
+  - name: mffs
+    desc: Move from FPSCR
+    bitmask: 0xfc1ffffe
+    pattern: 0xfc00048e
+    modifiers: [ Rc ]
+    args: [ frD ]
+    defs: [ frD ]
+
+  - name: mfmsr
+    desc: Move from Machine State Register
+    bitmask: 0xfc1fffff
+    pattern: 0x7c0000a6
+    args: [ rD ]
+    defs: [ rD ]
+
+  - name: mfspr
+    desc: Move from Special-Purpose Register
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0002a6
+    args: [ rD, spr ]
+    defs: [ rD ]
+
+  - name: mfsr
+    desc: Move from Segment Register
+    bitmask: 0xfc10ffff
+    pattern: 0x7c0004a6
+    args: [ rD, sr ]
+    defs: [ rD ]
+
+  - name: mfsrin
+    desc: Move from Segment Register Indirect
+    bitmask: 0xfc1f07ff
+    pattern: 0x7c000526
+    args: [ rD, rB ]
+    defs: [ rD ]
+    uses: [ rB ]
+
+  - name: mftb
+    desc: Move from Time Base
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0002e6
+    args: [ rD, tbr ]
+    defs: [ rD ]
+
+  - name: mtcrf
+    desc: Move to Condition Register Fields
+    bitmask: 0xfc100fff
+    pattern: 0x7c000120
+    args: [ crm, rS ]
+    uses: [ rS ]
+
+  - name: mtfsb0
+    desc: Move to FPSCR Bit 0
+    bitmask: 0xfc1ffffe
+    pattern: 0xfc00008c
+    modifiers: [ Rc ]
+    args: [ crbD ]
+    defs: [ crbD ]
+
+  - name: mtfsb1
+    desc: Move to FPSCR Bit 1
+    bitmask: 0xfc1ffffe
+    pattern: 0xfc00004c
+    modifiers: [ Rc ]
+    args: [ crbD ]
+    defs: [ crbD ]
+
+  - name: mtfsf
+    desc: Move to FPSCR Fields
+    bitmask: 0xfe0107fe
+    pattern: 0xfc00058e
+    modifiers: [ Rc ]
+    args: [ mtfsf_FM, frB ]
+    uses: [ frB ]
+
+  - name: mtfsfi
+    desc: Move to FPSCR Field Immediate
+    bitmask: 0xfc7f0ffe
+    pattern: 0xfc00010c
+    modifiers: [ Rc ]
+    args: [ crfD, mtfsf_IMM ]
+    defs: [ crfD ]
+
+  - name: mtmsr
+    desc: Move to Machine State Register
+    bitmask: 0xfc1fffff
+    pattern: 0x7c000124
+    args: [ rS ]
+    uses: [ rS ]
+
+  - name: mtspr
+    desc: Move to Special-Purpose Register
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0003a6
+    args: [ spr, rS ]
+    uses: [ rS ]
+
+  - name: mtsr
+    desc: Move to Segment Register
+    bitmask: 0xfc10ffff
+    pattern: 0x7c0001a4
+    args: [ sr, rS ]
+    uses: [ rS ]
+
+  - name: mtsrin
+    desc: Move to Segment Register Indirect
+    bitmask: 0xfc1f07ff
+    pattern: 0x7c0001e4
+    args: [ rS, rB ]
+    uses: [ rS, rB ]
+
+  - name: mulhw
+    desc: Multiply High Word
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000096
+    modifiers: [ Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: mulhwu
+    desc: Multiply High Word Unsigned
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000016
+    modifiers: [ Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: mulli
+    aliases: [ muli ]
+    desc: Multiply Low Immediate
+    bitmask: 0xfc000000
+    pattern: 0x1c000000
+    args: [ rD, rA, simm ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: mullw
+    aliases: [ muls ]
+    desc: Multiply Low Word
+    bitmask: 0xfc0003fe
+    pattern: 0x7c0001d6
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: nand
+    desc: NAND
+    bitmask: 0xfc0007fe
+    pattern: 0x7c0003b8
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: neg
+    desc: Negate
+    bitmask: 0xfc00fbfe
+    pattern: 0x7c0000d0
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: nor
+    desc: NOR
+    bitmask: 0xfc0007fe
+    pattern: 0x7c0000f8
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: or
+    desc: OR
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000378
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: orc
+    desc: OR with Complement
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000338
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: ori
+    aliases: [ oril ]
+    desc: OR Immediate
+    bitmask: 0xfc000000
+    pattern: 0x60000000
+    args: [ rA, rS, uimm ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: oris
+    aliases: [ oriu ]
+    desc: OR Immediate Shifted
+    bitmask: 0xfc000000
+    pattern: 0x64000000
+    args: [ rA, rS, uimm ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: rfi
+    desc: Return from Interrupt
+    bitmask: 0xffffffff
+    pattern: 0x4c000064
+
+  - name: rlwimi
+    aliases: [ rlimi ]
+    desc: Rotate Left Word Immediate then Mask Insert
+    bitmask: 0xfc000000
+    pattern: 0x50000000
+    modifiers: [ Rc ]
+    args: [ rA, rS, SH, MB, ME ]
+    defs: [ rA ]
+    uses: [ rA, rS ]
+
+  - name: rlwinm
+    aliases: [ rlinm ]
+    desc: Rotate Left Word Immediate then AND with Mask
+    bitmask: 0xfc000000
+    pattern: 0x54000000
+    modifiers: [ Rc ]
+    args: [ rA, rS, SH, MB, ME ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: rlwnm
+    aliases: [ rlnm ]
+    desc: Rotate Left Word then AND with Mask
+    bitmask: 0xfc000000
+    pattern: 0x5c000000
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB, MB, ME ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: sc
+    desc: System Call
+    bitmask: 0xffffffff
+    pattern: 0x44000002
+
+  - name: slw
+    aliases: [ sl ]
+    desc: Shift Left Word
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000030
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: sraw
+    aliases: [ sra ]
+    desc: Shift Right Algebraic Word
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000630
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: srawi
+    aliases: [ srai ]
+    desc: Shift Right Algebraic Word Immediate
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000670
+    modifiers: [ Rc ]
+    args: [ rA, rS, SH ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: srw
+    aliases: [ sr ]
+    desc: Shift Right Word
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000430
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rA, rB ]
+
+  - name: stb
+    desc: Store Byte
+    bitmask: 0xfc000000
+    pattern: 0x98000000
+    args: [ rS, offset, rA ]
+    uses: [ rS, rA.nz ]
+
+  - name: stbu
+    desc: Store Byte with Update
+    bitmask: 0xfc000000
+    pattern: 0x9c000000
+    args: [ rS, offset, rA ]
+    defs: [ rA ]
+    uses: [ rS, rA ]
+
+  - name: stbux
+    desc: Store Byte with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0001ee
+    args: [ rS, rA, rB ]
+    defs: [ rA ]
+    uses: [ rS, rA, rB ]
+
+  - name: stbx
+    desc: Store Byte Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0001ae
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: stfd
+    desc: Store Floating-Point Double
+    bitmask: 0xfc000000
+    pattern: 0xd8000000
+    args: [ frS, offset, rA ]
+    uses: [ frS, rA.nz ]
+
+  - name: stfdu
+    desc: Store Floating-Point Double with Update
+    bitmask: 0xfc000000
+    pattern: 0xdc000000
+    args: [ frS, offset, rA ]
+    defs: [ rA ]
+    uses: [ frS, rA ]
+
+  - name: stfdux
+    desc: Store Floating-Point Double with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0005ee
+    args: [ frS, rA, rB ]
+    defs: [ rA ]
+    uses: [ frS, rA, rB ]
+
+  - name: stfdx
+    desc: Store Floating-Point Double Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0005ae
+    args: [ frS, rA, rB ]
+    uses: [ frS, rA.nz, rB ]
+
+  - name: stfiwx
+    desc: Store Floating-Point as Integer Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0007ae
+    args: [ frS, rA, rB ]
+    uses: [ frS, rA.nz, rB ]
+
+  - name: stfs
+    desc: Store Floating-Point Single
+    bitmask: 0xfc000000
+    pattern: 0xd0000000
+    args: [ frS, offset, rA ]
+    uses: [ frS, rA.nz ]
+
+  - name: stfsu
+    desc: Store Floating-Point Single with Update
+    bitmask: 0xfc000000
+    pattern: 0xd4000000
+    args: [ frS, offset, rA ]
+    defs: [ rA ]
+    uses: [ frS, rA ]
+
+  - name: stfsux
+    desc: Store Floating-Point Single with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00056e
+    args: [ frS, rA, rB ]
+    defs: [ rA ]
+    uses: [ frS, rA, rB ]
+
+  - name: stfsx
+    desc: Store Floating-Point Single Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00052e
+    args: [ frS, rA, rB ]
+    uses: [ frS, rA.nz, rB ]
+
+  - name: sth
+    desc: Store Half Word
+    bitmask: 0xfc000000
+    pattern: 0xb0000000
+    args: [ rS, offset, rA ]
+    uses: [ rS, rA.nz ]
+
+  - name: sthbrx
+    desc: Store Half Word Byte-Reverse Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00072c
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: sthu
+    desc: Store Half Word with Update
+    bitmask: 0xfc000000
+    pattern: 0xb4000000
+    args: [ rS, offset, rA ]
+    defs: [ rA ]
+    uses: [ rS, rA ]
+
+  - name: sthux
+    desc: Store Half Word with Update Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00036e
+    args: [ rS, rA, rB ]
+    defs: [ rA ]
+    uses: [ rS, rA, rB ]
+
+  - name: sthx
+    desc: Store Half Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00032e
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: stmw
+    aliases: [ stm ]
+    desc: Store Multiple Word
+    bitmask: 0xfc000000
+    pattern: 0xbc000000
+    args: [ rS, offset, rA ]
+    uses: [ rS, rA.nz ]
+
+  - name: stswi
+    aliases: [ stsi ]
+    desc: Store String Word Immediate
+    bitmask: 0xfc0007ff
+    pattern: 0x7c0005aa
+    args: [ rS, rA, NB ]
+    uses: [ rS, rA.nz ]
+
+  - name: stswx
+    aliases: [ stsx ]
+    desc: Store String Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00052a
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: stw
+    aliases: [ st ]
+    desc: Store Word
+    bitmask: 0xfc000000
+    pattern: 0x90000000
+    args: [ rS, offset, rA ]
+    uses: [ rS, rA.nz ]
+
+  - name: stwbrx
+    aliases: [ stbrx ]
+    desc: Store Word Byte-Reverse Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00052c
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: stwcx.
+    desc: Store Word Conditional Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00012d
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: stwu
+    aliases: [ stu ]
+    desc: Store Word with Update
+    bitmask: 0xfc000000
+    pattern: 0x94000000
+    args: [ rS, offset, rA ]
+    defs: [ rA ]
+    uses: [ rS, rA ]
+
+  - name: stwux
+    aliases: [ stux ]
+    desc: Store Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00016e
+    args: [ rS, rA, rB ]
+    defs: [ rA ]
+    uses: [ rS, rA, rB ]
+
+  - name: stwx
+    aliases: [ stx ]
+    desc: Store Word Indexed
+    bitmask: 0xfc0007ff
+    pattern: 0x7c00012e
+    args: [ rS, rA, rB ]
+    uses: [ rS, rA.nz, rB ]
+
+  - name: subf
+    desc: Subtract From Carrying
+    bitmask: 0xfc0003fe
+    pattern: 0x7c000050
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: subfc
+    aliases: [ sf ]
+    desc: Subtract from Carrying
+    bitmask: 0xfc0003fe
+    pattern: 0x7c000010
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: subfe
+    aliases: [ sfe ]
+    desc: Subtract from Extended
+    bitmask: 0xfc0003fe
+    pattern: 0x7c000110
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA, rB ]
+    defs: [ rD ]
+    uses: [ rA, rB ]
+
+  - name: subfic
+    aliases: [ sfi ]
+    desc: Subtract from Immediate Carrying
+    bitmask: 0xfc000000
+    pattern: 0x20000000
+    args: [ rD, rA, simm ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: subfme
+    aliases: [ sfme ]
+    desc: Subtract from Minus One Extended
+    bitmask: 0xfc00fbfe
+    pattern: 0x7c0001d0
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: subfze
+    aliases: [ sfze ]
+    desc: Subtract from Zero Extended
+    bitmask: 0xfc00fbfe
+    pattern: 0x7c000190
+    modifiers: [ OE, Rc ]
+    args: [ rD, rA ]
+    defs: [ rD ]
+    uses: [ rA ]
+
+  - name: sync
+    aliases: [ dcs ]
+    desc: Synchronize
+    bitmask: 0xFF9FFFFF
+    pattern: 0x7c0004ac
+    args: [ sync_L ]
+    uses: [ sync_L ]
+
+  - name: tlbie
+    desc: Translation Lookaside Buffer Invalidate Entry
+    bitmask: 0xffff07ff
+    pattern: 0x7c000264
+    args: [ rB ]
+    uses: [ rB ]
+
+  - name: tlbsync
+    desc: TLB Synchronize
+    bitmask: 0xffffffff
+    pattern: 0x7c00046c
+
+  - name: tw
+    aliases: [ t ]
+    desc: Trap Word
+    bitmask: 0xfc0007ff
+    pattern: 0x7c000008
+    args: [ TO, rA, rB ]
+    uses: [ rA, rB ]
+
+  - name: twi
+    aliases: [ ti ]
+    desc: Trap Word Immediate
+    bitmask: 0xfc000000
+    pattern: 0x0c000000
+    args: [ TO, rA, simm ]
+    uses: [ rA ]
+
+  - name: xor
+    desc: XOR
+    bitmask: 0xfc0007fe
+    pattern: 0x7c000278
+    modifiers: [ Rc ]
+    args: [ rA, rS, rB ]
+    defs: [ rA ]
+    uses: [ rS, rB ]
+
+  - name: xori
+    aliases: [ xoril ]
+    desc: XOR Immediate
+    bitmask: 0xfc000000
+    pattern: 0x68000000
+    args: [ rA, rS, uimm ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+  - name: xoris
+    aliases: [ xoriu ]
+    desc: XOR Immediate Shifted
+    bitmask: 0xfc000000
+    pattern: 0x6c000000
+    args: [ rA, rS, uimm ]
+    defs: [ rA ]
+    uses: [ rS ]
+
+mnemonics:
+  # Arithmetic
+  - name: lis
+    opcode: addis
+    args: [ rD, uimm ]
+    condition: rA == 0
+  - name: subis
+    opcode: addis
+    args: [ rD, rA, simm ]
+    condition: simm < 0 && simm != -0x8000
+    replace:
+      simm: -simm
+    replace_assemble:
+      simm: -simm
+  - name: li
+    opcode: addi
+    args: [ rD, simm ]
+    condition: rA == 0
+  - name: subi
+    opcode: addi
+    args: [ rD, rA, simm ]
+    condition: simm < 0 && simm != -0x8000
+    replace:
+      simm: -simm
+    replace_assemble:
+      simm: -simm
+  - name: subic
+    opcode: addic
+    args: [ rD, rA, simm ]
+    condition: simm < 0 && simm != -0x8000
+    replace:
+      simm: -simm
+    replace_assemble:
+      simm: -simm
+  - name: subic.
+    opcode: addic.
+    args: [ rD, rA, simm ]
+    condition: simm < 0 && simm != -0x8000
+    replace:
+      simm: -simm
+    replace_assemble:
+      simm: -simm
+  - name: mr
+    opcode: or
+    args: [ rA, rS ]
+    condition: rB == rS
+  - name: nop
+    opcode: ori
+    condition: rA == 0 && rS == 0 && uimm == 0
+
+  # Rotates/Shifts
+  - name: rotlw
+    opcode: rlwnm
+    args: [ rA, rS, rB ]
+    condition: MB == 0 && ME == 31
+
+  # TODO rlwimi: inslwi/insrwi
+
+  # Rotates/Shifts Immediate
+  - name: clrrwi
+    opcode: rlwinm
+    args: [ rA, rS, ME ]
+    condition: SH == 0 && MB == 0
+    replace:
+      ME: 31 - ME
+    replace_assemble:
+      ME: 31 - ME
+  - name: clrlwi
+    opcode: rlwinm
+    args: [ rA, rS, MB ]
+    condition: SH == 0 && ME == 31
+  - name: rotlwi
+    opcode: rlwinm
+    args: [ rA, rS, SH ]
+    condition: MB == 0 && ME == 31 && SH <= 16
+  - name: rotrwi
+    opcode: rlwinm
+    args: [ rA, rS, SH ]
+    condition: MB == 0 && ME == 31 && SH > 16
+    replace:
+      SH: 32 - SH
+    replace_assemble:
+      SH: 32 - SH
+  - name: slwi
+    opcode: rlwinm
+    args: [ rA, rS, SH ]
+    condition: MB == 0 && ME == 31 - SH
+  - name: srwi
+    opcode: rlwinm
+    args: [ rA, rS, MB ]
+    condition: ME == 31 && SH == 32 - MB
+  - name: clrlslwi
+    opcode: rlwinm
+    args: [ rA, rS, MB, SH ]
+    condition: SH < 32 && ME == 31 - SH
+    replace:
+      MB: MB + SH
+    replace_assemble:
+      MB: MB - SH
+  - name: extlwi
+    opcode: rlwinm
+    args: [ rA, rS, ME, SH ]
+    condition: MB == 0
+    replace:
+      ME: ME + 1
+    replace_assemble:
+      ME: ME - 1
+  - name: extrwi
+    opcode: rlwinm
+    args: [ rA, rS, MB, SH ]
+    condition: ME == 31 && SH >= 32 - MB
+    replace:
+      MB: 32 - MB
+      SH: SH - (32 - MB)
+    replace_assemble:
+      MB: 32 - MB
+      SH: SH + MB
+
+  # Compares Word
+  - name: cmpwi
+    opcode: cmpi
+    args: [ rA, simm ]
+    condition: crfD == 0 && L == 0
+  - name: cmpwi
+    opcode: cmpi
+    args: [ crfD, rA, simm ]
+    condition: L == 0
+  - name: cmpw
+    opcode: cmp
+    args: [ rA, rB ]
+    condition: crfD == 0 && L == 0
+  - name: cmpw
+    opcode: cmp
+    args: [ crfD, rA, rB ]
+    condition: L == 0
+  - name: cmplwi
+    opcode: cmpli
+    args: [ rA, uimm ]
+    condition: crfD == 0 && L == 0
+  - name: cmplwi
+    opcode: cmpli
+    args: [ crfD, rA, uimm ]
+    condition: L == 0
+  - name: cmplw
+    opcode: cmpl
+    args: [ rA, rB ]
+    condition: crfD == 0 && L == 0
+  - name: cmplw
+    opcode: cmpl
+    args: [ crfD, rA, rB ]
+    condition: L == 0
+
+  # Compares Doubleword
+  - name: cmpdi
+    opcode: cmpi
+    args: [ rA, simm ]
+    condition: crfD == 0 && L == 1
+  - name: cmpdi
+    opcode: cmpi
+    args: [ crfD, rA, simm ]
+    condition: L == 1
+  - name: cmpd
+    opcode: cmp
+    args: [ rA, rB ]
+    condition: crfD == 0 && L == 1
+  - name: cmpd
+    opcode: cmp
+    args: [ crfD, rA, rB ]
+    condition: L == 1
+  - name: cmpldi
+    opcode: cmpli
+    args: [ rA, uimm ]
+    condition: crfD == 0 && L == 1
+  - name: cmpldi
+    opcode: cmpli
+    args: [ crfD, rA, uimm ]
+    condition: L == 1
+  - name: cmpld
+    opcode: cmpl
+    args: [ rA, rB ]
+    condition: crfD == 0 && L == 1
+  - name: cmpld
+    opcode: cmpl
+    args: [ crfD, rA, rB ]
+    condition: L == 1
+
+  # Condition Register Logical
+  - name: crset
+    opcode: creqv
+    args: [ crbD ]
+    condition: crbA == crbD && crbB == crbD
+  - name: crclr
+    opcode: crxor
+    args: [ crbD ]
+    condition: crbA == crbD && crbB == crbD
+  - name: crmove
+    opcode: cror
+    args: [ crbD, crbA ]
+    condition: crbB == crbA
+  - name: crnot
+    opcode: crnor
+    args: [ crbD, crbA ]
+    condition: crbB == crbA
+
+  # Misc
+  - name: tweq
+    opcode: tw
+    args: [ rA, rB ]
+    condition: TO == 4
+  - name: twlge
+    opcode: tw
+    args: [ rA, rB ]
+    condition: TO == 5
+  - name: trap
+    opcode: tw
+    condition: TO == 31 && rA == 0 && rB == 0
+  - name: twgti
+    opcode: twi
+    args: [ rA, simm ]
+    condition: TO == 8
+  - name: twllei
+    opcode: twi
+    args: [ rA, simm ]
+    condition: TO == 6
+  - name: twui
+    opcode: twi
+    args: [ rA, simm ]
+    condition: TO == 31
+
+  - name: sync
+    opcode: sync
+    condition: sync_L == 0
+  - name: lwsync
+    opcode: sync
+    condition: sync_L == 1
+  - name: ptesync
+    opcode: sync
+    condition: sync_L == 2
+
+  # Move to special-purpose register
+  - name: mtxer
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 1
+  - name: mtlr
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 8
+  - name: mtctr
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 9
+  - name: mtdsisr
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 18
+  - name: mtdar
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 19
+  - name: mtdec
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 22
+  - name: mtsdr1
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 25
+  - name: mtsrr0
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 26
+  - name: mtsrr1
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 27
+  - name: mtsprg
+    opcode: mtspr
+    args: [ spr_SPRG, rS ]
+    condition: spr & 0b1111111100 == 272
+  - name: mtear
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 282
+  - name: mttbl
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 284
+  - name: mttbu
+    opcode: mtspr
+    args: [ rS ]
+    condition: spr == 285
+  - name: mtibatu
+    opcode: mtspr
+    args: [ spr_BAT, rS ]
+    condition: spr & 0b1111111001 == 528
+  - name: mtibatl
+    opcode: mtspr
+    args: [ spr_BAT, rS ]
+    condition: spr & 0b1111111001 == 529
+  - name: mtdbatu
+    opcode: mtspr
+    args: [ spr_BAT, rS ]
+    condition: spr & 0b1111111001 == 536
+  - name: mtdbatl
+    opcode: mtspr
+    args: [ spr_BAT, rS ]
+    condition: spr & 0b1111111001 == 537
+
+  # Move from special-purpose register
+  - name: mfxer
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 1
+  - name: mflr
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 8
+  - name: mfctr
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 9
+  - name: mfdsisr
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 18
+  - name: mfdar
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 19
+  - name: mfdec
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 22
+  - name: mfsdr1
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 25
+  - name: mfsrr0
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 26
+  - name: mfsrr1
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 27
+  - name: mfsprg
+    opcode: mfspr
+    args: [ rD, spr_SPRG ]
+    condition: spr & 0b1111111100 == 272
+  - name: mfear
+    opcode: mfspr
+    args: [ rD ]
+    condition: spr == 282
+  - name: mfibatu
+    opcode: mfspr
+    args: [ rD, spr_BAT ]
+    condition: spr & 0b1111111001 == 528
+  - name: mfibatl
+    opcode: mfspr
+    args: [ rD, spr_BAT ]
+    condition: spr & 0b1111111001 == 529
+  - name: mfdbatu
+    opcode: mfspr
+    args: [ rD, spr_BAT ]
+    condition: spr & 0b1111111001 == 536
+  - name: mfdbatl
+    opcode: mfspr
+    args: [ rD, spr_BAT ]
+    condition: spr & 0b1111111001 == 537
+
+  # Branch Conditional
+  # bc branch if negative
+  - name: blt
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 12 && BI == 0
+  - name: blt
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 0
+  # bc branch if not positive
+  - name: ble
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 4 && BI == 1
+  - name: ble
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 1
+  # bc branch if zero
+  - name: beq
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 12 && BI == 2
+  - name: beq
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 2
+  # bc branch if not negative
+  - name: bge
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 4 && BI == 0
+  - name: bge
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 0
+  # bc branch if positive
+  - name: bgt
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 12 && BI == 1
+  - name: bgt
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 1
+  # bc branch if not zero
+  - name: bne
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 4 && BI == 2
+  - name: bne
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 2
+  # bc branch if summary overflow
+  - name: bso
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 12 && BI == 3
+  - name: bso
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 3
+  # bc branch if not summary overflow
+  - name: bns
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 4 && BI == 3
+  - name: bns
+    opcode: bc
+    args: [ crfS, BD ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 3
+
+  # bc decrement CTR, branch if CTR non-zero
+  - name: bdnz
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 16 && BI == 0
+  # bc decrement CTR, branch if CTR non-zero AND condition true
+  - name: bdnzt
+    opcode: bc
+    args: [ BI, BD ]
+    condition: BO & 0b11110 == 8
+  # bc decrement CTR, branch if CTR non-zero AND condition false
+  - name: bdnzf
+    opcode: bc
+    args: [ BI, BD ]
+    condition: BO & 0b11110 == 0
+  # bc decrement CTR, branch if CTR zero
+  - name: bdz
+    opcode: bc
+    args: [ BD ]
+    condition: BO & 0b11110 == 18 && BI == 0
+  # bc decrement CTR, branch if CTR zero AND condition true
+  - name: bdzt
+    opcode: bc
+    args: [ BI, BD ]
+    condition: BO & 0b11110 == 10
+  # bc decrement CTR, branch if CTR zero AND condition false
+  - name: bdzf
+    opcode: bc
+    args: [ BI, BD ]
+    condition: BO & 0b11110 == 2
+
+  # Branch Conditional to Count Register
+  # bcctr branch always
+  - name: bctr
+    opcode: bcctr
+    modifiers: [ LK ]
+    condition: BO == 20 && BI == 0
+  # bcctr branch if negative
+  - name: bltctr
+    opcode: bcctr
+    condition: BO & 0b11110 == 12 && BI == 0
+  - name: bltctr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 0
+  # bcctr branch if not positive
+  - name: blectr
+    opcode: bcctr
+    condition: BO & 0b11110 == 4 && BI == 1
+  - name: blectr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 1
+  # bcctr branch if zero
+  - name: beqctr
+    opcode: bcctr
+    condition: BO & 0b11110 == 12 && BI == 2
+  - name: beqctr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 2
+  # bcctr branch if not negative
+  - name: bgectr
+    opcode: bcctr
+    condition: BO & 0b11110 == 4 && BI == 0
+  - name: bgectr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 0
+  # bcctr branch if positive
+  - name: bgtctr
+    opcode: bcctr
+    condition: BO & 0b11110 == 12 && BI == 1
+  - name: bgtctr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 1
+  # bcctr branch if not zero
+  - name: bnectr
+    opcode: bcctr
+    condition: BO & 0b11110 == 4 && BI == 2
+  - name: bnectr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 2
+  # bcctr branch if summary overflow
+  - name: bsoctr
+    opcode: bcctr
+    condition: BO & 0b11110 == 12 && BI == 3
+  - name: bsoctr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 3
+  # bcctr branch if not summary overflow
+  - name: bnsctr
+    opcode: bcctr
+    condition: BO & 0b11110 == 4 && BI == 3
+  - name: bnsctr
+    opcode: bcctr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 3
+
+  # Branch Conditional to Link Register
+  # bclr branch always
+  - name: blr
+    opcode: bclr
+    modifiers: [ LK ]
+    condition: BO == 20 && BI == 0
+  # bclr branch if negative
+  - name: bltlr
+    opcode: bclr
+    condition: BO & 0b11110 == 12 && BI == 0
+  - name: bltlr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 0
+  # bclr branch if not positive
+  - name: blelr
+    opcode: bclr
+    condition: BO & 0b11110 == 4 && BI == 1
+  - name: blelr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 1
+  # bclr branch if zero
+  - name: beqlr
+    opcode: bclr
+    condition: BO & 0b11110 == 12 && BI == 2
+  - name: beqlr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 2
+  # bclr branch if not negative
+  - name: bgelr
+    opcode: bclr
+    condition: BO & 0b11110 == 4 && BI == 0
+  - name: bgelr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 0
+  # bclr branch if positive
+  - name: bgtlr
+    opcode: bclr
+    condition: BO & 0b11110 == 12 && BI == 1
+  - name: bgtlr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 1
+  # bclr branch if not zero
+  - name: bnelr
+    opcode: bclr
+    condition: BO & 0b11110 == 4 && BI == 2
+  - name: bnelr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 2
+  # bclr branch if summary overflow
+  - name: bsolr
+    opcode: bclr
+    condition: BO & 0b11110 == 12 && BI == 3
+  - name: bsolr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 12 && BI & 0b11 == 3
+  # bclr branch if not summary overflow
+  - name: bnslr
+    opcode: bclr
+    condition: BO & 0b11110 == 4 && BI == 3
+  - name: bnslr
+    opcode: bclr
+    args: [ crfS ]
+    condition: BO & 0b11110 == 4 && BI & 0b11 == 3
+  # bclr decrement CTR, branch if CTR non-zero
+  - name: bdnzlr
+    opcode: bclr
+    condition: BO & 0b11110 == 16 && BI == 0
+  # bclr decrement CTR, branch if CTR non-zero AND condition true
+  - name: bdnztlr
+    opcode: bclr
+    args: [ BI ]
+    condition: BO & 0b11110 == 8
+  # bclr decrement CTR, branch if CTR non-zero AND condition false
+  - name: bdnzflr
+    opcode: bclr
+    args: [ BI ]
+    condition: BO & 0b11110 == 0
+  # bclr decrement CTR, branch if CTR zero
+  - name: bdzlr
+    opcode: bclr
+    condition: BO & 0b11110 == 18 && BI == 0
+  # bclr decrement CTR, branch if CTR zero AND condition true
+  - name: bdztlr
+    opcode: bclr
+    args: [ BI ]
+    condition: BO & 0b11110 == 10
+  # bclr decrement CTR, branch if CTR zero AND condition false
+  - name: bdzflr
+    opcode: bclr
+    args: [ BI ]
+    condition: BO & 0b11110 == 0
+
+extensions:
+  Ppc64:
+    name: PowerPC 64-bit
+
+    fields:
+      - name: ds
+        arg: Offset
+        desc: Load/Store Double Word Offset (for 64-bit instructions)
+        bits: 16..30
+        shift_left: 2
+        signed: true
+      - name: SH64
+        arg: OpaqueU
+        desc: Shift Amount (for 64-bit instructions)
+        bits: 30,16..21
+      - name: MB64
+        arg: OpaqueU
+        desc: Mask Begin (for 64-bit instructions)
+        bits: 26,21..26
+      - name: ME64
+        arg: OpaqueU
+        desc: Mask End (for 64-bit instructions)
+        bits: 26,21..26
+      - name: mtmsrd_L
+        arg: OpaqueU
+        desc: L field for mtmsrd
+        bits: 15..16
+
+    opcodes:
+      - name: cntlzd
+        desc: Count Leading Zeros Double Word
+        bitmask: 0xfc00fffe
+        pattern: 0x7c000074
+        modifiers: [ Rc ]
+        args: [ rA, rS ]
+        defs: [ rA ]
+        uses: [ rS ]
+
+      - name: dcbzl
+        aliases: [ dcbz128 ]
+        desc: Data Cache Block Clear to Zero (128 bytes)
+        bitmask: 0xffe007ff
+        pattern: 0x7c2007ec
+        args: [ rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: divd
+        desc: Divide Double Word
+        bitmask: 0xfc0003fe
+        pattern: 0x7c0003d2
+        modifiers: [ OE, Rc ]
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA, rB ]
+
+      - name: divdu
+        desc: Divide Double Word Unsigned
+        bitmask: 0xfc0003fe
+        pattern: 0x7c000392
+        modifiers: [ OE, Rc ]
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA, rB ]
+
+      - name: extsw
+        desc: Extend Sign Word
+        bitmask: 0xfc00fffe
+        pattern: 0x7c0007b4
+        modifiers: [ Rc ]
+        args: [ rA, rS ]
+        defs: [ rA ]
+        uses: [ rS ]
+
+      - name: fcfid
+        desc: Floating Convert from Integer Double Word
+        bitmask: 0xfc1f07fe
+        pattern: 0xfc00069c
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: fctid
+        desc: Floating Convert to Integer Double Word
+        bitmask: 0xfc1f07fe
+        pattern: 0xfc00065c
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: fctidz
+        desc: Floating Convert to Integer Double Word with Round toward Zero
+        bitmask: 0xfc1f07fe
+        pattern: 0xfc00065e
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: fsqrt
+        desc: Floating Square Root (Double-Precision)
+        bitmask: 0xfc1f07fe
+        pattern: 0xfc00002c
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: fsqrts
+        desc: Floating Square Root (Single-Precision)
+        bitmask: 0xfc1f07fe
+        pattern: 0xec00002c
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: ld
+        desc: Load Double Word
+        bitmask: 0xfc000003
+        pattern: 0xe8000000
+        args: [ rD, ds, rA ]
+        defs: [ rD ]
+        uses: [ rA.nz ]
+
+      - name: ldarx
+        desc: Load Double Word and Reserve Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0000a8
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA, rB ]
+
+      - name: ldu
+        desc: Load Double Word with Update
+        bitmask: 0xfc000003
+        pattern: 0xe8000001
+        args: [ rD, ds, rA ]
+        defs: [ rD, rA ]
+        uses: [ rA ]
+
+      - name: ldux
+        desc: Load Double Word with Update Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00006a
+        args: [ rD, rA, rB ]
+        defs: [ rD, rA ]
+        uses: [ rA, rB ]
+
+      - name: ldx
+        desc: Load Double Word Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00002a
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lwa
+        desc: Load Word Algebraic
+        bitmask: 0xfc000003
+        pattern: 0xe8000002
+        args: [ rD, ds, rA ]
+        defs: [ rD ]
+        uses: [ rA.nz ]
+
+      - name: lwaux
+        desc: Load Word Algebraic with Update Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0002ea
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA, rB ]
+
+      - name: lwax
+        desc: Load Word Algebraic Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0002aa
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA.nz, rB ]
+
+      - name: mfocrf
+        desc: Move from One Condition Register Field
+        bitmask: 0xfc100fff
+        pattern: 0x7c100026
+        args: [ rD, crm ]
+        defs: [ rD ]
+
+      - name: mtmsrd
+        desc: Move to Machine State Register Double Word
+        bitmask: 0xFC1EFFFF
+        pattern: 0x7c000164
+        args: [ rS, mtmsrd_L ]
+        uses: [ rS, mtmsrd_L ]
+
+      - name: mtsrd
+        desc: Move to Segment Register Double Word
+        bitmask: 0xfc10ffff
+        pattern: 0x7c0000a4
+        args: [ sr, rS ]
+        uses: [ rS ]
+
+      - name: mtsrdin
+        desc: Move to Segment Register Double Word Indirect
+        bitmask: 0xfc1f07ff
+        pattern: 0x7c0000e4
+        args: [ rS, rB ]
+        uses: [ rS, rB ]
+
+      - name: mulhd
+        desc: Multiply High Double Word
+        bitmask: 0xfc0007fe
+        pattern: 0x7c000092
+        modifiers: [ Rc ]
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA, rB ]
+
+      - name: mulhdu
+        desc: Multiply High Double Word Unsigned
+        bitmask: 0xfc0007fe
+        pattern: 0x7c000012
+        modifiers: [ Rc ]
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA, rB ]
+
+      - name: mulld
+        desc: Multiply Low Double Word
+        bitmask: 0xfc0003fe
+        pattern: 0x7c0001d2
+        modifiers: [ OE, Rc ]
+        args: [ rD, rA, rB ]
+        defs: [ rD ]
+        uses: [ rA, rB ]
+
+      - name: rfid
+        desc: Return from Interrupt Double Word
+        bitmask: 0xffffffff
+        pattern: 0x4c000024
+
+      - name: rldcl
+        desc: Rotate Left Double Word then Clear Left
+        bitmask: 0xfc00001e
+        pattern: 0x78000010
+        modifiers: [ Rc ]
+        args: [ rA, rS, rB, MB64 ]
+        defs: [ rA ]
+        uses: [ rS, rB ]
+
+      - name: rldcr
+        desc: Rotate Left Double Word then Clear Right
+        bitmask: 0xfc00001e
+        pattern: 0x78000012
+        modifiers: [ Rc ]
+        args: [ rA, rS, rB, ME64 ]
+        defs: [ rA ]
+        uses: [ rS, rB ]
+
+      - name: rldic
+        desc: Rotate Left Double Word Immediate then Clear
+        bitmask: 0xfc00001c
+        pattern: 0x78000008
+        modifiers: [ Rc ]
+        args: [ rA, rS, SH64, MB64 ]
+        defs: [ rA ]
+        uses: [ rS ]
+
+      - name: rldicl
+        desc: Rotate Left Double Word Immediate then Clear Left
+        bitmask: 0xfc00001c
+        pattern: 0x78000000
+        modifiers: [ Rc ]
+        args: [ rA, rS, SH64, MB64 ]
+        defs: [ rA ]
+        uses: [ rS ]
+
+      - name: rldicr
+        desc: Rotate Left Double Word Immediate then Clear Right
+        bitmask: 0xfc00001c
+        pattern: 0x78000004
+        modifiers: [ Rc ]
+        args: [ rA, rS, SH64, ME64 ]
+        defs: [ rA ]
+        uses: [ rS ]
+
+      - name: rldimi
+        desc: Rotate Left Double Word Immediate then Mask Insert
+        bitmask: 0xfc00001c
+        pattern: 0x7800000c
+        modifiers: [ Rc ]
+        args: [ rA, rS, SH64, MB64 ]
+        defs: [ rA ]
+        uses: [ rS ]
+
+      - name: slbia
+        desc: SLB Invalidate All
+        bitmask: 0xffffffff
+        pattern: 0x7c0003e4
+
+      - name: slbie
+        desc: SLB Invalidate Entry
+        bitmask: 0xffff07ff
+        pattern: 0x7c000364
+        args: [ rB ]
+        uses: [ rB ]
+
+      - name: sld
+        desc: Shift Left Double Word
+        bitmask: 0xfc0007fe
+        pattern: 0x7c000036
+        modifiers: [ Rc ]
+        args: [ rA, rS, rB ]
+        defs: [ rA ]
+        uses: [ rS, rB ]
+
+      - name: srad
+        desc: Shift Right Algebraic Double Word
+        bitmask: 0xfc0007fe
+        pattern: 0x7c000634
+        modifiers: [ Rc ]
+        args: [ rA, rS, rB ]
+        defs: [ rA ]
+        uses: [ rS, rB ]
+
+      - name: sradi
+        desc: Shift Right Algebraic Double Word Immediate
+        bitmask: 0xFC0007FC
+        pattern: 0x7c000674
+        modifiers: [ Rc ]
+        args: [ rA, rS, SH64 ]
+        defs: [ rA ]
+        uses: [ rS ]
+
+      - name: srd
+        desc: Shift Right Double Word
+        bitmask: 0xfc0007fe
+        pattern: 0x7c000436
+        modifiers: [ Rc ]
+        args: [ rA, rS, rB ]
+        defs: [ rA ]
+        uses: [ rA, rB ]
+
+      - name: std
+        desc: Store Double Word
+        bitmask: 0xfc000003
+        pattern: 0xf8000000
+        args: [ rS, ds, rA ]
+        uses: [ rS, rA.nz ]
+
+      - name: stdcx.
+        desc: Store Double Word Conditional Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0001ad
+        side_effects: [ Rc ]
+        args: [ rS, rA, rB ]
+        uses: [ rS, rA.nz, rB ]
+
+      - name: stdu
+        desc: Store Double Word with Update
+        bitmask: 0xfc000003
+        pattern: 0xf8000001
+        args: [ rS, ds, rA ]
+        defs: [ rA ]
+        uses: [ rS, rA ]
+
+      - name: stdux
+        desc: Store Double Word with Update Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00016a
+        args: [ rS, rA, rB ]
+        defs: [ rA ]
+        uses: [ rS, rA, rB ]
+
+      - name: stdx
+        desc: Store Double Word Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00012a
+        args: [ rS, rA, rB ]
+        defs: [ rA ]
+        uses: [ rS, rA.nz, rB ]
+
+      - name: td
+        desc: Trap Double Word
+        bitmask: 0xfc0007ff
+        pattern: 0x7c000088
+        args: [ TO, rA, rB ]
+        uses: [ rA, rB ]
+
+      - name: tdi
+        desc: Trap Double Word Immediate
+        bitmask: 0xfc000000
+        pattern: 0x08000000
+        args: [ TO, rA, simm ]
+        uses: [ rA ]
+
+    mnemonics:
+      # TODO: the mnemonics for rldic, rldicl, rldicr, and rldimi
+      - name: rotld
+        opcode: rldcl
+        args: [ rA, rS, rB ]
+        condition: MB64 == 0
+
+      - name: tdge
+        opcode: td
+        args: [ rA, rB ]
+        condition: TO == 12
+
+      - name: tdlnl
+        opcode: td
+        args: [ rA, rB ]
+        condition: TO == 5
+
+      - name: tdlti
+        opcode: tdi
+        args: [ rA, simm ]
+        condition: TO == 16
+
+      - name: tdnei
+        opcode: tdi
+        args: [ rA, simm ]
+        condition: TO == 24
+
+  PairedSingles:
+    name: Paired Singles
+
+    fields:
+      - name: ps_offset
+        arg: Offset
+        desc: Paired Single Offset
+        bits: 20..32
+        signed: true
+      - name: ps_I
+        arg: GQR
+        bits: 17..20
+      - name: ps_IX
+        arg: GQR
+        bits: 22..25
+      - name: ps_W
+        arg: OpaqueU
+        bits: 16..17
+      - name: ps_WX
+        arg: OpaqueU
+        bits: 21..22
+
+    opcodes:
+      - name: dcbz_l
+        desc: Data Cache Block Set to Zero Locked
+        bitmask: 0xffe007ff
+        pattern: 0x100007ec
+        args: [ rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: psq_l
+        desc: Paired Single Quantized Load
+        bitmask: 0xfc000000
+        pattern: 0xe0000000
+        args: [ frD, ps_offset, rA, ps_W, ps_I ]
+        defs: [ frD ]
+        uses: [ rA.nz ]
+
+      - name: psq_lu
+        desc: Paired Single Quantized Load with Update
+        bitmask: 0xfc000000
+        pattern: 0xe4000000
+        args: [ frD, ps_offset, rA, ps_W, ps_I ]
+        defs: [ frD, rA ]
+        uses: [ rA ]
+
+      - name: psq_lux
+        desc: Paired Single Quantized Load with Update Indexed
+        bitmask: 0xfc00007f
+        pattern: 0x1000004c
+        args: [ frD, rA, rB, ps_WX, ps_IX ]
+        defs: [ frD, rA ]
+        uses: [ rA, rB ]
+
+      - name: psq_lx
+        desc: Paired Single Quantized Load Indexed
+        bitmask: 0xfc00007f
+        pattern: 0x1000000c
+        args: [ frD, rA, rB, ps_WX, ps_IX ]
+        defs: [ frD ]
+        uses: [ rA.nz, rB ]
+
+      - name: psq_st
+        desc: Paired Single Quantized Store
+        bitmask: 0xfc000000
+        pattern: 0xf0000000
+        args: [ frS, ps_offset, rA, ps_W, ps_I ]
+        uses: [ frS, rA.nz ]
+
+      - name: psq_stu
+        desc: Paired Single Quantized Store with Update
+        bitmask: 0xfc000000
+        pattern: 0xf4000000
+        args: [ frS, ps_offset, rA, ps_W, ps_I ]
+        defs: [ rA ]
+        uses: [ frS, rA ]
+
+      - name: psq_stux
+        desc: Paired Single Quantized Store with Update Indexed
+        bitmask: 0xfc00007f
+        pattern: 0x1000004e
+        args: [ frS, rA, rB, ps_WX, ps_IX ]
+        defs: [ rA ]
+        uses: [ frS, rA, rB ]
+
+      - name: psq_stx
+        desc: Paired Single Quantized Store Indexed
+        bitmask: 0xfc00007f
+        pattern: 0x1000000e
+        args: [ frS, rA, rB, ps_WX, ps_IX ]
+        uses: [ frS, rA.nz, rB ]
+
+      - name: ps_abs
+        desc: Paired Single Absolute Value
+        bitmask: 0xfc1f07fe
+        pattern: 0x10000210
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: ps_add
+        desc: Paired Single Add
+        bitmask: 0xfc0007fe
+        pattern: 0x1000002a
+        modifiers: [ Rc ]
+        args: [ frD, frA, frB ]
+        defs: [ frD ]
+        uses: [ frA, frB ]
+
+      - name: ps_cmpo0
+        desc: Paired Singles Compare Ordered High
+        bitmask: 0xfc6007ff
+        pattern: 0x10000040
+        args: [ crfD, frA, frB ]
+        defs: [ crfD ]
+        uses: [ frA.nz, frB ]
+
+      - name: ps_cmpo1
+        desc: Paired Singles Compare Ordered Low
+        bitmask: 0xfc6007ff
+        pattern: 0x100000c0
+        args: [ crfD, frA, frB ]
+        defs: [ crfD ]
+        uses: [ frA.nz, frB ]
+
+      - name: ps_cmpu0
+        desc: Paired Singles Compare Unordered High
+        bitmask: 0xfc6007ff
+        pattern: 0x10000000
+        args: [ crfD, frA, frB ]
+        defs: [ crfD ]
+        uses: [ frA.nz, frB ]
+
+      - name: ps_cmpu1
+        desc: Paired Singles Compare Unordered Low
+        bitmask: 0xfc6007ff
+        pattern: 0x10000080
+        args: [ crfD, frA, frB ]
+        defs: [ crfD ]
+        uses: [ frA.nz, frB ]
+
+      - name: ps_div
+        desc: Paired Single Divide
+        bitmask: 0xfc0007fe
+        pattern: 0x10000024
+        modifiers: [ Rc ]
+        args: [ frD, frA, frB ]
+        defs: [ frD ]
+        uses: [ frA, frB ]
+
+      - name: ps_madd
+        desc: Paired Single Multiply-Add
+        bitmask: 0xfc00003e
+        pattern: 0x1000003a
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_madds0
+        desc: Paired Single Multiply-Add Scalar high
+        bitmask: 0xfc00003e
+        pattern: 0x1000001c
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_madds1
+        desc: Paired Single Multiply-Add Scalar low
+        bitmask: 0xfc00003e
+        pattern: 0x1000001e
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_merge00
+        desc: Paired Single MERGE high
+        bitmask: 0xfc0007fe
+        pattern: 0x10000420
+        modifiers: [ Rc ]
+        args: [ frD, frA, frB ]
+        defs: [ frD ]
+        uses: [ frA, frB ]
+
+      - name: ps_merge01
+        desc: Paired Single MERGE direct
+        bitmask: 0xfc0007fe
+        pattern: 0x10000460
+        modifiers: [ Rc ]
+        args: [ frD, frA, frB ]
+        defs: [ frD ]
+        uses: [ frA, frB ]
+
+      - name: ps_merge10
+        desc: Paired Single MERGE swapped
+        bitmask: 0xfc0007fe
+        pattern: 0x100004a0
+        modifiers: [ Rc ]
+        args: [ frD, frA, frB ]
+        defs: [ frD ]
+        uses: [ frA, frB ]
+
+      - name: ps_merge11
+        desc: Paired Single MERGE low
+        bitmask: 0xfc0007fe
+        pattern: 0x100004e0
+        modifiers: [ Rc ]
+        args: [ frD, frA, frB ]
+        defs: [ frD ]
+        uses: [ frA, frB ]
+
+      - name: ps_mr
+        desc: Paired Single Move Register
+        bitmask: 0xfc1f07fe
+        pattern: 0x10000090
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: ps_msub
+        desc: Paired Single Multiply-Subtract
+        bitmask: 0xfc00003e
+        pattern: 0x10000038
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_mul
+        desc: Paired Single Multiply
+        bitmask: 0xfc00f83e
+        pattern: 0x10000032
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC ]
+        defs: [ frD ]
+        uses: [ frA, frC ]
+
+      - name: ps_muls0
+        desc: Paired Single Multiply Scalar high
+        bitmask: 0xfc00f83e
+        pattern: 0x10000018
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC ]
+        defs: [ frD ]
+        uses: [ frA, frC ]
+
+      - name: ps_muls1
+        desc: Paired Single Multiply Scalar low
+        bitmask: 0xfc00f83e
+        pattern: 0x1000001a
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC ]
+        defs: [ frD ]
+        uses: [ frA, frC ]
+
+      - name: ps_nabs
+        desc: Paired Single Negative Absolute Value
+        bitmask: 0xfc1f07fe
+        pattern: 0x10000110
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: ps_neg
+        desc: Paired Single Negate
+        bitmask: 0xfc1f07fe
+        pattern: 0x10000050
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: ps_nmadd
+        desc: Paired Single Negative Multiply-Add
+        bitmask: 0xfc00003e
+        pattern: 0x1000003e
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_nmsub
+        desc: Paired Single Negative Multiply-Subtract
+        bitmask: 0xfc00003e
+        pattern: 0x1000003c
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_res
+        desc: Paired Single Reciprocal Estimate
+        bitmask: 0xfc1f07fe
+        pattern: 0x10000030
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: ps_rsqrte
+        desc: Paired Single Reciprocal Square Root Estimate
+        bitmask: 0xfc1f07fe
+        pattern: 0x10000034
+        modifiers: [ Rc ]
+        args: [ frD, frB ]
+        defs: [ frD ]
+        uses: [ frB ]
+
+      - name: ps_sel
+        desc: Paired Single Select
+        bitmask: 0xfc00003e
+        pattern: 0x1000002e
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_sub
+        desc: Paired Single Subtract
+        bitmask: 0xfc0007fe
+        pattern: 0x10000028
+        modifiers: [ Rc ]
+        args: [ frD, frA, frB ]
+        defs: [ frD ]
+        uses: [ frA, frB ]
+
+      - name: ps_sum0
+        desc: Paired Single vector SUM high
+        bitmask: 0xfc00003e
+        pattern: 0x10000014
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+      - name: ps_sum1
+        desc: Paired Single vector SUM low
+        bitmask: 0xfc00003e
+        pattern: 0x10000016
+        modifiers: [ Rc ]
+        args: [ frD, frA, frC, frB ]
+        defs: [ frD ]
+        uses: [ frA, frC, frB ]
+
+  AltiVec:
+    name: AltiVec
+
+    fields:
+      - name: vsimm
+        arg: Simm
+        desc: Vector Signed Immediate
+        bits: 11..16
+        signed: true
+      - name: vuimm
+        arg: Uimm
+        desc: Vector Unsigned Immediate
+        bits: 11..16
+      - name: vS
+        arg: VR
+        desc: Vector Source Register
+        bits: 6..11
+      - name: vD
+        arg: VR
+        desc: Vector Destination Register
+        bits: 6..11
+      - name: vA
+        arg: VR
+        desc: Vector Register A
+        bits: 11..16
+      - name: vA.nz
+        arg: VR
+        desc: Vector Register A (non-zero)
+        bits: 11..16
+      - name: vB
+        arg: VR
+        desc: Vector Register B
+        bits: 16..21
+      - name: vC
+        arg: VR
+        desc: Vector Register C
+        bits: 21..26
+      - name: ds_A
+        arg: OpaqueU
+        desc: All field for ds instructions
+        bits: 6..7
+      - name: STRM
+        arg: OpaqueU
+        desc: Stream ID
+        bits: 9..11
+      - name: SHB
+        arg: OpaqueU
+        bits: 22..26
+
+    modifiers:
+      - name: T
+        desc: Transient bit
+        suffix: t
+        bit: 6
+      - name: RcAV
+        desc: Record Bit (AltiVec)
+        suffix: .
+        bit: 21
+
+    opcodes:
+      - name: dss
+        desc: Data Stream Stop
+        bitmask: 0xfd9fffff
+        pattern: 0x7c00066c
+        args: [ STRM, ds_A ]
+        uses: [ STRM ]
+
+      - name: dst
+        desc: Data Stream Touch
+        bitmask: 0xfd8007ff
+        pattern: 0x7c0002ac
+        modifiers: [ T ]
+        args: [ rA, rB, STRM ]
+        uses: [ rA, rB, STRM ]
+
+      - name: dstst
+        desc: Data Stream Touch for Store
+        bitmask: 0xfd8007ff
+        pattern: 0x7c0002ec
+        modifiers: [ T ]
+        args: [ rA, rB, STRM ]
+        uses: [ rA, rB, STRM ]
+
+      - name: lvebx
+        desc: Load Vector Element Byte Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00000e
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvehx
+        desc: Load Vector Element Half Word Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00004e
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvewx
+        desc: Load Vector Element Word Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00008e
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvlx
+        desc: Load Vector Left Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00040e
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvlxl
+        desc: Load Vector Left Indexed Last
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00060e
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvrx
+        desc: Load Vector Right Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00044e
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvrxl
+        desc: Load Vector Right Indexed Last
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00064e
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvsl
+        desc: Load Vector for Shift Left
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00000c
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvsr
+        desc: Load Vector for Shift Right
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00004c
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvx
+        desc: Load Vector Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0000ce
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvxl
+        desc: Load Vector Indexed LRU
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0002ce
+        args: [ vD, rA, rB ]
+        defs: [ vD ]
+        uses: [ rA.nz, rB ]
+
+      - name: mfvscr
+        desc: Move from Vector Status and Control Register
+        bitmask: 0xfc1fffff
+        pattern: 0x10000604
+        args: [ vD ]
+        defs: [ vD ]
+
+      - name: mtvscr
+        desc: Move to Vector Status and Control Register
+        bitmask: 0xffff07ff
+        pattern: 0x10000644
+        args: [ vB ]
+        uses: [ vB ]
+
+      - name: stvebx
+        desc: Store Vector Element Byte Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00010e
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvehx
+        desc: Store Vector Element Half Word Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00014e
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvewx
+        desc: Store Vector Element Word Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00018e
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvlx
+        desc: Store Vector Left Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00050e
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvlxl
+        desc: Store Vector Left Indexed Last
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00070e
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvrx
+        desc: Store Vector Right Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00054e
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvrxl
+        desc: Store Vector Right Indexed Last
+        bitmask: 0xfc0007ff
+        pattern: 0x7c00074e
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvx
+        desc: Store Vector Indexed
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0001ce
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvxl
+        desc: Store Vector Indexed LRU
+        bitmask: 0xfc0007ff
+        pattern: 0x7c0003ce
+        args: [ vS, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: vaddcuw
+        desc: Vector Add Carryout Unsigned Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000180
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vaddfp
+        desc: Vector Add Floating Point
+        bitmask: 0xfc0007ff
+        pattern: 0x1000000a
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vaddsbs
+        desc: Vector Add Signed Byte Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000300
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vaddshs
+        desc: Vector Add Signed Half Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000340
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vaddsws
+        desc: Vector Add Signed Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000380
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vaddubm
+        desc: Vector Add Unsigned Byte Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x10000000
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vaddubs
+        desc: Vector Add Unsigned Byte Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000200
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vadduhm
+        desc: Vector Add Unsigned Half Word Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x10000040
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vadduhs
+        desc: Vector Add Unsigned Half Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000240
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vadduwm
+        desc: Vector Add Unsigned Word Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x10000080
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vadduws
+        desc: Vector Add Unsigned Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000280
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vand
+        desc: Vector Logical AND
+        bitmask: 0xfc0007ff
+        pattern: 0x10000404
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vandc
+        desc: Vector Logical AND with Complement
+        bitmask: 0xfc0007ff
+        pattern: 0x10000444
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vavgsb
+        desc: Vector Average Signed Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000502
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vavgsh
+        desc: Vector Average Signed Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000542
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vavgsw
+        desc: Vector Average Signed Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000582
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vavgub
+        desc: Vector Average Unsigned Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000402
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vavguh
+        desc: Vector Average Unsigned Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000442
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vavguw
+        desc: Vector Average Unsigned Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000482
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcfsx
+        aliases: [ vcsxwfp ]
+        desc: Vector Convert from Signed Fixed-Point Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000034a
+        args: [ vD, vB, vuimm ]
+        defs: [ vD ]
+        uses: [ vB, vuimm ]
+
+      - name: vcfux
+        aliases: [ vcuxwfp ]
+        desc: Vector Convert from Unsigned Fixed-Point Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000030a
+        args: [ vD, vB, vuimm ]
+        defs: [ vD ]
+        uses: [ vB, vuimm ]
+
+      - name: vcmpbfp
+        desc: Vector Compare Bounds Floating Point
+        bitmask: 0xfc0003ff
+        pattern: 0x100003c6
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpeqfp
+        desc: Vector Compare Equal-to-Floating Point
+        bitmask: 0xfc0003ff
+        pattern: 0x100000c6
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpequb
+        desc: Vector Compare Equal-to Unsigned Byte
+        bitmask: 0xfc0003ff
+        pattern: 0x10000006
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpequh
+        desc: Vector Compare Equal-to Unsigned Half Word
+        bitmask: 0xfc0003ff
+        pattern: 0x10000046
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpequw
+        desc: Vector Compare Equal-to Unsigned Word
+        bitmask: 0xfc0003ff
+        pattern: 0x10000086
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgefp
+        desc: Vector Compare Greater-Than-or-Equal-to Floating Point
+        bitmask: 0xfc0003ff
+        pattern: 0x100001c6
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgtfp
+        desc: Vector Compare Greater-Than Floating Point
+        bitmask: 0xfc0003ff
+        pattern: 0x100002c6
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgtsb
+        desc: Vector Compare Greater-Than Signed Byte
+        bitmask: 0xfc0003ff
+        pattern: 0x10000306
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgtsh
+        desc: Vector Compare Greater-Than Condition Register Signed Half Word
+        bitmask: 0xfc0003ff
+        pattern: 0x10000346
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgtsw
+        desc: Vector Compare Greater-Than Signed Word
+        bitmask: 0xfc0003ff
+        pattern: 0x10000386
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgtub
+        desc: Vector Compare Greater-Than Unsigned Byte
+        bitmask: 0xfc0003ff
+        pattern: 0x10000206
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgtuh
+        desc: Vector Compare Greater-Than Unsigned Half Word
+        bitmask: 0xfc0003ff
+        pattern: 0x10000246
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vcmpgtuw
+        desc: Vector Compare Greater-Than Unsigned Word
+        bitmask: 0xfc0003ff
+        pattern: 0x10000286
+        modifiers: [ RcAV ]
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vctsxs
+        aliases: [ vcfpsxws ]
+        desc: Vector Convert to Signed Fixed-Point Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x100003ca
+        args: [ vD, vB, vuimm ]
+        defs: [ vD ]
+        uses: [ vB, vuimm ]
+
+      - name: vctuxs
+        aliases: [ vcfpuxws ]
+        desc: Vector Convert to Unsigned Fixed-Point Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x1000038a
+        args: [ vD, vB, vuimm ]
+        defs: [ vD ]
+        uses: [ vB, vuimm ]
+
+      - name: vexptefp
+        desc: Vector 2 Raised to the Exponent Estimate Floating Point
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000018a
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vlogefp
+        desc: Vector Log2 Estimate Floating Point
+        bitmask: 0xfc1f07ff
+        pattern: 0x100001ca
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vmaddfp
+        desc: Vector Multiply Add Floating Point
+        bitmask: 0xfc00003f
+        pattern: 0x1000002e
+        args: [ vD, vA, vC, vB ]
+        defs: [ vD ]
+        uses: [ vA, vC, vB ]
+
+      - name: vmaxfp
+        desc: Vector Maximum Floating Point
+        bitmask: 0xfc0007ff
+        pattern: 0x1000040a
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmaxsb
+        desc: Vector Maximum Signed Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000102
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmaxsh
+        desc: Vector Maximum Signed Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000142
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmaxsw
+        desc: Vector Maximum Signed Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000182
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmaxub
+        desc: Vector Maximum Unsigned Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000002
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmaxuh
+        desc: Vector Maximum Unsigned Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000042
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmaxuw
+        desc: Vector Maximum Unsigned Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000082
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmhaddshs
+        desc: Vector Multiply High and Add Signed Half Word Saturate
+        bitmask: 0xfc00003f
+        pattern: 0x10000020
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmhraddshs
+        desc: Vector Multiply High Round and Add Signed Half Word Saturate
+        bitmask: 0xfc00003f
+        pattern: 0x10000021
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vminfp
+        desc: Vector Minimum Floating Point
+        bitmask: 0xfc0007ff
+        pattern: 0x1000044a
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vminsb
+        desc: Vector Minimum Signed Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000302
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vminsh
+        desc: Vector Minimum Signed Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000342
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vminsw
+        desc: Vector Minimum Signed Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000382
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vminub
+        desc: Vector Minimum Unsigned Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000202
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vminuh
+        desc: Vector Minimum Unsigned Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000242
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vminuw
+        desc: Vector Minimum Unsigned Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000282
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmladduhm
+        desc: Vector Multiply Low and Add Unsigned Half Word Modulo
+        bitmask: 0xfc00003f
+        pattern: 0x10000022
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmrghb
+        desc: Vector Merge High Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x1000000c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmrghh
+        desc: Vector Merge High Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000004c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmrghw
+        desc: Vector Merge High Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000008c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmrglb
+        desc: Vector Merge Low Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x1000010c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmrglh
+        desc: Vector Merge Low Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000014c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmrglw
+        desc: Vector Merge Low Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000018c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmsummbm
+        desc: Vector Multiply Sum Mixed-Sign Byte Modulo
+        bitmask: 0xfc00003f
+        pattern: 0x10000025
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmsumshm
+        desc: Vector Multiply Sum Signed Half Word Modulo
+        bitmask: 0xfc00003f
+        pattern: 0x10000028
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmsumshs
+        desc: Vector Multiply Sum Signed Half Word Saturate
+        bitmask: 0xfc00003f
+        pattern: 0x10000029
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmsumubm
+        desc: Vector Multiply Sum Unsigned Byte Modulo
+        bitmask: 0xfc00003f
+        pattern: 0x10000024
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmsumuhm
+        desc: Vector Multiply Sum Unsigned Half Word Modulo
+        bitmask: 0xfc00003f
+        pattern: 0x10000026
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmsumuhs
+        desc: Vector Multiply Sum Unsigned Half Word Saturate
+        bitmask: 0xfc00003f
+        pattern: 0x10000027
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vmulesb
+        desc: Vector Multiply Even Signed Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000308
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmulesh
+        desc: Vector Multiply Even Signed Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000348
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmuleub
+        desc: Vector Multiply Even Unsigned Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000208
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmuleuh
+        desc: Vector Multiply Even Unsigned Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000248
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmulosb
+        desc: Vector Multiply Odd Signed Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000108
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmulosh
+        desc: Vector Multiply Odd Signed Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000148
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmuloub
+        desc: Vector Multiply Odd Unsigned Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000008
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vmulouh
+        desc: Vector Multiply Odd Unsigned Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000048
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vnmsubfp
+        desc: Vector Negative Multiply-Subtract Floating Point
+        bitmask: 0xfc00003f
+        pattern: 0x1000002f
+        args: [ vD, vA, vC, vB ]
+        defs: [ vD ]
+        uses: [ vA, vC, vB ]
+
+      - name: vnor
+        desc: Vector Logical NOR
+        bitmask: 0xfc0007ff
+        pattern: 0x10000504
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vor
+        desc: Vector Logical OR
+        bitmask: 0xfc0007ff
+        pattern: 0x10000484
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vperm
+        desc: Vector Permute
+        bitmask: 0xfc00003f
+        pattern: 0x1000002b
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vpkpx
+        desc: Vector Pack Pixel32
+        bitmask: 0xfc0007ff
+        pattern: 0x1000030e
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkshss
+        desc: Vector Pack Signed Half Word Signed Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x1000018e
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkshus
+        desc: Vector Pack Signed Half Word Unsigned Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x1000010e
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkswss
+        desc: Vector Pack Signed Word Signed Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x100001ce
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkswus
+        desc: Vector Pack Signed Word Unsigned Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x1000014e
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkuhum
+        desc: Vector Pack Unsigned Half Word Unsigned Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x1000000e
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkuhus
+        desc: Vector Pack Unsigned Half Word Unsigned Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x1000008e
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkuwum
+        desc: Vector Pack Unsigned Word Unsigned Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x1000004e
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vpkuwus
+        desc: Vector Pack Unsigned Word Unsigned Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x100000ce
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vrefp
+        desc: Vector Reciprocal Estimate Floating Point
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000010a
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vrfim
+        desc: Vector Round to Floating-Point Integer toward Minus Infinity
+        bitmask: 0xfc1f07ff
+        pattern: 0x100002ca
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vrfin
+        desc: Vector Round to Floating-Point Integer Nearest
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000020a
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vrfip
+        desc: Vector Round to Floating-Point Integer toward Plus Infinity
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000028a
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vrfiz
+        desc: Vector Round to Floating-Point Integer toward Zero
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000024a
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vrlb
+        desc: Vector Rotate Left Integer Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000004
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vrlh
+        desc: Vector Rotate Left Integer Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000044
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vrlw
+        desc: Vector Rotate Left Integer Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000084
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vrsqrtefp
+        desc: Vector Reciprocal Square Root Estimate Floating Point
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000014a
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vsel
+        desc: Vector Conditional Select
+        bitmask: 0xfc00003f
+        pattern: 0x1000002a
+        args: [ vD, vA, vB, vC ]
+        defs: [ vD ]
+        uses: [ vA, vB, vC ]
+
+      - name: vsl
+        desc: Vector Shift Left
+        bitmask: 0xfc0007ff
+        pattern: 0x100001c4
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vslb
+        desc: Vector Shift Left Integer Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000104
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsldoi
+        desc: Vector Shift Left Double by Octet Immediate
+        bitmask: 0xfc00043f
+        pattern: 0x1000002c
+        args: [ vD, vA, vB, SHB ]
+        defs: [ vD ]
+        uses: [ vA, vB, SHB ]
+
+      - name: vslh
+        desc: Vector Shift Left Integer Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000144
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vslo
+        desc: Vector Shift Left by Octet
+        bitmask: 0xfc0007ff
+        pattern: 0x1000040c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vslw
+        desc: Vector Shift Left Integer Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000184
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vspltb
+        desc: Vector Splat Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x1000020c
+        args: [ vD, vB, vuimm ]
+        defs: [ vD ]
+        uses: [ vB, vuimm ]
+
+      - name: vsplth
+        desc: Vector Splat Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000024c
+        args: [ vD, vB, vuimm ]
+        defs: [ vD ]
+        uses: [ vB, vuimm ]
+
+      - name: vspltisb
+        desc: Vector Splat Immediate Signed Byte
+        bitmask: 0xfc00ffff
+        pattern: 0x1000030c
+        args: [ vD, vsimm ]
+        defs: [ vD ]
+        uses: [ vsimm ]
+
+      - name: vspltish
+        desc: Vector Splat Immediate Signed Half Word
+        bitmask: 0xfc00ffff
+        pattern: 0x1000034c
+        args: [ vD, vsimm ]
+        defs: [ vD ]
+        uses: [ vsimm ]
+
+      - name: vspltisw
+        desc: Vector Splat Immediate Signed Word
+        bitmask: 0xfc00ffff
+        pattern: 0x1000038c
+        args: [ vD, vsimm ]
+        defs: [ vD ]
+        uses: [ vsimm ]
+
+      - name: vspltw
+        desc: Vector Splat Word
+        bitmask: 0xfc0007ff
+        pattern: 0x1000028c
+        args: [ vD, vB, vuimm ]
+        defs: [ vD ]
+        uses: [ vB, vuimm ]
+
+      - name: vsr
+        desc: Vector Shift Right
+        bitmask: 0xfc0007ff
+        pattern: 0x100002c4
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsrab
+        desc: Vector Shift Right Algebraic Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000304
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsrah
+        desc: Vector Shift Right Algebraic Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000344
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsraw
+        desc: Vector Shift Right Algebraic Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000384
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsrb
+        desc: Vector Shift Right Byte
+        bitmask: 0xfc0007ff
+        pattern: 0x10000204
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsrh
+        desc: Vector Shift Right Half Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000244
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsro
+        desc: Vector Shift Right by Octet
+        bitmask: 0xfc0007ff
+        pattern: 0x1000044c
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsrw
+        desc: Vector Shift Right Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000284
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubcuw
+        desc: Vector Subtract Carryout Unsigned Word
+        bitmask: 0xfc0007ff
+        pattern: 0x10000580
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubfp
+        desc: Vector Subtract Floating Point
+        bitmask: 0xfc0007ff
+        pattern: 0x1000004a
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubsbs
+        desc: Vector Subtract Signed Byte Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000700
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubshs
+        desc: Vector Subtract Signed Half Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000740
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubsws
+        desc: Vector Subtract Signed Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000780
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsububm
+        desc: Vector Subtract Unsigned Byte Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x10000400
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsububs
+        desc: Vector Subtract Unsigned Byte Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000600
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubuhm
+        desc: Vector Subtract Unsigned Half Word Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x10000440
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubuhs
+        desc: Vector Subtract Unsigned Half Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000640
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubuwm
+        desc: Vector Subtract Unsigned Word Modulo
+        bitmask: 0xfc0007ff
+        pattern: 0x10000480
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsubuws
+        desc: Vector Subtract Unsigned Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000680
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsumsws
+        desc: Vector Sum Across Signed Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000788
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsum2sws
+        desc: Vector Sum Across Partial (1/2) Signed Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000688
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsum4sbs
+        desc: Vector Sum Across Partial (1/4) Signed Byte Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000708
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsum4shs
+        desc: Vector Sum Across Partial (1/4) Signed Half Word Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000648
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vsum4ubs
+        desc: Vector Sum Across Partial (1/4) Unsigned Byte Saturate
+        bitmask: 0xfc0007ff
+        pattern: 0x10000608
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+      - name: vupkhpx
+        desc: Vector Unpack High Pixel16
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000034e
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vupkhsb
+        desc: Vector Unpack High Signed Byte
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000020e
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vupkhsh
+        desc: Vector Unpack High Signed Half Word
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000024e
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vupklpx
+        desc: Vector Unpack Low Pixel16
+        bitmask: 0xfc1f07ff
+        pattern: 0x100003ce
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vupklsb
+        desc: Vector Unpack Low Signed Byte
+        bitmask: 0xfc1f07ff
+        pattern: 0x1000028e
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vupklsh
+        desc: Vector Unpack Low Signed Half Word
+        bitmask: 0xfc1f07ff
+        pattern: 0x100002ce
+        args: [ vD, vB ]
+        defs: [ vD ]
+        uses: [ vB ]
+
+      - name: vxor
+        desc: Vector Logical XOR
+        bitmask: 0xfc0007ff
+        pattern: 0x100004c4
+        args: [ vD, vA, vB ]
+        defs: [ vD ]
+        uses: [ vA, vB ]
+
+    mnemonics:
+      - name: dss
+        opcode: dss
+        args: [ STRM ]
+        condition: ds_A == 0
+
+      - name: dssall
+        opcode: dss
+        condition: ds_A == 1 && STRM == 0
+
+      - name: vnot
+        opcode: vnor
+        args: [ vD, vA ]
+        condition: vB == vA
+
+      - name: vmr
+        opcode: vor
+        args: [ vD, vA ]
+        condition: vB == vA
+
+  Vmx128:
+    name: VMX128
+    requires: [ AltiVec ]
+
+    fields:
+      - name: VDS128
+        arg: VR
+        desc: VMX128 Source/Dest Register
+        bits: 28..30,6..11
+      - name: VA128
+        arg: VR
+        desc: VMX128 Register A
+        bits: 21,26,11..16
+      - name: VB128
+        arg: VR
+        desc: VMX128 Register B
+        bits: 30..32,16..21
+      - name: VC128
+        arg: VR
+        desc: VMX128 Register C
+        bits: 23..26
+      - name: PERM
+        arg: OpaqueU
+        desc: VMX128 Permutation
+        bits: 23..26,11..16
+      - name: D3DType
+        arg: OpaqueU
+        desc: the packed data type
+        bits: 11..14
+      - name: VMASK
+        arg: OpaqueU
+        desc: the pack mask
+        bits: 14..16
+      - name: Zimm
+        arg: OpaqueU
+        desc: amount to rotate/shift left
+        bits: 24..26
+
+    modifiers:
+      - name: Rc128
+        desc: Record Bit (VMX128)
+        suffix: .
+        bit: 25
+
+    opcodes:
+      - name: lvewx128
+        desc: Load Vector128 Element Word Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x10000083
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvlx128
+        desc: Load Vector128 Left Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x10000403
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvlxl128
+        desc: Load Vector128 Left Indexed LRU
+        bitmask: 0xfc0007f3
+        pattern: 0x10000603
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvrx128
+        desc: Load Vector128 Right Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x10000443
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvrxl128
+        desc: Load Vector128 Right Indexed LRU
+        bitmask: 0xfc0007f3
+        pattern: 0x10000643
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvsl128
+        desc: Load Vector128 for Shift Left
+        bitmask: 0xfc0007f3
+        pattern: 0x10000003
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvsr128
+        desc: Load Vector128 for Shift Right
+        bitmask: 0xfc0007f3
+        pattern: 0x10000043
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvx128
+        desc: Load Vector128 Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x100000C3
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: lvxl128
+        desc: Load Vector128 Indexed LRU
+        bitmask: 0xfc0007f3
+        pattern: 0x100002C3
+        args: [ VDS128, rA, rB ]
+        defs: [ VDS128 ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvewx128
+        desc: Store Vector128 Element Word Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x10000183
+        args: [ VDS128, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvlx128
+        desc: Store Vector128 Left Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x10000503
+        args: [ VDS128, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvlxl128
+        desc: Store Vector128 Left Indexed LRU
+        bitmask: 0xfc0007f3
+        pattern: 0x10000703
+        args: [ VDS128, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvrx128
+        desc: Store Vector128 Right Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x10000543
+        args: [ VDS128, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvrxl128
+        desc: Store Vector128 Right Indexed LRU
+        bitmask: 0xfc0007f3
+        pattern: 0x10000743
+        args: [ VDS128, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvx128
+        desc: Store Vector128 Indexed
+        bitmask: 0xfc0007f3
+        pattern: 0x100001C3
+        args: [ VDS128, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: stvxl128
+        desc: Store Vector128 Indexed LRU
+        bitmask: 0xfc0007f3
+        pattern: 0x100003C3
+        args: [ VDS128, rA, rB ]
+        uses: [ rA.nz, rB ]
+
+      - name: vaddfp128
+        desc: Vector128 Add Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x14000010
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vand128
+        desc: Vector128 Logical AND
+        bitmask: 0xfc0003d0
+        pattern: 0x14000210
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vandc128
+        desc: Vector128 Logical AND with Complement
+        bitmask: 0xfc0003d0
+        pattern: 0x14000250
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vctsxs128
+        aliases: [ vcfpsxws128 ]
+        desc: Vector128 Convert to Signed Fixed-Point Word Saturate
+        bitmask: 0xfc0007f0
+        pattern: 0x18000230
+        args: [ VDS128, VB128, vsimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vctuxs128
+        aliases: [ vcfpuxws128 ]
+        desc: Vector128 Convert to Unsigned Fixed-Point Word Saturate
+        bitmask: 0xfc0007f0
+        pattern: 0x18000270
+        args: [ VDS128, VB128, vuimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vcmpbfp128
+        desc: Vector128 Compare Bounds Floating Point
+        bitmask: 0xfc000390
+        pattern: 0x18000180
+        modifiers: [ Rc128 ]
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vcmpeqfp128
+        desc: Vector128 Compare Equal-to Floating Point
+        bitmask: 0xfc000390
+        pattern: 0x18000000
+        modifiers: [ Rc128 ]
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vcmpequw128
+        desc: Vector128 Compare Equal-to Unsigned Word
+        bitmask: 0xfc000390
+        pattern: 0x18000200
+        modifiers: [ Rc128 ]
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vcmpgefp128
+        desc: Vector128 Compare Greater-Than-or-Equal-to Floating Point
+        bitmask: 0xfc000390
+        pattern: 0x18000080
+        modifiers: [ Rc128 ]
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vcmpgtfp128
+        desc: Vector128 Compare Greater-Than Floating-Point
+        bitmask: 0xfc000390
+        pattern: 0x18000100
+        modifiers: [ Rc128 ]
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vcfsx128
+        aliases: [ vcsxwfp128 ]
+        desc: Vector128 Convert From Signed Fixed-Point Word
+        bitmask: 0xfc0007f0
+        pattern: 0x180002b0
+        args: [ VDS128, VB128, vsimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vcfux128
+        aliases: [ vcuxwfp128 ]
+        desc: Vector128 Convert From Unsigned Fixed-Point Word
+        bitmask: 0xfc0007f0
+        pattern: 0x180002f0
+        args: [ VDS128, VB128, vuimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vexptefp128
+        desc: Vector128 2 Raised to the Exponent Estimate Floating Point
+        bitmask: 0xfc1f07f0
+        pattern: 0x180006b0
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vlogefp128
+        desc: Vector128 Log2 Estimate Floating Point
+        bitmask: 0xfc1f07f0
+        pattern: 0x180006f0
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vmaddcfp128
+        desc: Vector128 Multiply Add Carryout Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x14000110
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vmaddfp128
+        desc: Vector128 Multiply Add Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x140000d0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vmaxfp128
+        desc: Vector128 Maximum Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x18000280
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vminfp128
+        desc: Vector128 Minimum Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x180002c0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vmrghw128
+        desc: Vector128 Merge High Word
+        bitmask: 0xfc0003d0
+        pattern: 0x18000300
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vmrglw128
+        desc: Vector128 Merge Low Word
+        bitmask: 0xfc0003d0
+        pattern: 0x18000340
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vmsum3fp128
+        desc: Vector128 Multiply Sum 3-way Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x14000190
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vmsum4fp128
+        desc: Vector128 Multiply Sum 4-way Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x140001d0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vmulfp128
+        desc: Vector128 Multiply Floating-Point
+        bitmask: 0xfc0003d0
+        pattern: 0x14000090
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vnmsubfp128
+        desc: Vector128 Negative Multiply-Subtract Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x14000150
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vnor128
+        desc: Vector128 Logical NOR
+        bitmask: 0xfc0003d0
+        pattern: 0x14000290
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vor128
+        desc: Vector128 Logical OR
+        bitmask: 0xfc0003d0
+        pattern: 0x140002d0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vperm128
+        desc: Vector128 Permutation
+        bitmask: 0xfc000210
+        pattern: 0x14000000
+        args: [ VDS128, VA128, VB128, VC128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128, VC128 ]
+
+      - name: vpermwi128
+        desc: Vector128 Permutate Word Immediate
+        bitmask: 0xfc000630
+        pattern: 0x18000210
+        args: [ VDS128, VB128, PERM ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vpkd3d128
+        desc: Vector128 Pack D3Dtype, Rotate Left Immediate and Mask Insert
+        bitmask: 0xfc000730
+        pattern: 0x18000610
+        args: [ VDS128, VB128, D3DType, VMASK, Zimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128, D3DType, VMASK, Zimm ]
+
+      - name: vpkshss128
+        desc: Vector128 Pack Signed Half Word Signed Saturate
+        bitmask: 0xfc0003d0
+        pattern: 0x14000200
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vpkshus128
+        desc: Vector128 Pack Signed Half Word Unsigned Saturate
+        bitmask: 0xfc0003d0
+        pattern: 0x14000240
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vpkswss128
+        desc: Vector128 Pack Signed Word Signed Saturate
+        bitmask: 0xfc0003d0
+        pattern: 0x14000280
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vpkswus128
+        desc: Vector128 Pack Signed Word Unsigned Saturate
+        bitmask: 0xfc0003d0
+        pattern: 0x140002c0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vpkuhum128
+        desc: Vector128 Pack Unsigned Half Word Unsigned Modulo
+        bitmask: 0xfc0003d0
+        pattern: 0x14000300
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vpkuhus128
+        desc: Vector128 Pack Unsigned Half Word Unsigned Saturate
+        bitmask: 0xfc0003d0
+        pattern: 0x14000340
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vpkuwum128
+        desc: Vector128 Pack Unsigned Word Unsigned Modulo
+        bitmask: 0xfc0003d0
+        pattern: 0x14000380
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vpkuwus128
+        desc: Vector128 Pack Unsigned Word Unsigned Saturate
+        bitmask: 0xfc0003d0
+        pattern: 0x140003c0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vrefp128
+        desc: Vector128 Reciprocal Estimate Floating Point
+        bitmask: 0xfc1f07f0
+        pattern: 0x18000630
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vrfim128
+        desc: Vector128 Round to Floating-Point Integer toward Minus Infinity
+        bitmask: 0xfc1f07f0
+        pattern: 0x18000330
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vrfin128
+        desc: Vector128 Round to Floating-Point Integer toward Nearest
+        bitmask: 0xfc1f07f0
+        pattern: 0x18000370
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vrfip128
+        desc: Vector128 Round to Floating-Point Integer toward Plus Infinity
+        bitmask: 0xfc1f07f0
+        pattern: 0x180003b0
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vrfiz128
+        desc: Vector128 Round to Floating-Point Integer toward Zero
+        bitmask: 0xfc1f07f0
+        pattern: 0x180003f0
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vrlimi128
+        desc: Vector128 Rotate Left Immediate and Mask Insert
+        bitmask: 0xfc000730
+        pattern: 0x18000710
+        args: [ VDS128, VB128, vuimm, Zimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vrlw128
+        desc: Vector128 Rotate Left Word
+        bitmask: 0xfc0003d0
+        pattern: 0x18000050
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vrsqrtefp128
+        desc: Vector128 Reciprocal Square Root Estimate Floating Point
+        bitmask: 0xfc1f07f0
+        pattern: 0x18000670
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vsel128
+        desc: Vector128 Select
+        bitmask: 0xfc0003d0
+        pattern: 0x14000350
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vsldoi128
+        desc: Vector128 Shift Left Double by Octet Immediate
+        bitmask: 0xfc000010
+        pattern: 0x10000010
+        args: [ VDS128, VA128, VB128, SHB ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vslo128
+        desc: Vector128 Shift Left Octet
+        bitmask: 0xfc0003d0
+        pattern: 0x14000390
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vslw128
+        desc: Vector128 Shift Left Word
+        bitmask: 0xfc0003d0
+        pattern: 0x180000d0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vspltisw128
+        desc: Vector128 Splat Immediate Signed Word
+        bitmask: 0xfc0007f0
+        pattern: 0x18000770
+        args: [ VDS128, VB128, vsimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vspltw128
+        desc: Vector128 Splat Word
+        bitmask: 0xfc0007f0
+        pattern: 0x18000730
+        args: [ VDS128, VB128, vuimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vsraw128
+        desc: Vector128 Shift Right Arithmetic Word
+        bitmask: 0xfc0003d0
+        pattern: 0x18000150
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vsro128
+        desc: Vector128 Shift Right Octet
+        bitmask: 0xfc0003d0
+        pattern: 0x140003d0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vsrw128
+        desc: Vector128 Shift Right Word
+        bitmask: 0xfc0003d0
+        pattern: 0x180001d0
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vsubfp128
+        desc: Vector128 Subtract Floating Point
+        bitmask: 0xfc0003d0
+        pattern: 0x14000050
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]
+
+      - name: vupkd3d128
+        desc: Vector128 Unpack D3Dtype
+        bitmask: 0xfc0007f0
+        pattern: 0x180007f0
+        args: [ VDS128, VB128, vuimm ]
+        defs: [ VDS128 ]
+        uses: [ VB128, vuimm ]
+
+      - name: vupkhsb128
+        desc: Vector128 Unpack High Signed Byte
+        bitmask: 0xfc1f07f0
+        pattern: 0x18000380
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vupkhsh128
+        desc: Vector128 Unpack High Signed Half Word
+        bitmask: 0xfc1f07f0
+        pattern: 0x180007a0
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vupklsb128
+        desc: Vector128 Unpack Low Signed Byte
+        bitmask: 0xfc1f07f0
+        pattern: 0x180003c0
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vupklsh128
+        desc: Vector128 Unpack Low Signed Half Word
+        bitmask: 0xfc1f07f0
+        pattern: 0x180007e0
+        args: [ VDS128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VB128 ]
+
+      - name: vxor128
+        desc: Vector128 Logical XOR
+        bitmask: 0xfc0003d0
+        pattern: 0x14000310
+        args: [ VDS128, VA128, VB128 ]
+        defs: [ VDS128 ]
+        uses: [ VA128, VB128 ]

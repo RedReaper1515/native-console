@@ -1,0 +1,33 @@
+# Failing subtests per test program, from tools/gc/run_gc_tests.py.
+# Zero means the program passes outright. cputest_* and gxtest_* are
+# dolphin-emu/hwtests; the rest are ours, from tests/gc/programs.
+# A number here is a debt, not a target: see docs/GC-PLAN.md for what
+# each one is waiting on.
+cputest_cr 0
+cputest_fctiwz 0
+cputest_fprf 0
+cputest_frsp 0
+cputest_load 0
+cputest_mtspr 0
+cputest_nan 0
+cputest_ni 0
+cputest_pairedmove 388
+cputest_reciprocal 1
+cputest_rlw 0
+cputest_srawix 0
+gc_audiotest 0
+gc_blendtest 0
+gc_cardtest 0
+gc_disctest 0
+gc_drawtest 0
+gc_fogtest 0
+gc_memtest 0
+gc_padtest 0
+gc_tevtest 0
+gc_textest 0
+gc_timetest 0
+gxtest_bitfield 0
+gxtest_clipping 4
+gxtest_copyfilter 0
+gxtest_intensity 0
+gxtest_rasterization 0

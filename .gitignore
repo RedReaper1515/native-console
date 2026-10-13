@@ -1,0 +1,97 @@
+# Build outputs
+build/
+build_*/
+build-*/
+cmake-build-*/
+out/
+
+# Generated test output
+test_output/
+*_output/
+
+# Compiled objects
+*.o
+*.a
+*.so
+*.dylib
+
+# Executables
+test
+*.exe
+
+# ROM files (don't commit copyrighted content)
+roms/
+*.gb
+*.gbc
+*.gba
+*.srm
+*.chd
+*.nds
+*.ndsdata
+*.sfc
+*.smc
+*.spc
+*.nes
+# Nintendo 64 cartridges and save files
+*.z64
+*.Z64
+*.n64
+*.N64
+*.v64
+*.V64
+*.mpk
+*.gcm
+*.iso
+*.ciso
+*.wbfs
+*.wbf1
+*.rvz
+*.wia
+*.gcz
+*.wad
+*.nand
+*.gcz
+*.rvz
+*.dol
+*.rel
+*.gcdata
+*.sav
+
+# IDE / Editor
+.idea/
+.vscode/
+.gsd/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# ccache
+.ccache/
+
+# Debug
+*.dSYM/
+
+tetris_test/
+*.log
+*.asm
+output/*
+logs/
+
+tools/mgbdis
+imgui.ini
+
+# Python
+__pycache__/
+*.pyc
+
+tech_docs/
+SameBoy/
+*.pdb

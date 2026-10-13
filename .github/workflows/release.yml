@@ -1,0 +1,265 @@
+name: Build and Release
+
+# Each platform job packages every console's recompiler and runtime folder
+# (tools/create_distribution.py) plus the hub, then smoke-tests the extracted
+# archive: one repository-owned or MIT test ROM per console is recompiled,
+# built and run. Commercial ROMs never enter CI.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (leave empty for test build)"
+        required: false
+        type: string
+
+env:
+  BUILD_TYPE: Release
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libsdl2-dev
+
+      - name: Configure CMake
+        run: cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+      - name: Build
+        run: ninja -C build
+
+      - name: Fetch the GBA test ROM
+        run: python3 tools/fetch_gba_tests.py --suite jsmolka
+
+      - name: Package
+        run: |
+          mkdir -p package
+          python3 tools/create_distribution.py \
+            --bin-dir build/bin \
+            --hub build/bin/native_console_hub \
+            --license LICENSE \
+            --readme README.md \
+            --extra-file THIRD_PARTY.md=THIRD_PARTY.md \
+            --output package/native-console-linux-x64 \
+            --platform linux \
+            --architecture x64
+          cd package && tar -czf native-console-linux-x64.tar.gz native-console-linux-x64
+
+      - name: Smoke test release archive
+        run: |
+          mkdir -p package/smoke
+          tar -xzf package/native-console-linux-x64.tar.gz -C package/smoke
+          python3 tests/test_release_bundle.py \
+            --distribution-dir package/smoke/native-console-linux-x64 \
+            --gba-rom roms/gba/jsmolka/arm/arm.gba
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-console-linux-x64
+          path: package/native-console-linux-x64.tar.gz
+
+  build-macos:
+    runs-on: macos-15-intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          brew install ninja sdl2
+
+      - name: Configure CMake
+        run: cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+      - name: Build
+        run: ninja -C build
+
+      - name: Fetch the GBA test ROM
+        run: python3 tools/fetch_gba_tests.py --suite jsmolka
+
+      - name: Package
+        run: |
+          mkdir -p package
+          python3 tools/create_distribution.py \
+            --bin-dir build/bin \
+            --hub build/bin/native_console_hub \
+            --license LICENSE \
+            --readme README.md \
+            --extra-file THIRD_PARTY.md=THIRD_PARTY.md \
+            --output package/native-console-macos-x64 \
+            --platform macos \
+            --architecture x64
+          cd package && tar -czf native-console-macos-x64.tar.gz native-console-macos-x64
+
+      - name: Smoke test release archive
+        run: |
+          mkdir -p package/smoke
+          tar -xzf package/native-console-macos-x64.tar.gz -C package/smoke
+          python3 tests/test_release_bundle.py \
+            --distribution-dir package/smoke/native-console-macos-x64 \
+            --gba-rom roms/gba/jsmolka/arm/arm.gba
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-console-macos-x64
+          path: package/native-console-macos-x64.tar.gz
+
+  build-macos-arm:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          brew install ninja sdl2
+
+      - name: Configure CMake
+        run: cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+      - name: Build
+        run: ninja -C build
+
+      - name: Fetch the GBA test ROM
+        run: python3 tools/fetch_gba_tests.py --suite jsmolka
+
+      - name: Package
+        run: |
+          mkdir -p package
+          python3 tools/create_distribution.py \
+            --bin-dir build/bin \
+            --hub build/bin/native_console_hub \
+            --license LICENSE \
+            --readme README.md \
+            --extra-file THIRD_PARTY.md=THIRD_PARTY.md \
+            --output package/native-console-macos-arm64 \
+            --platform macos \
+            --architecture arm64
+          cd package && tar -czf native-console-macos-arm64.tar.gz native-console-macos-arm64
+
+      - name: Smoke test release archive
+        run: |
+          mkdir -p package/smoke
+          tar -xzf package/native-console-macos-arm64.tar.gz -C package/smoke
+          python3 tests/test_release_bundle.py \
+            --distribution-dir package/smoke/native-console-macos-arm64 \
+            --gba-rom roms/gba/jsmolka/arm/arm.gba
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-console-macos-arm64
+          path: package/native-console-macos-arm64.tar.gz
+
+  build-windows:
+    runs-on: windows-latest
+    env:
+      SDL2_DIR: ${{ github.workspace }}\SDL2\cmake
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          choco install ninja -y
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Download SDL2 development libraries
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-devel-2.30.6-VC.zip" -OutFile "SDL2-devel.zip"
+          Expand-Archive -Path "SDL2-devel.zip" -DestinationPath "."
+          Move-Item -Path "SDL2-2.30.6" -Destination "SDL2"
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DSDL2_DIR="$PWD/SDL2/cmake" -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$($env:BUILD_TYPE -eq 'Debug' ? 'Debug' : '')"
+        env:
+          SDL2_ROOT: ${{ github.workspace }}/SDL2
+
+      - name: Build
+        run: ninja -C build
+
+      - name: Fetch the GBA test ROM
+        run: python tools/fetch_gba_tests.py --suite jsmolka
+
+      - name: Package
+        run: |
+          New-Item -ItemType Directory -Force -Path "package"
+          python tools/create_distribution.py `
+            --bin-dir build/bin `
+            --hub build/bin/native_console_hub.exe `
+            --license LICENSE `
+            --readme README.md `
+            --extra-file "THIRD_PARTY.md=THIRD_PARTY.md" `
+            --extra-file "SDL2/lib/x64/SDL2.dll=SDL2.dll" `
+            --extra-file "SDL2/COPYING.txt=THIRD_PARTY/SDL2-LICENSE.txt" `
+            --output package/native-console-windows-x64 `
+            --platform windows `
+            --architecture x64
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Compress-Archive -Path "package/native-console-windows-x64" -DestinationPath "package/native-console-windows-x64.zip"
+
+      - name: Smoke test release archive
+        run: |
+          Expand-Archive -Path "package/native-console-windows-x64.zip" -DestinationPath "package/smoke"
+          python tests/test_release_bundle.py `
+            --distribution-dir package/smoke/native-console-windows-x64 `
+            --gba-rom roms/gba/jsmolka/arm/arm.gba `
+            "--cmake-arg=-DSDL2_DIR=$PWD/SDL2/cmake"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-console-windows-x64
+          path: package/native-console-windows-x64.zip
+
+  upload-release:
+    needs: [build-linux, build-macos, build-macos-arm, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          files: |
+            artifacts/native-console-linux-x64/native-console-linux-x64.tar.gz
+            artifacts/native-console-macos-x64/native-console-macos-x64.tar.gz
+            artifacts/native-console-macos-arm64/native-console-macos-arm64.tar.gz
+            artifacts/native-console-windows-x64/native-console-windows-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

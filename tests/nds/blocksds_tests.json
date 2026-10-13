@@ -1,0 +1,2495 @@
+{
+  "comment": [
+    "The Nintendo DS test ROMs tools/nds/build_test_roms.py builds, and how each one's verdict is read.",
+    "tools/nds/run_nds_tests.py runs them on the interpreter; tools/nds/recomp_suite.py recompiles them.",
+    "",
+    "Where the expectations come from: the tests' own sources and reference pictures in the BlocksDS SDK",
+    "(github.com/blocksds/sdk, tests/, fetched to roms/nds/blocksds-tests; CC0-1.0, MIT or Zlib per file),",
+    "and roms/nds/built/VERDICTS.md, which describes how each built ROM reports. Each entry's 'source' names",
+    "its files. Text rows are quoted from the sources, or read off the test's reference picture. Nothing here",
+    "was taken from a run of this project's own machine. arm7wrestler and the window tests have no licence:",
+    "their entries hold only row counts, colours and rectangles, no text of theirs.",
+    "",
+    "An entry is one run from reset: 'frames' frames with 'keys' (FRAME:BUTTONS:N, as nds_run takes them; frames",
+    "count from 0), 'keys_every' (BUTTONS held 'hold' frames, from frame 'first', every 'period' frames),",
+    "'touch' and 'lid'. Then every check must hold. 'ci_frames' is what the test's own CI waits on melonDS when",
+    "that is less than 'frames': this machine's ARM9 timing is an average and CPU-bound tests finish later.",
+    "",
+    "Checks. 'console': a libnds text console read from its tilemap (32x24 cells; the character is",
+    "(entry & 0x3FF) + 32). 'rows' are exact rows without trailing spaces, 'rows_match' regular expressions for",
+    "whole rows, 'blank_elsewhere' says every other row is blank, 'stream' are regular expressions searched in",
+    "the 24 rows joined with each padded to 32 columns (text that wraps is whole there), and 'absent' are",
+    "strings that must not appear. A named group must capture the same text in every check of an entry that",
+    "uses the name. 'log': lines of the no$gba debug output of one CPU. 'picture': the SHA-256 of a rectangle",
+    "[x, y, width, height] of one screen, three bytes a pixel (the 5-bit red, green and blue), as in",
+    "tools/nds/oracle_check.py; 'reference' is the picture under roms/nds/blocksds-tests the hash was made",
+    "from. 'rects': the screen is 'background' with solid rectangles painted in order. 'colour_rows': 'rows'",
+    "bands of 'pitch' pixels from 'first_y' each hold 'pass_colour', 'fail_colour' is nowhere, no band below",
+    "holds either, and 'done_colour' is somewhere (colours are 5-bit [red, green, blue]).",
+    "",
+    "'requires' names something the machine does not have (see 'requirements'); such entries are skipped",
+    "unless run with --with NAME. 'not_judged' lists the built ROMs that cannot report a verdict on a console",
+    "with only the cartridge in it, and why."
+  ],
+  "version": 1,
+  "consoles": {
+    "demo": {"address": "0x0620B000", "what": "consoleDemoInit(): engine B (bottom screen), BG0, map base 22"},
+    "top": {"address": "0x0600F800", "what": "the top one of two consoles: engine A, map base 31"},
+    "bottom": {"address": "0x0620F800", "what": "the bottom one of two consoles: engine B, map base 31"},
+    "sub_bg1": {"address": "0x06207800", "what": "graphics_texture_allocation's console: engine B, BG1, map base 15 (VRAM H)"}
+  },
+  "requirements": {
+    "bios-exception-dispatch": "the BIOS must hand undefined instructions and aborts to the program's debug handler; the replacement BIOS loops forever instead (docs/NDS-PLAN.md, The BIOS). Nintendo's BIOS does it: --with bios-exception-dispatch -- --bios9 FILE --bios7 FILE",
+    "data-cache": "a model of the ARM9's data cache, which this machine does not have (docs/NDS-PLAN.md, P8)"
+  },
+  "entries": [
+    {
+      "id": "system_swi_calls",
+      "rom": "blocksds-tests/system_swi_calls.nds",
+      "about": "BIOS calls from Thumb: Div three ways, Sqrt, GetCRC16, CpuSet, IsDebugger, WaitByLoop four times",
+      "frames": 1300,
+      "ci_frames": 300,
+      "source": "tests/system/swi_calls: source/main.c and test/reference.png; VERDICTS.md 4.1",
+      "note": "Four WaitByLoop(0xFFFFFF) take about 240 frames on hardware (GBATEK: 4 ARM9 cycles a loop with the cache on); the row of four dots needs them all.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "swiDivide(2000, 7): 285",
+            "1": "swiRemainder(2000, 7): 5",
+            "2": "swiDivMod(2000, 7): 285, 5",
+            "3": "swiSqrt(3000): 54",
+            "5": "swiCRC16(): 0x3703",
+            "6": "swiCopy(): OK",
+            "7": "swiIsDebugger(): 0",
+            "9": "swiDelay()....",
+            "11": "SELECT: Soft reset",
+            "12": "START: Exit to loader"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dbcf867a2d0e1db2916bf0918569af2f10c0083d85c8b4fffd8567329459a4af",
+          "reference": "tests/system/swi_calls/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "13fac90a5a91e7ec10c241c29dc38621de732ebd2f7072272585123cb120e5b6",
+          "reference": "tests/system/swi_calls/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "system_vectorbase",
+      "rom": "blocksds-tests/system_vectorbase.nds",
+      "about": "Exception vectors at 0xFFFF0000 and at 0 (CP15 control bit 13): a 10 Hz timer interrupt must arrive either way",
+      "frames": 300,
+      "ci_frames": 160,
+      "source": "tests/system/vectorbase: source/main.c and test/reference.png",
+      "note": "One dot per VBlank while ten timer ticks pass: 60 dots in each half, as the reference shows.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "Using BIOS vectors     .........",
+            "1": "................................",
+            "2": "................... OK",
+            "3": "Using alternate vectors.........",
+            "4": "................................",
+            "5": "................... OK",
+            "7": "Press START to exit"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dbcf867a2d0e1db2916bf0918569af2f10c0083d85c8b4fffd8567329459a4af",
+          "reference": "tests/system/vectorbase/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "ddfc0e503c95c2d52c6f4a6d47869e36931afda5effbb564ef7ee315060fa2ec",
+          "reference": "tests/system/vectorbase/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "system_mem_regions",
+      "rom": "blocksds-tests/system_mem_regions.nds",
+      "about": "A function in ITCM and variables in DTCM: values and addresses",
+      "frames": 100,
+      "ci_frames": 50,
+      "source": "tests/system/mem_regions: source/main.c and test/reference.png; VERDICTS.md 4.2",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "ITCM",
+            "1": "----",
+            "3": "Func result: 5 (expect 5)",
+            "4": "Func address: 0x01000001",
+            "5": "In ITCM? Yes",
+            "7": "DTCM",
+            "8": "----",
+            "10": "DATA var: 12345 (expect 12345)",
+            "11": "Address: 0x02FF4000",
+            "12": "In DTCM? Yes",
+            "14": "BSS var: 0 (expect 0)",
+            "15": "Address: 0x02FF4004",
+            "16": "In DTCM? Yes",
+            "19": "Press START to exit"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dbcf867a2d0e1db2916bf0918569af2f10c0083d85c8b4fffd8567329459a4af",
+          "reference": "tests/system/mem_regions/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "153c273c430cdee5ffafbfb41f61ef42b3f3f993e0b8644b57f8d6eeec3630a5",
+          "reference": "tests/system/mem_regions/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "system_dtcm_fixed_size",
+      "rom": "blocksds-tests/system_dtcm_fixed_size.nds",
+      "about": "DTCM data placed at the end of DTCM by the linker (__dtcm_data_size)",
+      "frames": 100,
+      "ci_frames": 20,
+      "source": "tests/system/dtcm_fixed_size: source/main.c and test/reference_2.png (the DS-mode run); VERDICTS.md 4.3",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "DSi mode: 0",
+            "2": "Printing test_array: 0 1 2",
+            "4": "DTCM Base: 0x02FF0000",
+            "5": "Array:     0x02FF7DB0",
+            "6": "DTCM End:  0x02FF3FFF",
+            "8": "__dtcm_data_size defined: YES",
+            "11": "Press START to exit"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "57736018038501dd42d5f4e8968582da5a81996959c0e145ac092e382ccc3a29",
+          "reference": "tests/system/dtcm_fixed_size/test/reference_2.png"
+        }
+      ]
+    },
+    {
+      "id": "system_tcm_location",
+      "rom": "blocksds-tests/system_tcm_location.nds",
+      "about": "CP15 reads: TCM size register and the DTCM and ITCM region registers",
+      "frames": 100,
+      "ci_frames": 50,
+      "source": "tests/system/tcm_location: source/main.c and test/reference.png; VERDICTS.md 4.4",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "DSi mode: no",
+            "2": "DTCM",
+            "3": "====",
+            "5": "Size 5: 16384 bytes",
+            "6": "0x02FF4000 - 0x02FF8000",
+            "8": "ITCM",
+            "9": "====",
+            "11": "Size 6: 32768 bytes",
+            "12": "0x00000000 - 0x00008000",
+            "23": "Press START to exit to loader"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "f03a26bbcf384d837ac16518d2a5b6dedd8b1e619c69d9b86baa33d33e0420d0",
+          "reference": "tests/system/tcm_location/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "system_mpu_regions",
+      "rom": "blocksds-tests/system_mpu_regions.nds",
+      "about": "CP15 reads: the eight protection regions and their cache bits",
+      "frames": 100,
+      "ci_frames": 20,
+      "source": "tests/system/mpu_regions: source/main.c and test/reference_2.png (the DS-mode run); VERDICTS.md 4.5",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "DSi mode: no",
+            "1": "RAM size: 4 MB",
+            "3": "MPU regions:",
+            "4": "============",
+            "5": "0. 0x04000000  64 MB     :",
+            "6": "1. 0xffff0000  64 KB     : D I",
+            "7": "2. 0x00000000   4 KB     :",
+            "8": "3. 0x08000000 128 MB     :",
+            "9": "4. 0x01000000  32 KB     :",
+            "10": "5. 0x02000000  16 MB RAM :",
+            "11": "6. 0x02000000   4 MB RAM : D I",
+            "12": "7. 0x02ff4000  16 KB     :",
+            "23": "Press START to exit to loader"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "699caf35b520d76dcee70f7352c1601476e41176547c5b41af41f5c50b3930c9",
+          "reference": "tests/system/mpu_regions/test/reference_2.png"
+        }
+      ]
+    },
+    {
+      "id": "system_mpu_code_regions",
+      "rom": "blocksds-tests/system_mpu_code_regions.nds",
+      "about": "Which protection region each address is in and whether code may run there; silence is the pass",
+      "frames": 100,
+      "ci_frames": 20,
+      "source": "tests/system/mpu_code_regions: source/main.c and test/reference.png",
+      "note": "Every wrong address prints a line '%08zX | %d,%d != expect %d,%d'; the three rows and nothing else is the pass.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {"0": "DSi mode: 0", "2": "Running tests...", "4": "Press START to exit to loader"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dbcf867a2d0e1db2916bf0918569af2f10c0083d85c8b4fffd8567329459a4af",
+          "reference": "tests/system/mpu_code_regions/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "ba31bbdeee3d6d8c3b4cf3fd81dc1a2e848b1018e672df9466ebf266b53a77d0",
+          "reference": "tests/system/mpu_code_regions/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "system_sbrk",
+      "rom": "blocksds-tests/system_sbrk.nds",
+      "about": "Heap limits of a 4 MiB DS on both CPUs: which malloc sizes succeed",
+      "frames": 60,
+      "ci_frames": 20,
+      "source": "tests/system/sbrk: arm9/source/main.c, arm7/source/main.c and test/run.py",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {"16": "PASSED", "18": "Press START to exit"},
+          "rows_match": {
+            "6": "malloc\\(1 KB\\):   0x[0-9a-f]*[1-9a-f][0-9a-f]*",
+            "10": "malloc\\(1 MB\\):   0x[0-9a-f]*[1-9a-f][0-9a-f]*",
+            "11": "malloc\\(2 MB\\):   0x0",
+            "14": "malloc\\(8 MB\\):   0x0"
+          },
+          "absent": ["FAILED"]
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"20": "PASSED"},
+          "rows_match": {
+            "14": "malloc\\(32 KB\\):  0x[0-9a-f]*[1-9a-f][0-9a-f]*",
+            "15": "malloc\\(32 KB\\):  0x0",
+            "18": "malloc\\(128 KB\\): 0x0"
+          },
+          "absent": ["FAILED"]
+        },
+        {"type": "log", "cpu": 9, "lines": ["[TEST] ARM9 PASSED"], "absent": ["[TEST] ARM9 FAILED"]}
+      ]
+    },
+    {
+      "id": "system_sbrk/arm7-log",
+      "rom": "blocksds-tests/system_sbrk.nds",
+      "about": "The same test's ARM7 verdict in the debug output, which its CI asserts",
+      "frames": 60,
+      "ci_frames": 20,
+      "source": "tests/system/sbrk: arm7/source/main.c and test/run.py; VERDICTS.md 1.2",
+      "note": "The ARM7 prints with the no$gba opcode (Thumb mov r12, r12 and an inline message), not through an I/O port.",
+      "checks": [
+        {"type": "log", "cpu": 7, "lines": ["[TEST] ARM7 PASSED"], "absent": ["[TEST] ARM7 FAILED"]}
+      ]
+    },
+    {
+      "id": "system_cpp_example",
+      "rom": "blocksds-tests/system_cpp_example.nds",
+      "about": "C++ on both CPUs: constructors, virtual calls, std::string, new, and a NitroFS file read through the card",
+      "frames": 100,
+      "ci_frames": 50,
+      "source": "tests/system/cpp_example: arm9 and arm7 source/main.cpp and test/reference.png; VERDICTS.md 4.6",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "===== ARM9 =====",
+            "1": "constructor: base class",
+            "2": "constructor: derived class",
+            "3": "print: derived class",
+            "4": "show: base class",
+            "5": "destructor: derived class",
+            "6": "destructor: base class",
+            "7": "Flags: 7B",
+            "8": "global constructor OK",
+            "9": "[std::string] hello world!",
+            "10": "new: 1.50 2.00 3.10",
+            "11": "Opening 'file.txt'...",
+            "12": "Read file: [This is a test!",
+            "13": "]",
+            "14": "Opening 'file.txt'...",
+            "15": "cat: file.txt",
+            "16": "Size: 16 bytes",
+            "17": "[This is a test!]",
+            "18": "All tests passed!",
+            "21": "START: ARM9 exit to loader"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "===== ARM7 =====",
+            "1": "constructor: base class",
+            "2": "constructor: derived class",
+            "3": "print: derived class",
+            "4": "show: base class",
+            "5": "destructor: derived class",
+            "6": "destructor: base class",
+            "7": "Flags: 7b",
+            "8": "global constructor OK",
+            "9": "[std::string] hello world!",
+            "10": "new: 1 2 3",
+            "11": "All tests passed!",
+            "14": "SELECT: ARM7 exit to loader"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "988b69999ff50d98ce51b0043ad76f00480ad1345a14124d5c71738d5ece21e1",
+          "reference": "tests/system/cpp_example/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "f5b8e84c7a8bc30928973eb9bc765086c29e36c0ba6f1502c1a58c154fdb80a9",
+          "reference": "tests/system/cpp_example/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "cothread_coroutines",
+      "rom": "blocksds-tests/cothread_coroutines.nds",
+      "about": "Fifty coroutines counting down in turn (about 64,000 console writes); every cell must end as OK",
+      "frames": 900,
+      "ci_frames": 360,
+      "source": "tests/cothread/coroutines: source/main.c and test/reference.png",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "OK      OK      OK      OK",
+            "1": "OK      OK      OK      OK",
+            "2": "OK      OK      OK      OK",
+            "3": "OK      OK      OK      OK",
+            "4": "OK      OK      OK      OK",
+            "5": "OK      OK      OK      OK",
+            "6": "OK      OK      OK      OK",
+            "7": "OK      OK      OK      OK",
+            "8": "OK      OK      OK      OK",
+            "9": "OK      OK      OK      OK",
+            "10": "OK      OK      OK      OK",
+            "11": "OK      OK      OK      OK",
+            "12": "OK      OK",
+            "18": "Press START to exit to loader"
+          },
+          "blank_elsewhere": true,
+          "absent": ["FAIL", "ERROR"]
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dbcf867a2d0e1db2916bf0918569af2f10c0083d85c8b4fffd8567329459a4af",
+          "reference": "tests/cothread/coroutines/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "e6630669a378d2753b4de360f045a93b2b677a80079003e4685d6030c1007ccc",
+          "reference": "tests/cothread/coroutines/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_texture_allocation",
+      "rom": "blocksds-tests/graphics_texture_allocation.nds",
+      "about": "libnds texture and palette allocation over VRAM banks A-F as they are switched between texture, palette and LCDC",
+      "frames": 1800,
+      "ci_frames": 800,
+      "source": "tests/graphics/texture_allocation: source/main.c and test/reference.png",
+      "note": "libnds decides which banks hold textures by reading VRAMCNT_A-G back.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "sub_bg1",
+          "rows": {
+            "0": "glTexImageNtr2D() tests",
+            "1": "=======================",
+            "3": "SUCCESS",
+            "5": "glColorTableNtr() tests",
+            "6": "=======================",
+            "8": "SUCCESS",
+            "10": "GL_COMPRESSED allocation tests",
+            "11": "==============================",
+            "13": "SUCCESS",
+            "15": "Stress test",
+            "16": "===========",
+            "18": "SUCCESS",
+            "20": "Press START to exit."
+          },
+          "blank_elsewhere": true,
+          "absent": ["should have", "Unexpected value", "Failed to verify range"]
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "8123c216413f82bbaa0339c27a43d9822c2a043e20662b27c97874429b996e9a",
+          "reference": "tests/graphics/texture_allocation/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "eb8be15bced9748f5a68904c0c2c2f8fa0ed047b2e21f29a17fc81e8058b7c33",
+          "reference": "tests/graphics/texture_allocation/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "math_atan2",
+      "rom": "blocksds-tests/math_atan2.nds",
+      "about": "atan2_f32 (fixed point) against libm's atan2 over a sweep of angles; error bound and two timing loops",
+      "frames": 2200,
+      "ci_frames": 1200,
+      "source": "tests/math/atan2: source/main.c and test/reference.png (the CI compares rows 0-7)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "Testing individual cases...",
+            "2": "Testing all cases...",
+            "4": "max error: 1.547933e-04",
+            "5": "      ulp: 0.634033",
+            "7": "atan2f  time:",
+            "9": "atan2_f32 time:",
+            "13": "START: Exit to loader"
+          },
+          "rows_match": {"8": "  \\(\\d+ per op\\)", "10": "  \\(\\d+ per op\\)"},
+          "blank_elsewhere": true,
+          "absent": ["test failed", "failed:", "error "]
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen, rows 0-7",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 64],
+          "sha256": "c4b213d41684e467bc4602e0a734a93d03688f494f095afff33b06f076a19f43",
+          "reference": "tests/math/atan2/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "math_hw_sqrtf",
+      "rom": "blocksds-tests/math_hw_sqrtf.nds",
+      "about": "The hardware SQRT unit against software sqrtf over 175,947 values, the NaN and infinity cases, two timing loops",
+      "frames": 400,
+      "ci_frames": 120,
+      "source": "tests/math/hw_sqrtf: source/main.c and test/reference.png (the CI compares rows 0-13); VERDICTS.md 4.7",
+      "note": "The two mismatch blocks, for -1.0 and -inf, are in the reference: 'expected:' is not a failure here.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "+inf: 0x7F800000",
+            "1": "-inf: 0xFF800000",
+            "2": "sNaN: 0x7F800001",
+            "3": "qNaN: 0x7FC00001",
+            "5": "Tested 175947 iterations",
+            "7": "sqrt(-1.000000e+00)",
+            "8": "  got:           0x7FC00001",
+            "9": "  expected:      0x7FC00000",
+            "11": "sqrt(0xFF800000)",
+            "12": "  got:      0x7FC00001",
+            "13": "  expected: 0x7FC00000",
+            "20": "START: Exit to loader"
+          },
+          "rows_match": {"16": "SW time: \\d+ \\(\\d+ per op\\)", "17": "HW time: \\d+ \\(\\d+ per op\\)"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen, rows 0-13",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 112],
+          "sha256": "971c7e4a1f397b1b3e317f002fd4c56f684e0f42495f64d339991501aa70cb55",
+          "reference": "tests/math/hw_sqrtf/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "filesystem_performance",
+      "rom": "blocksds-tests/filesystem_performance.nds",
+      "about": "NitroFS: MD5 of a 2 MiB file read through the card, then 10,000 seeks and reads",
+      "frames": 800,
+      "source": "tests/filesystem/performance: source/main.c; the digest is the MD5 of random.bin in this build's NitroFS (VERDICTS.md, and the 2 MiB at ROM offset 0x24000)",
+      "note": "A seek that fails prints S and a short read X among the hundred dots.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "DLDI name:",
+            "1": "Default (No interface)",
+            "3": "DSi mode: 0",
+            "4": "Current dir: nitro:/",
+            "6": "Calculating MD5: ..",
+            "8": "9953FC230A28D6B6C6FBB01CD319DBE2"
+          },
+          "stream": ["Random reads: \\.{100} +Time: \\d+ ticks +\\d+ seconds +Press START to exit to loader *$"],
+          "absent": ["nitroFSInit()", "fopen(", "fclose"]
+        }
+      ]
+    },
+    {
+      "id": "filesystem_stress_test",
+      "rom": "blocksds-tests/filesystem_stress_test.nds",
+      "about": "NitroFS: 100 files in 20 nested directories, each read in 1 KiB pieces and its MD5 compared with its name",
+      "frames": 2600,
+      "ci_frames": 900,
+      "source": "tests/filesystem/stress_test: source/main.c and test/run.py; VERDICTS.md 4.9",
+      "checks": [
+        {"type": "log", "cpu": 9, "lines": ["[TEST] Test passed"], "absent": ["[TEST] Test failed"]},
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {"0": "DLDI name:", "1": "Default (No interface)", "3": "DSi mode: 0"},
+          "stream": ["Current dir: nitro:/ +\\.{100} +Total time: \\d+ seconds +Press START to exit to loader *$"],
+          "absent": ["Hash doesn't match!", "nitroFSInit()"]
+        }
+      ]
+    },
+    {
+      "id": "filesystem_realpath",
+      "rom": "blocksds-tests/filesystem_realpath.nds",
+      "about": "realpath() on NitroFS paths, with the heap filled once; the FAT and SD parts are skipped on a cartridge",
+      "frames": 200,
+      "ci_frames": 80,
+      "source": "tests/filesystem/realpath: source/main.c; VERDICTS.md 4.8 (the CI's references are runs with a FAT volume)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "[*] NitroFS",
+            "2": "cwd: nitro:/",
+            "4": "cwd: nitro:/fstest",
+            "6": "Allocated: 3 chunks",
+            "8": "[*] FAT (DLDI)",
+            "10": "fat:/ not available",
+            "12": "[*] SD (DSi)",
+            "14": "sd:/ not available",
+            "16": "Tests finished!",
+            "18": "Press START to exit to loader"
+          },
+          "blank_elsewhere": true,
+          "absent": ["FAIL"]
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {"0": "DLDI name:", "1": "Default (No interface)", "3": "DSi mode: 0", "5": "argc: 0"}
+        }
+      ]
+    },
+    {
+      "id": "system_heap_bounds",
+      "rom": "blocksds-tests/system_heap_bounds.nds",
+      "about": "getHeapStart/End/Limit and reduceHeapSize against malloc on a 4 MiB DS",
+      "frames": 100,
+      "ci_frames": 60,
+      "source": "tests/system/heap_bounds: source/main.c and test/run.py",
+      "checks": [
+        {"type": "log", "cpu": 9, "lines": ["[TEST] Success"]},
+        {
+          "type": "console",
+          "console": "bottom",
+          "absent": [
+            "Failed to allocate",
+            "Failed to grow stack",
+            "malloc should have failed!",
+            "malloc failed!",
+            "Stack shouldn't have grown!"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cothread_thread_local_storage",
+      "rom": "blocksds-tests/cothread_thread_local_storage.nds",
+      "about": "Thread-local variables of the main thread and three cothreads",
+      "frames": 240,
+      "ci_frames": 180,
+      "source": "tests/cothread/thread_local_storage: source/main.c and test/run.py",
+      "checks": [
+        {"type": "log", "cpu": 9, "lines": ["[TEST] Test passed"], "absent": ["[TEST] Test failed"]}
+      ]
+    },
+    {
+      "id": "cothread_preserve_context",
+      "rom": "blocksds-tests/cothread_preserve_context.nds",
+      "about": "r4-r11 kept across cothread_yield and cothread_yield_irq in twelve threads, 30,000 rounds",
+      "frames": 3400,
+      "ci_frames": 1800,
+      "source": "tests/cothread/preserve_context: source/main.c and test/run.py (which allows 1,800 frames)",
+      "checks": [
+        {"type": "log", "cpu": 9, "lines": ["[TEST] Test passed"]},
+        {"type": "console", "console": "bottom", "absent": ["Failed!"]}
+      ]
+    },
+    {
+      "id": "system_atexit/exit",
+      "rom": "blocksds-tests/system_atexit.nds",
+      "about": "atexit handler runs when exit(0) is called (A)",
+      "frames": 50,
+      "keys": ["20:A:10"],
+      "source": "tests/system/atexit: source/main.c, test/run.py and test/reference_1.png",
+      "note": "The handler then waits in WaitByLoop(10000000) and the console powers off; the CI looks at frame 50.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "Atexit test",
+            "1": "--------------",
+            "2": "Press A to call exit(0)",
+            "3": "Press START to exit main()",
+            "4": "Test successful"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dbcf867a2d0e1db2916bf0918569af2f10c0083d85c8b4fffd8567329459a4af",
+          "reference": "tests/system/atexit/test/reference_1.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "bf7fcd36d52040914d7e622dee81a5a20337697c8aea210febe0bf17954a17cb",
+          "reference": "tests/system/atexit/test/reference_1.png"
+        }
+      ]
+    },
+    {
+      "id": "system_atexit/return",
+      "rom": "blocksds-tests/system_atexit.nds",
+      "about": "atexit handler runs when main returns (START)",
+      "frames": 50,
+      "keys": ["20:START:10"],
+      "source": "tests/system/atexit: source/main.c, test/run.py and test/reference_2.png",
+      "note": "The handler then waits in WaitByLoop(10000000) and the console powers off; the CI looks at frame 50.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "Atexit test",
+            "1": "--------------",
+            "2": "Press A to call exit(0)",
+            "3": "Press START to exit main()",
+            "4": "Test successful"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dbcf867a2d0e1db2916bf0918569af2f10c0083d85c8b4fffd8567329459a4af",
+          "reference": "tests/system/atexit/test/reference_2.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "bf7fcd36d52040914d7e622dee81a5a20337697c8aea210febe0bf17954a17cb",
+          "reference": "tests/system/atexit/test/reference_2.png"
+        }
+      ]
+    },
+    {
+      "id": "system_cpp_exception/arm9",
+      "rom": "blocksds-tests/system_cpp_exception.nds",
+      "about": "An uncaught C++ exception on the ARM9 reaches std::terminate's handler (A)",
+      "frames": 50,
+      "keys": ["20:A:10"],
+      "source": "tests/system/cpp_exception: arm9 and arm7 source/main.cpp, test/run.py and test/reference_1.png",
+      "note": "The handler prints a dot every 60 frames and exits after five; the CI looks at frame 50, one dot in.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "===== ARM9 =====",
+            "1": "A: Trigger C++ exception",
+            "2": "START: Exit to loader",
+            "4": "Triggering exception...",
+            "5": "Unhandled exception!",
+            "6": "Exitting program...."
+          },
+          "blank_elsewhere": true,
+          "absent": ["This shouldn't be reached."]
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "===== ARM7 =====", "1": "B: Trigger C++ exception"},
+          "blank_elsewhere": true,
+          "absent": ["This shouldn't be reached."]
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dc5f449fe6b989c1b1983132cdd79408b689f0253487836de9840d217672a91a",
+          "reference": "tests/system/cpp_exception/test/reference_1.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "7563957ccebbd324766ebbda2fdd01968d341500dd139d7186e5349786fa7571",
+          "reference": "tests/system/cpp_exception/test/reference_1.png"
+        }
+      ]
+    },
+    {
+      "id": "system_cpp_exception/arm7",
+      "rom": "blocksds-tests/system_cpp_exception.nds",
+      "about": "An uncaught C++ exception on the ARM7 reaches std::terminate's handler (B)",
+      "frames": 50,
+      "keys": ["20:B:10"],
+      "source": "tests/system/cpp_exception: arm9 and arm7 source/main.cpp, test/run.py and test/reference_2.png",
+      "note": "The handler prints a dot every 60 frames and exits after five; the CI looks at frame 50, one dot in.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {"0": "===== ARM9 =====", "1": "A: Trigger C++ exception", "2": "START: Exit to loader"},
+          "blank_elsewhere": true,
+          "absent": ["This shouldn't be reached."]
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "===== ARM7 =====",
+            "1": "B: Trigger C++ exception",
+            "3": "Triggering exception...",
+            "4": "Unhandled exception!",
+            "5": "Exitting program...."
+          },
+          "blank_elsewhere": true,
+          "absent": ["This shouldn't be reached."]
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "d9bc762067a13b3d4ede894076f8da495102befc1b5247e155ca0788a3c5689d",
+          "reference": "tests/system/cpp_exception/test/reference_2.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "56f9082737233bb4e7cec8f9f1fabd510bdb36c5f2c2ba569ba66b4c1c1abb4c",
+          "reference": "tests/system/cpp_exception/test/reference_2.png"
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm9-ime1-i0",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM9 halted three times by CP15 wait-for-interrupt with IME=1 and CPSR.I=0 while timer 0 fires at 300 Hz: the source's table says it exits halt and handles the interrupt",
+      "frames": 150,
+      "keys": ["30:A:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM9 Testing... Handled"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm9-ime1-i1",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM9 halted three times by CP15 wait-for-interrupt with IME=1 and CPSR.I=1 while timer 0 fires at 300 Hz: the source's table says it hangs",
+      "frames": 150,
+      "keys": ["30:B:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "A hang leaves 'Testing... ' with nothing after it and the menu dead. No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM9 Testing..."},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm9-ime0-i0",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM9 halted three times by CP15 wait-for-interrupt with IME=0 and CPSR.I=0 while timer 0 fires at 300 Hz: the source's table says it exits halt",
+      "frames": 150,
+      "keys": ["30:X:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM9 Testing... Not handled"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm9-ime0-i1",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM9 halted three times by CP15 wait-for-interrupt with IME=0 and CPSR.I=1 while timer 0 fires at 300 Hz: the source's table says it hangs",
+      "frames": 150,
+      "keys": ["30:Y:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "A hang leaves 'Testing... ' with nothing after it and the menu dead. No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM9 Testing..."},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm7-ime1-i0",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM7 halted three times by BIOS Halt with IME=1 and CPSR.I=0 while timer 0 fires at 300 Hz: the source's table says it exits halt and handles the interrupt",
+      "frames": 150,
+      "keys": ["30:RIGHT:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM7 Testing... Handled"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm7-ime1-i1",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM7 halted three times by BIOS Halt with IME=1 and CPSR.I=1 while timer 0 fires at 300 Hz: the source's table says it exits halt",
+      "frames": 150,
+      "keys": ["30:DOWN:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM7 Testing... Not handled"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm7-ime0-i0",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM7 halted three times by BIOS Halt with IME=0 and CPSR.I=0 while timer 0 fires at 300 Hz: the source's table says it exits halt",
+      "frames": 150,
+      "keys": ["30:UP:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM7 Testing... Not handled"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_irq_handling/arm7-ime0-i1",
+      "rom": "blocksds-tests/system_irq_handling.nds",
+      "about": "ARM7 halted three times by BIOS Halt with IME=0 and CPSR.I=1 while timer 0 fires at 300 Hz: the source's table says it exits halt",
+      "frames": 150,
+      "keys": ["30:LEFT:5"],
+      "source": "tests/system/irq_handling: the table at the top of arm9/source/main.c, and the code of both programs; VERDICTS.md 4.10",
+      "note": "No CI for this test; GBATEK and melonDS wake the ARM9 on IME and IE & IF alone.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "ARM7 Testing... Not handled"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "ARM9",
+            "1": "====",
+            "2": "A:     IME=1, CPSR.I=0",
+            "3": "B:     IME=1, CPSR.I=1",
+            "4": "X:     IME=0, CPSR.I=0",
+            "5": "Y:     IME=0, CPSR.I=1",
+            "7": "ARM7",
+            "8": "====",
+            "9": "RIGHT: IME=1, CPSR.I=0",
+            "10": "DOWN:  IME=1, CPSR.I=1",
+            "11": "UP:    IME=0, CPSR.I=0",
+            "12": "LEFT:  IME=0, CPSR.I=1",
+            "15": "START: Exit"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "system_scfg_registers/rom",
+      "rom": "blocksds-tests/system_scfg_registers.nds",
+      "about": "The DSi's SCFG registers on a DS: SCFG_A9ROM and SCFG_A7ROM read 0 (fetched from the ARM7 over the FIFO)",
+      "frames": 15,
+      "source": "tests/system/scfg_registers: arm9/source/main.c, test/run.py and test/reference_4.png (the DS-mode run)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "SCFG_A9ROM : 0x00",
+            "1": "-----------------",
+            "2": "0. Access to all BIOS:       1",
+            "3": "1. DSi BIOS:                 1"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "SCFG_A7ROM : 0x00",
+            "1": "-----------------",
+            "2": "0. Access to all BIOS:       1",
+            "3": "1. DSi BIOS:                 1",
+            "4": "2. Access to console ID:     1",
+            "21": "Press A to continue",
+            "23": "Press START to exit"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "b2e83cae80aa3be366782f664cb685df2fd1cb54031827efd8270efb0df6fecf",
+          "reference": "tests/system/scfg_registers/test/reference_4.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "97f69b2945de67572b17fde7936e6cefb70e2350bf063cc7818cece9c36126da",
+          "reference": "tests/system/scfg_registers/test/reference_4.png"
+        }
+      ]
+    },
+    {
+      "id": "system_scfg_registers/ext7",
+      "rom": "blocksds-tests/system_scfg_registers.nds",
+      "about": "The DSi's SCFG registers on a DS: SCFG_EXT7 reads 0 on the ARM7 (fetched from the ARM7 over the FIFO)",
+      "frames": 25,
+      "keys": ["20:A:5"],
+      "source": "tests/system/scfg_registers: arm9/source/main.c, test/run.py and test/reference_5.png (the DS-mode run)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "SCFG_EXT7 : 0x00000000",
+            "1": "----------------------",
+            "2": "0.  Rev. ARM7 DMA Circuit:   0",
+            "3": "1.  Rev. Sound DMA:          0",
+            "4": "2.  Rev. Sound:              0",
+            "5": "3.  Undocumented:            0",
+            "6": "4.  Undocumented:            0",
+            "7": "5.  Undocumented:            0",
+            "8": "6.  Undocumented:            0",
+            "9": "7.  Rev. Card Interface:     0",
+            "10": "8.  Ext. ARM7 IRQs:          0",
+            "11": "9.  Ext. SPI Clock:          0",
+            "12": "10. Ext. Sound DMA:          0",
+            "13": "11. Undocumented:            0",
+            "14": "12. Ext. LCD Circuit:        0",
+            "15": "13. Ext. VRAM Access:        0",
+            "16": "14. Main RAM Size:        4 MB",
+            "17": "16. Access New DMA:          0",
+            "18": "17. Access AES Unit:         0",
+            "19": "18. Access SD/MMC:           0",
+            "20": "19. Access SDIO Wifi:        0",
+            "21": "20. Access Microphone:       0"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "21. Access SNDEXCNT:         0",
+            "1": "22. Access I2C:              0",
+            "2": "23. Access GPIO:             0",
+            "3": "24. Access 2nd NDS Slot:     0",
+            "4": "25. Access NWRAM:            0",
+            "5": "26. Undocumented:            0",
+            "6": "27. Undocumented:            0",
+            "7": "28. Undocumented:            0",
+            "8": "29. Undocumented:            0",
+            "9": "30. Undocumented:            0",
+            "10": "31. Access SCFG/MBK:         0",
+            "21": "Press A to continue",
+            "23": "Press START to exit"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "7e4e8cd02ed31b907f0786dd71d177388f9544284cf9d6e48bd19e3d713d7646",
+          "reference": "tests/system/scfg_registers/test/reference_5.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "4e76885983c66fd1efe337a092145ac3914aaed2dc62fe53c6871ad4f320e487",
+          "reference": "tests/system/scfg_registers/test/reference_5.png"
+        }
+      ]
+    },
+    {
+      "id": "system_scfg_registers/ext9",
+      "rom": "blocksds-tests/system_scfg_registers.nds",
+      "about": "The DSi's SCFG registers on a DS: SCFG_EXT9 reads 0 on the ARM9 (fetched from the ARM7 over the FIFO)",
+      "frames": 35,
+      "keys": ["20:A:5", "30:A:5"],
+      "source": "tests/system/scfg_registers: arm9/source/main.c, test/run.py and test/reference_6.png (the DS-mode run)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "SCFG_EXT9 : 0x00000000",
+            "1": "----------------------",
+            "2": "0.  Rev. ARM9 DMA Circuit:   0",
+            "3": "1.  Rev. Geometry Circuit:   0",
+            "4": "2.  Rev. Renderer Circuit:   0",
+            "5": "3.  Rev. 2D Engine Circuit:  0",
+            "6": "4.  Rev. Divider Circuit:    0",
+            "7": "5.  Undocumented:            0",
+            "8": "6.  Undocumented:            0",
+            "9": "7.  Rev. Card Interface:     0",
+            "10": "8.  Ext. ARM9 IRQs:          0",
+            "11": "9.  Undocumented:            0",
+            "12": "10. Undocumented:            0",
+            "13": "11. Undocumented:            0",
+            "14": "12. Ext. LCD Circuit:        0",
+            "15": "13. Ext. VRAM Access:        0",
+            "16": "14. Main RAM Size:        4 MB",
+            "17": "16. Access New DMA:          0",
+            "18": "17. Access Camera:           0",
+            "19": "18. Access Teak DSP:         0",
+            "20": "19. Undocumented:            0",
+            "21": "20. Undocumented:            0"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "23. Undocumented:            0",
+            "1": "24. Access 2nd NDS Slot:     0",
+            "2": "25. Access NWRAM:            0",
+            "3": "26. Undocumented:            0",
+            "4": "27. Undocumented:            0",
+            "5": "28. Undocumented:            0",
+            "6": "29. Undocumented:            0",
+            "7": "30. Undocumented:            0",
+            "8": "31. Access SCFG/MBK:         0",
+            "21": "Press A to continue",
+            "23": "Press START to exit"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "2ebd6e91721b946e001fde9952495302eaaa805aa7bdb40b3dfc24af7a0f7195",
+          "reference": "tests/system/scfg_registers/test/reference_6.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "d817977ebfdec5ab15d3eb6b41901108b058d014a93007212d61e234c05c1d66",
+          "reference": "tests/system/scfg_registers/test/reference_6.png"
+        }
+      ]
+    },
+    {
+      "id": "math_trig_functions/page1",
+      "rom": "blocksds-tests/math_trig_functions.nds",
+      "about": "libnds fixed-point trigonometry tables: tanLerp, sinLerp, cosLerp",
+      "frames": 30,
+      "source": "tests/math/trig_functions: source/main.c, test/run.py and test/reference_1.png; VERDICTS.md 4.11",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "tanLerp(-90) = -400.000000",
+            "1": "tanLerp(-60) = -1.732178",
+            "2": "tanLerp(-45) = -1.000000",
+            "3": "tanLerp(-30) = -0.577393",
+            "4": "tanLerp(0) = 0.000000",
+            "5": "tanLerp(30) = 0.577148",
+            "6": "tanLerp(45) = 0.999756",
+            "7": "tanLerp(60) = 1.731934",
+            "8": "tanLerp(90) = -400.000000",
+            "9": "tanLerp(120) = -1.732910",
+            "10": "tanLerp(135) = -1.000000",
+            "11": "tanLerp(150) = -0.577637",
+            "12": "tanLerp(180) = 0.000000",
+            "13": "tanLerp(225) = 0.999756",
+            "14": "tanLerp(270) = -400.000000"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "sinLerp(-45) = -0.707275",
+            "1": "sinLerp(-30) = -0.500000",
+            "2": "sinLerp(0) = 0.000000",
+            "3": "sinLerp(30) = 0.499756",
+            "4": "sinLerp(45) = 0.707031",
+            "5": "sinLerp(60) = 0.865723",
+            "6": "sinLerp(90) = 1.000000",
+            "7": "sinLerp(135) = 0.707031",
+            "8": "sinLerp(180) = 0.000000",
+            "9": "sinLerp(270) = -1.000000",
+            "11": "cosLerp(-45) = 0.707031",
+            "12": "cosLerp(-30) = 0.865967",
+            "13": "cosLerp(0) = 1.000000",
+            "14": "cosLerp(30) = 0.865967",
+            "15": "cosLerp(45) = 0.707031",
+            "16": "cosLerp(60) = 0.500000",
+            "17": "cosLerp(90) = 0.000000",
+            "18": "cosLerp(135) = -0.707275",
+            "19": "cosLerp(180) = -1.000000",
+            "20": "cosLerp(270) = 0.000000",
+            "22": "Press A to continue"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "4e5ae35884b1645ecdd0589dace0e1da44ba1dc916668dbed157296d979040bc",
+          "reference": "tests/math/trig_functions/test/reference_1.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "558b846724da258e95e16cba2816db37b5f81621cfdb3b307a0c725e1ec34fa5",
+          "reference": "tests/math/trig_functions/test/reference_1.png"
+        }
+      ]
+    },
+    {
+      "id": "math_trig_functions/page2",
+      "rom": "blocksds-tests/math_trig_functions.nds",
+      "about": "libnds fixed-point trigonometry tables: atanLerp, asinLerp, acosLerp",
+      "frames": 60,
+      "keys": ["30:A:5"],
+      "source": "tests/math/trig_functions: source/main.c, test/run.py and test/reference_2.png; VERDICTS.md 4.11",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "atanLerp(tan(-90)) = -90",
+            "1": "atanLerp(tan(-80)) = -79",
+            "2": "atanLerp(tan(-60)) = -59",
+            "3": "atanLerp(tan(-45)) = -45",
+            "4": "atanLerp(tan(-30)) = -29",
+            "5": "atanLerp(tan(0)) = 0",
+            "6": "atanLerp(tan(10)) = 9",
+            "7": "atanLerp(tan(20)) = 19",
+            "8": "atanLerp(tan(30)) = 29",
+            "9": "atanLerp(tan(45)) = 44",
+            "10": "atanLerp(tan(60)) = 59",
+            "11": "atanLerp(tan(70)) = 69",
+            "12": "atanLerp(tan(80)) = 79",
+            "13": "atanLerp(tan(85)) = 84",
+            "14": "atanLerp(tan(87)) = 86",
+            "15": "atanLerp(tan(88)) = 87",
+            "16": "atanLerp(tan(89)) = 87",
+            "17": "atanLerp(tan(90)) = -90"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {
+            "0": "asinLerp(-1.0) = -90",
+            "1": "asinLerp(-0.707) = -44",
+            "2": "asinLerp(-0.5) = -29",
+            "3": "asinLerp(0.0) = 0",
+            "4": "asinLerp(0.5) = 29",
+            "5": "asinLerp(0.707) = 44",
+            "6": "asinLerp(1.0) = 90",
+            "8": "acosLerp(-1.0) = 180",
+            "9": "acosLerp(-0.707) = 134",
+            "10": "acosLerp(-0.5) = 119",
+            "11": "acosLerp(0.0) = 90",
+            "12": "acosLerp(0.5) = 60",
+            "13": "acosLerp(0.707) = 45",
+            "14": "acosLerp(1.0) = 0",
+            "16": "Press A to continue"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "1588015cdbdbc75d4910bd963f47293eb6629f5c216ddd63ff2bccb8bf43d164",
+          "reference": "tests/math/trig_functions/test/reference_2.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "7346937b85e857d67c8df06f74752fc9fc61749999742451c573e7e10acb5504",
+          "reference": "tests/math/trig_functions/test/reference_2.png"
+        }
+      ]
+    },
+    {
+      "id": "math_trig_functions/page3",
+      "rom": "blocksds-tests/math_trig_functions.nds",
+      "about": "libnds fixed-point trigonometry tables: atan2_f32",
+      "frames": 90,
+      "keys": ["30:A:5", "60:A:5"],
+      "source": "tests/math/trig_functions: source/main.c, test/run.py and test/reference_3.png; VERDICTS.md 4.11",
+      "checks": [
+        {
+          "type": "console",
+          "console": "top",
+          "rows": {
+            "0": "atan2_f32(1, 0) = 90",
+            "1": "atan2_f32(0, 1) = 0",
+            "2": "atan2_f32(-1, 0) = -90",
+            "3": "atan2_f32(0, -1) = 180",
+            "4": "atan2_f32(1, 1) = 45",
+            "5": "atan2_f32(1, -1) = 135",
+            "6": "atan2_f32(-1, -1) = -135",
+            "7": "atan2_f32(-1, 1) = -45"
+          },
+          "blank_elsewhere": true
+        },
+        {
+          "type": "console",
+          "console": "bottom",
+          "rows": {"0": "Press START to exit to loader"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "56421b5a610796f45bcd4100703712e3a8fc3a955ef46caa132400e0201bb468",
+          "reference": "tests/math/trig_functions/test/reference_3.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "286297905bc49a49a3f0fe37c874c0d9802e982e955c5415a55f67fcdb5709cb",
+          "reference": "tests/math/trig_functions/test/reference_3.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/1",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 1 of 11 (clear console)",
+      "frames": 20,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_1.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "b6a81a03865d6750363381abac92dc3f106c358884160dcc97b9c98fb9cf6a66",
+          "reference": "tests/graphics/ansi_sequences/test/reference_1.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "b3b9772e0cc1e4c9017345fa90f7271bca8f14f0bb8fca65035cdac873a54193",
+          "reference": "tests/graphics/ansi_sequences/test/reference_1.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/2",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 2 of 11 (clear console)",
+      "frames": 30,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_2.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "b6a81a03865d6750363381abac92dc3f106c358884160dcc97b9c98fb9cf6a66",
+          "reference": "tests/graphics/ansi_sequences/test/reference_2.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "875844b486ecce5c42724a9f05c136c36549e3248d34b3ac4b14585c1789219a",
+          "reference": "tests/graphics/ansi_sequences/test/reference_2.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/3",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 3 of 11 (clear console)",
+      "frames": 40,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_3.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "480554c1a621865e449c91f5bc973fdf63cc82cbeed822311851281439c2b213",
+          "reference": "tests/graphics/ansi_sequences/test/reference_3.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "e777849ca939de532566bb7d24b5a2dcef9e07d7a7642ae212ed690423273595",
+          "reference": "tests/graphics/ansi_sequences/test/reference_3.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/4",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 4 of 11 (clear console)",
+      "frames": 50,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_4.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "80f3030019fd9d4538d1de19d723f09a8292d07484e51daf968b3d4c9f8a50a3",
+          "reference": "tests/graphics/ansi_sequences/test/reference_4.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "516ed0c8f40edc9fa7a0261a7516b4fae0a6c74083c4fd46530a210742670598",
+          "reference": "tests/graphics/ansi_sequences/test/reference_4.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/5",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 5 of 11 (clear line)",
+      "frames": 60,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_5.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "aab06588ebbd7bb4e0bdf9a7e5ef51390e5d1e2b317c8c5741507de57cf51f69",
+          "reference": "tests/graphics/ansi_sequences/test/reference_5.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "534282d04703fd5ea303531982de4808a1aba7675bb6ac6df0eaac7ad2dba011",
+          "reference": "tests/graphics/ansi_sequences/test/reference_5.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/6",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 6 of 11 (clear line)",
+      "frames": 70,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_6.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "aab06588ebbd7bb4e0bdf9a7e5ef51390e5d1e2b317c8c5741507de57cf51f69",
+          "reference": "tests/graphics/ansi_sequences/test/reference_6.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "84dd5c7b224614fad1de52605a3d287092111e50e9e31957c4e3b89d6cf725a2",
+          "reference": "tests/graphics/ansi_sequences/test/reference_6.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/7",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 7 of 11 (clear line)",
+      "frames": 80,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_7.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "3aeba13d0b6db1504d655eb0c03974eb64a0d1dae3b4bc092a8358f55345a90f",
+          "reference": "tests/graphics/ansi_sequences/test/reference_7.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "a543a117829a10c7b8b0385d096aa13f9410046a7f7fc6e3663a8b88d1b23608",
+          "reference": "tests/graphics/ansi_sequences/test/reference_7.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/8",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 8 of 11 (clear line)",
+      "frames": 90,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_8.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "7c70d2a83b579d367c0beb3449f250930a70e20433d18a7598e7b0f158844b1b",
+          "reference": "tests/graphics/ansi_sequences/test/reference_8.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "aee696d3eee5456a3c560eaf7ad4fe1f5059217051979897a7a10aa5cb2b1ba0",
+          "reference": "tests/graphics/ansi_sequences/test/reference_8.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/9",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 9 of 11 (move cursor)",
+      "frames": 170,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_9.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "f21a702738afda0c1c27b0ef30af8efec70f4e5c9c8e310b42fae0f6db1b3942",
+          "reference": "tests/graphics/ansi_sequences/test/reference_9.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "95714481376a63612cb1aceda849dee6184558136b69cdddfde62dbef5d690d0",
+          "reference": "tests/graphics/ansi_sequences/test/reference_9.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/10",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 10 of 11 (set cursor)",
+      "frames": 230,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_10.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "966b819251c7f20eac34971f4f74f60ff7bdac2434b9caa80cec7bb26c6668da",
+          "reference": "tests/graphics/ansi_sequences/test/reference_10.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "dff2bd7db1516171eb382463f2f504f5f4e9e6c9246c1413de4b1a2b12258264",
+          "reference": "tests/graphics/ansi_sequences/test/reference_10.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_ansi_sequences/11",
+      "rom": "blocksds-tests/graphics_ansi_sequences.nds",
+      "about": "Console escape sequences on two text backgrounds, stepped with A: picture 11 of 11 (colours)",
+      "frames": 235,
+      "keys_every": {"buttons": "A", "first": 15, "period": 5, "hold": 2},
+      "source": "tests/graphics/ansi_sequences: test/run.py and test/reference_11.png",
+      "note": "The CI's input: 15 frames, then A for 2 frames in every 5.",
+      "checks": [
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "4f1626993b48fd5036b27fb77c2a26f304511d78bf788f383d81606d6033189c",
+          "reference": "tests/graphics/ansi_sequences/test/reference_11.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "e58f6bd88fd172bcbe5f48ebc25ec2373407a446e5893f6540476ff2dba55b1b",
+          "reference": "tests/graphics/ansi_sequences/test/reference_11.png"
+        }
+      ]
+    },
+    {
+      "id": "ipc_fifo_full/value32",
+      "rom": "blocksds-tests/ipc_fifo_full.nds",
+      "about": "IPC FIFO: the ARM9 sends 256 value32 packets (L), then the ARM7 checks what it got (R)",
+      "frames": 160,
+      "keys": ["30:L:5", "90:R:5"],
+      "source": "tests/ipc/fifo_full: arm9/source/main.c and arm7/source/main.c",
+      "note": "No CI. The ARM7 checks that the numbers are consecutive; here the last number it prints must also be the last one the ARM9 sent.",
+      "checks": [
+        {"type": "console", "console": "top", "stream": ["(?P<last>\\d+)(?: \\d+ +Can't send \\d+)? +Done *$"]},
+        {
+          "type": "console",
+          "console": "bottom",
+          "stream": ["(?P<last>\\d+) +No more left *$"],
+          "absent": ["check failed!", "Invalid size!", "Invalid magic!"]
+        }
+      ]
+    },
+    {
+      "id": "ipc_fifo_full/address",
+      "rom": "blocksds-tests/ipc_fifo_full.nds",
+      "about": "IPC FIFO: the ARM9 sends 256 address packets (LEFT), then the ARM7 checks what it got (A)",
+      "frames": 160,
+      "keys": ["30:LEFT:5", "90:A:5"],
+      "source": "tests/ipc/fifo_full: arm9/source/main.c and arm7/source/main.c",
+      "note": "No CI. The ARM7 checks that the numbers are consecutive; here the last number it prints must also be the last one the ARM9 sent.",
+      "checks": [
+        {"type": "console", "console": "top", "stream": ["(?P<last>\\d+)(?: \\d+ +Can't send \\d+)? +Done *$"]},
+        {
+          "type": "console",
+          "console": "bottom",
+          "stream": ["(?P<last>\\d+) +No more left *$"],
+          "absent": ["check failed!", "Invalid size!", "Invalid magic!"]
+        }
+      ]
+    },
+    {
+      "id": "ipc_fifo_full/data",
+      "rom": "blocksds-tests/ipc_fifo_full.nds",
+      "about": "IPC FIFO: the ARM9 sends 128 data packets (DOWN), then the ARM7 checks what it got (B)",
+      "frames": 160,
+      "keys": ["30:DOWN:5", "90:B:5"],
+      "source": "tests/ipc/fifo_full: arm9/source/main.c and arm7/source/main.c",
+      "note": "No CI. The ARM7 checks that the numbers are consecutive; here the last number it prints must also be the last one the ARM9 sent.",
+      "checks": [
+        {"type": "console", "console": "top", "stream": ["(?P<last>\\d+)(?: \\d+ +Can't send \\d+)? +Done *$"]},
+        {
+          "type": "console",
+          "console": "bottom",
+          "stream": ["(?P<last>\\d+) +No more left *$"],
+          "absent": ["check failed!", "Invalid size!", "Invalid magic!"]
+        }
+      ]
+    },
+    {
+      "id": "ipc_fifo_full/fill",
+      "rom": "blocksds-tests/ipc_fifo_full.nds",
+      "about": "IPC FIFO: three rounds of 256 value32 packets with nobody reading, until libnds's queue is full; then the ARM7 must have every packet that was accepted",
+      "frames": 420,
+      "keys": ["30:L:5", "90:L:5", "150:L:5", "270:R:5"],
+      "source": "tests/ipc/fifo_full: arm9/source/main.c and arm7/source/main.c (its opening comment: the test is meant to fill the hardware and software queues)",
+      "note": "No CI.",
+      "checks": [
+        {"type": "console", "console": "top", "stream": ["(?P<last>\\d+) \\d+ +Can't send \\d+ +Done *$"]},
+        {
+          "type": "console",
+          "console": "bottom",
+          "stream": ["(?P<last>\\d+) +No more left *$"],
+          "absent": ["check failed!", "Invalid size!", "Invalid magic!"]
+        }
+      ]
+    },
+    {
+      "id": "ipc_transfer_region/idle",
+      "rom": "blocksds-tests/ipc_transfer_region.nds",
+      "about": "What the ARM7 passes to the ARM9 with nothing pressed: a date and time, and X, Y, pen, lid and debug all 0",
+      "frames": 120,
+      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "2": "Buttons:",
+            "3": "  X:     0",
+            "4": "  Y:     0",
+            "5": "  Touch: 0",
+            "6": "  Lid:   0",
+            "7": "  Debug: 0",
+            "9": "Touch screen:",
+            "10": "  X =   0 (0)",
+            "11": "  Y =   0 (0)",
+            "12": "  Area/Pressure: 0",
+            "14": "Press START to exit"
+          },
+          "rows_match": {"0": "\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d[+-]\\d{4}"},
+          "blank_elsewhere": true,
+          "absent": ["Failed to get time"]
+        }
+      ]
+    },
+    {
+      "id": "ipc_transfer_region/clock",
+      "rom": "blocksds-tests/ipc_transfer_region.nds",
+      "about": "The real-time clock reaches the ARM9: time() gives the clock the runner starts with",
+      "frames": 120,
+      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input); the runner's clock at reset is 2026-01-01 12:00:00 (NDS_RTC_DEFAULT_BASE in runtime-nds/include/nds.h)",
+      "note": "Two seconds in. Only a runner that starts its clock there can pass.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows_match": {"0": "2026-01-01T12:00:0\\d\\+0000"}
+        }
+      ]
+    },
+    {
+      "id": "ipc_transfer_region/x",
+      "rom": "blocksds-tests/ipc_transfer_region.nds",
+      "about": "X, which only the ARM7 can read (EXTKEYIN), reaches the ARM9's keysHeld()",
+      "frames": 90,
+      "keys": ["50:X:60"],
+      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "2": "Buttons:",
+            "3": "  X:     1",
+            "4": "  Y:     0",
+            "5": "  Touch: 0",
+            "6": "  Lid:   0",
+            "7": "  Debug: 0",
+            "9": "Touch screen:",
+            "10": "  X =   0 (0)",
+            "11": "  Y =   0 (0)",
+            "12": "  Area/Pressure: 0",
+            "14": "Press START to exit"
+          },
+          "rows_match": {"0": "\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d[+-]\\d{4}"},
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "ipc_transfer_region/y",
+      "rom": "blocksds-tests/ipc_transfer_region.nds",
+      "about": "Y, which only the ARM7 can read (EXTKEYIN), reaches the ARM9's keysHeld()",
+      "frames": 90,
+      "keys": ["50:Y:60"],
+      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "2": "Buttons:",
+            "3": "  X:     0",
+            "4": "  Y:     1",
+            "5": "  Touch: 0",
+            "6": "  Lid:   0",
+            "7": "  Debug: 0",
+            "9": "Touch screen:",
+            "10": "  X =   0 (0)",
+            "11": "  Y =   0 (0)",
+            "12": "  Area/Pressure: 0",
+            "14": "Press START to exit"
+          },
+          "rows_match": {"0": "\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d[+-]\\d{4}"},
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "ipc_transfer_region/touch",
+      "rom": "blocksds-tests/ipc_transfer_region.nds",
+      "about": "The pen at pixel (128, 96) reaches the ARM9: pen-down, and the position within a pixel",
+      "frames": 90,
+      "touch": ["50:128,96:60"],
+      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input)",
+      "note": "The source prints the pixel libnds works out from the controller's readings; one pixel either way is allowed.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "2": "Buttons:",
+            "3": "  X:     0",
+            "4": "  Y:     0",
+            "5": "  Touch: 1",
+            "6": "  Lid:   0",
+            "7": "  Debug: 0",
+            "9": "Touch screen:",
+            "14": "Press START to exit"
+          },
+          "rows_match": {
+            "0": "\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d[+-]\\d{4}",
+            "10": "  X = 12[789] \\([1-9]\\d*\\)",
+            "11": "  Y =  9[567] \\([1-9]\\d*\\)",
+            "12": "  Area/Pressure: \\d+"
+          },
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "ipc_transfer_region/lid",
+      "rom": "blocksds-tests/ipc_transfer_region.nds",
+      "about": "A closed lid reaches the ARM9's keysHeld()",
+      "frames": 58,
+      "lid": ["50:12"],
+      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input)",
+      "note": "Read 8 frames into the hold: libnds puts the console to sleep after 20 frames of closed lid.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "2": "Buttons:",
+            "3": "  X:     0",
+            "4": "  Y:     0",
+            "5": "  Touch: 0",
+            "6": "  Lid:   1",
+            "7": "  Debug: 0",
+            "9": "Touch screen:",
+            "10": "  X =   0 (0)",
+            "11": "  Y =   0 (0)",
+            "12": "  Area/Pressure: 0",
+            "14": "Press START to exit"
+          },
+          "rows_match": {"0": "\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d[+-]\\d{4}"},
+          "blank_elsewhere": true
+        }
+      ]
+    },
+    {
+      "id": "graphics_bg_regular_4bit_grit",
+      "rom": "blocksds-tests/graphics_bg_regular_4bit_grit.nds",
+      "about": "Engine A BG0: a 4bpp text background with flipped tiles and 16 palettes",
+      "frames": 60,
+      "ci_frames": 20,
+      "source": "tests/graphics/bg_regular_4bit_grit: source/main.c and test/reference.png",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {"0": "PAD:   Scroll background", "1": "START: Exit to loader"},
+          "blank_elsewhere": true
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "6b3163d167a8d209bd484b131504ba709b544da953b29a69a891edef46cc03e4",
+          "reference": "tests/graphics/bg_regular_4bit_grit/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "65c71b5876a26032170ec86cd9c24545d0b5feb5a77e2f5776e1df12079510bf",
+          "reference": "tests/graphics/bg_regular_4bit_grit/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "graphics_compressed_texture_combined",
+      "rom": "blocksds-tests/graphics_compressed_texture_combined.nds",
+      "about": "3D: one quad with a 4x4-compressed texture (VRAM A and B, palette in E), anti-aliased, in perspective",
+      "frames": 60,
+      "ci_frames": 30,
+      "source": "tests/graphics/compressed_texture_combined: source/main.c and test/reference.png (melonDS's software renderer)",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {"0": "PAD:    Rotate quad", "1": "START:  Exit to loader"},
+          "blank_elsewhere": true,
+          "absent": ["Failed to load texture", "Failed to load palette"]
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 192],
+          "sha256": "65fe26ca2b178d011cc8d7cc7c8abdc7fb918db61c7b1066a5bd5d58bf142911",
+          "reference": "tests/graphics/compressed_texture_combined/test/reference.png"
+        },
+        {
+          "type": "picture",
+          "name": "top screen",
+          "screen": "top",
+          "rect": [0, 0, 256, 192],
+          "sha256": "2fba3e01bb84376e88de36e9321bd376d5119c14f97b8e51feff34a36e214d9d",
+          "reference": "tests/graphics/compressed_texture_combined/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "system_stack_smash_protection",
+      "rom": "blocksds-tests/system_stack_smash_protection.nds",
+      "about": "gcc's stack protector: the crash must reach libnds's handler through the BIOS (red 'Guru Meditation' screen)",
+      "frames": 60,
+      "ci_frames": 20,
+      "requires": "bios-exception-dispatch",
+      "source": "tests/system/stack_smash_protection: source/main.c and test/reference.png",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {"0": "   ARM9 Guru Meditation Error", "1": "        Stack corrupted"},
+          "absent": ["You shouldn't see this message."]
+        },
+        {
+          "type": "picture",
+          "name": "bottom screen, rows 0-2",
+          "screen": "bottom",
+          "rect": [0, 0, 256, 24],
+          "sha256": "d890f451952435d674d57107bac8eb153623296c8ee08f10096b15f2fe36c464",
+          "reference": "tests/system/stack_smash_protection/test/reference.png"
+        }
+      ]
+    },
+    {
+      "id": "cache_data_cache_ops",
+      "rom": "blocksds-tests/cache_data_cache_ops.nds",
+      "about": "The ARM9's data cache: what DMA and the CPU see after flushing or invalidating half or all of a buffer",
+      "frames": 200,
+      "requires": "data-cache",
+      "source": "tests/cache/data_cache_ops: the results screen in the comment at the top of source/main.c",
+      "note": "The 'No operation' counts may vary on hardware and are not checked. A machine without a data cache shows 0 256 0 and 0 0 256 in all five blocks.",
+      "checks": [
+        {
+          "type": "console",
+          "console": "demo",
+          "rows": {
+            "0": "No operation:",
+            "4": "Flush range:",
+            "5": "  Ones:    128  128    0",
+            "6": "  Twoes:   128    0  128",
+            "8": "Invalidate range:",
+            "9": "  Ones:    128  128    0",
+            "10": "  Twoes:   128    0  128",
+            "12": "Flush all:",
+            "13": "  Ones:      0  256    0",
+            "14": "  Twoes:     0    0  256",
+            "16": "Invalidate all:",
+            "17": "  Ones:    256    0    0",
+            "18": "  Twoes:   256    0    0",
+            "21": "Press START to exit"
+          }
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/arm-alu-1",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page arm-alu-1: 15 instruction rows, each green",
+      "frames": 90,
+      "keys": ["30:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 15,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/arm-alu-2",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page arm-alu-2: 6 instruction rows, each green",
+      "frames": 102,
+      "keys": ["30:START:4", "42:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 6,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/arm-load-1",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page arm-load-1: 16 instruction rows, each green",
+      "frames": 114,
+      "keys": ["30:START:4", "42:START:4", "54:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 16,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/arm-load-2",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page arm-load-2: 10 instruction rows, each green",
+      "frames": 126,
+      "keys": ["30:START:4", "42:START:4", "54:START:4", "66:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 10,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/arm-ldm-stm",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page arm-ldm-stm: 12 instruction rows, each green",
+      "frames": 138,
+      "keys": ["30:START:4", "42:START:4", "54:START:4", "66:START:4", "78:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 12,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/thumb-alu",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page thumb-alu: 11 instruction rows, each green",
+      "frames": 126,
+      "keys": ["30:DOWN:4", "42:DOWN:4", "54:DOWN:4", "66:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 11,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/thumb-load",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page thumb-load: 7 instruction rows, each green",
+      "frames": 138,
+      "keys": ["30:DOWN:4", "42:DOWN:4", "54:DOWN:4", "66:DOWN:4", "78:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 7,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/thumb-ldm-stm",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page thumb-ldm-stm: 2 instruction rows, each green",
+      "frames": 150,
+      "keys": ["30:DOWN:4", "42:DOWN:4", "54:DOWN:4", "66:DOWN:4", "78:DOWN:4", "90:START:4"],
+      "source": "VERDICTS.md 3.1",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 2,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "arm7wrestler/arm-v5te",
+      "rom": "arm7wrestler/arm7wrestler.nds",
+      "about": "armwrestler on the ARM7, page arm-v5te: 8 instruction rows, each green",
+      "frames": 162,
+      "keys": ["30:DOWN:4", "42:DOWN:4", "54:DOWN:4", "66:DOWN:4", "78:DOWN:4", "90:DOWN:4", "102:START:4"],
+      "requires": "bios-exception-dispatch",
+      "source": "VERDICTS.md 3.1",
+      "note": "ARMv5 instructions on the ARMv4 CPU: three of the rows need the BIOS to hand an undefined instruction to the program's handler.",
+      "checks": [
+        {
+          "type": "colour_rows",
+          "screen": "top",
+          "first_y": 16,
+          "pitch": 8,
+          "rows": 8,
+          "pass_colour": [0, 24, 0],
+          "fail_colour": [24, 0, 0],
+          "done_colour": [31, 16, 3]
+        }
+      ]
+    },
+    {
+      "id": "window-basic",
+      "rom": "striker-tests/window-basic.nds",
+      "about": "Windows 0 and 1 over two solid text backgrounds: BG1 (green) in window 1, BG0 (red) in window 0, nothing outside",
+      "frames": 60,
+      "source": "VERDICTS.md 3.2",
+      "checks": [
+        {
+          "type": "rects",
+          "screen": "top",
+          "background": [0, 0, 0],
+          "rects": [
+            {"rect": [32, 32, 192, 128], "colour": [0, 31, 0]},
+            {"rect": [64, 64, 128, 64], "colour": [31, 0, 0]}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "window-hblank",
+      "rom": "striker-tests/window-hblank.nds",
+      "about": "Window 0's bounds rewritten by an HBlank interrupt handler on every line, to draw two overlapping rectangles",
+      "frames": 60,
+      "source": "VERDICTS.md 3.2",
+      "checks": [
+        {
+          "type": "rects",
+          "screen": "top",
+          "background": [0, 0, 0],
+          "rects": [
+            {"rect": [32, 32, 192, 32], "colour": [31, 0, 0]},
+            {"rect": [64, 64, 128, 65], "colour": [31, 0, 0]},
+            {"rect": [32, 129, 192, 32], "colour": [31, 0, 0]}
+          ]
+        }
+      ]
+    }
+  ],
+  "not_judged": [
+    {
+      "rom": "blocksds-tests/cothread_wait_for_irq.nds",
+      "why": "an interactive demo (a frame counter and thread messages): nothing to judge automatically"
+    },
+    {
+      "rom": "blocksds-tests/input_touch_input.nds",
+      "why": "an interactive demo (touch coordinates and 3D boxes under the pen): nothing to judge automatically"
+    },
+    {"rom": "blocksds-tests/dswifi_stability_test.nds", "why": "needs two consoles and local Wi-Fi"},
+    {
+      "rom": "blocksds-tests/dswifi_alt_socket_funcs.nds",
+      "why": "needs Wi-Fi, an access point in the firmware settings and the internet"
+    },
+    {
+      "rom": "blocksds-tests/dswifi_get_website_ipv4.nds",
+      "why": "needs Wi-Fi, an access point in the firmware settings and the internet"
+    },
+    {"rom": "blocksds-tests/filesystem_dldi_arm9_arm7.nds", "why": "needs a DLDI-patched ROM and a FAT volume"},
+    {"rom": "blocksds-tests/filesystem_label.nds", "why": "needs a writable FAT volume"},
+    {"rom": "blocksds-tests/filesystem_scandir.nds", "why": "needs a FAT volume with the CI's files"},
+    {"rom": "blocksds-tests/filesystem_short_name.nds", "why": "needs a FAT volume holding the ROM, and argv"},
+    {"rom": "blocksds-tests/filesystem_usage.nds", "why": "needs a writable FAT volume with the test's sdroot tree"},
+    {
+      "rom": "blocksds-tests/filesystem_utime.nds",
+      "why": "needs a FAT volume and argv; its verdict is a debug-output line it cannot reach on a cartridge"
+    },
+    {"rom": "blocksds-tests/system_argv.nds", "why": "needs a loader that passes argv"},
+    {"rom": "blocksds-tests/system_exit_to_loader.nds", "why": "needs a loader that leaves a boot stub (hbmenu)"},
+    {"rom": "blocksds-tests/peripheral_slot2_extram.nds", "why": "needs a Slot-2 RAM expansion"},
+    {
+      "rom": "striker-tests/window-midframe.nds",
+      "why": "no reference: where the bands fall when the window's vertical bounds are rewritten in mid-frame is the test, and nothing states it"
+    }
+  ]
+}

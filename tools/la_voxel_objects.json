@@ -1,0 +1,36 @@
+{
+  "classes": {
+    "ground": {"type": "ground"},
+    "grass": {"type": "relief", "raise": 1, "min_shade": 2},
+    "tallgrass": {"type": "relief", "raise": 4, "min_shade": 1},
+    "water": {"type": "sunken"},
+    "hole": {"type": "sunken"},
+    "bush": {"type": "dome", "height": 8, "radius": 5, "groove": 1, "cutout": true},
+    "tree": {"type": "dome", "height": 26, "radius": 14, "groove": 2},
+    "bigtree": {"type": "prop", "span": 2, "top_rows": 22, "canopy": 10},
+    "post": {"type": "prop", "span": 1, "top_rows": 6},
+    "block": {"type": "box", "height": 12, "cutout": true},
+    "hill": {"type": "box", "height": 10},
+    "fence": {"type": "box", "height": 8, "cutout": true},
+    "building": {"type": "facade", "rows": 1}
+  },
+  "objects": {
+    "04": "grass", "44": "grass", "DC": "grass",
+    "0A": "tallgrass",
+    "0B": "ground", "0C": "ground", "0D": "ground", "E0": "ground",
+    "0E": "water",
+    "E8": "hole",
+    "20": "bush", "5C": "bush",
+    "25": ["bigtree", 0, 0], "26": ["bigtree", 1, 0], "27": ["bigtree", 0, 1], "28": ["bigtree", 1, 1],
+    "2A": ["bigtree", 1, 0], "29": ["bigtree", 1, 1],
+    "39": "tree", "3A": "tree", "3B": "tree",
+    "2B": "hill", "2C": "hill", "2D": "hill", "2E": "hill", "2F": "hill",
+    "31": "hill", "32": "hill", "33": "hill", "35": "hill", "36": "hill", "37": "hill", "38": "hill",
+    "3C": "hill", "3D": "hill", "48": "hill", "49": "hill", "4A": "hill", "4E": "hill",
+    "5F": "fence", "60": "fence", "62": ["post", 0, 0],
+    "45": "block", "91": "block", "E6": "block",
+    "40": "building", "41": "building", "42": "building", "52": "building",
+    "55": "building", "56": "building", "57": "building", "58": "building", "59": "building", "5A": "building",
+    "5B": "building", "5E": "building", "E1": "building", "E2": "building"
+  }
+}

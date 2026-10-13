@@ -1,0 +1,44 @@
+# Shrek 2 (USA): a new game saved to a fresh memory card through the game's own menus,
+# then an in-level save to a second slot. Fields from boot.
+# main menu: New Game
+3000 A
+3006 -
+# "Do you want to save your new game?" -> Save
+3660 A
+3666 -
+# "No Shrek 2 game data present on Memory Card in Slot A. Create a save file?" -> Continue
+4260 A
+4266 -
+# "Creation successful." -> OK
+4860 A
+4866 -
+# "Save New Game": Game A
+5100 A
+5106 -
+# "Save successful." -> OK
+5400 A
+5406 -
+# the story book and the opening cutscene: skip
+5700 A
+5706 -
+5820 A
+5826 -
+# in the level: pause, down to Save Game
+6300 START
+6306 -
+6480 DOWN
+6486 -
+6510 DOWN
+6516 -
+6540 DOWN
+6546 -
+6600 A
+6606 -
+# "Save Game": down to Game B (empty), accept
+6780 DOWN
+6786 -
+6840 A
+6846 -
+# "Save successful." -> OK
+7080 A
+7086 -

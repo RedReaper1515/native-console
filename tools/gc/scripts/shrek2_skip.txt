@@ -1,0 +1,46 @@
+# Shrek 2 (USA): through the menus to New Game, then A every 200 fields from
+# 1500, which skips the storybook and the opening cutscene as soon as they
+# start. Fields from boot, in the windowed frontend (which has a memory card,
+# so the card's menus come first). run_checks.py's `skip` stage plays it with
+# the graphics thread on and off and compares what the window showed.
+# Before the present was bounded (docs/GC-PLAN.md, "A picture that stayed
+# black") the window stayed black for about 190 fields after the skip, then
+# froze on the cutscene's first frame, with the graphics thread in software.
+600 START
+606 -
+660 A
+666 -
+720 A
+726 -
+780 A
+786 -
+840 START
+846 -
+900 A
+906 -
+960 A
+966 -
+1020 A
+1026 -
+1080 START
+1086 -
+1140 A
+1146 -
+1200 A
+1206 -
+1260 A
+1266 -
+1500 A
+1506 -
+1700 A
+1706 -
+1900 A
+1906 -
+2100 A
+2106 -
+2300 A
+2306 -
+2500 A
+2506 -
+2700 A
+2706 -

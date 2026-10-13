@@ -1,0 +1,18 @@
+# Shrek 2 (USA): after save.txt, a fresh boot against the same card loads the in-level save.
+# Fields from boot.
+# main menu: down to Load Game, accept
+2940 DOWN
+2946 -
+3000 A
+3006 -
+# "Select Game": down to Game B, accept
+3300 DOWN
+3306 -
+3360 A
+3366 -
+# "Load successful." -> OK
+3660 A
+3666 -
+# "Contents": Chapter Select
+3900 A
+3906 -

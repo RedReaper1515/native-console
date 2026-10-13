@@ -1,0 +1,133 @@
+# AccuracyCoin tests that pass in the interpreter (tools/nes/accuracycoin.py),
+# as page:name.
+1:ROM is not writable
+1:RAM Mirroring
+1:PC Wraparound
+1:The Decimal Flag
+1:The B Flag
+1:Dummy read cycles
+1:Dummy write cycles
+1:Open Bus
+1:All NOP instructions
+2:Absolute Indexed
+2:Zero Page Indexed
+2:Indirect
+2:Indirect, X
+2:Indirect, Y
+2:Relative
+3:$03 SLO indirect,X
+3:$07 SLO zeropage
+3:$0F SLO absolute
+3:$13 SLO indirect,Y
+3:$17 SLO zeropage,X
+3:$1B SLO absolute,Y
+3:$1F SLO absolute,X
+4:$23 RLA indirect,X
+4:$27 RLA zeropage
+4:$2F RLA absolute
+4:$33 RLA indirect,Y
+4:$37 RLA zeropage,X
+4:$3B RLA absolute,Y
+4:$3F RLA absolute,X
+5:$43 SRE indirect,X
+5:$47 SRE zeropage
+5:$4F SRE absolute
+5:$53 SRE indirect,Y
+5:$57 SRE zeropage,X
+5:$5B SRE absolute,Y
+5:$5F SRE absolute,X
+6:$63 RRA indirect,X
+6:$67 RRA zeropage
+6:$6F RRA absolute
+6:$73 RRA indirect,Y
+6:$77 RRA zeropage,X
+6:$7B RRA absolute,Y
+6:$7F RRA absolute,X
+7:$83 SAX indirect,X
+7:$87 SAX zeropage
+7:$8F SAX absolute
+7:$97 SAX zeropage,Y
+7:$A3 LAX indirect,X
+7:$A7 LAX zeropage
+7:$AF LAX absolute
+7:$B3 LAX indirect,Y
+7:$B7 LAX zeropage,Y
+7:$BF LAX absolute,Y
+8:$C3 DCP indirect,X
+8:$C7 DCP zeropage
+8:$CF DCP absolute
+8:$D3 DCP indirect,Y
+8:$D7 DCP zeropage,X
+8:$DB DCP absolute,Y
+8:$DF DCP absolute,X
+9:$E3 ISC indirect,X
+9:$E7 ISC zeropage
+9:$EF ISC absolute
+9:$F3 ISC indirect,Y
+9:$F7 ISC zeropage,X
+9:$FB ISC absolute,Y
+9:$FF ISC absolute,X
+10:$93 SHA indirect,Y
+10:$9F SHA absolute,Y
+10:$9B SHS absolute,Y
+10:$9C SHY absolute,X
+10:$9E SHX absolute,Y
+10:$BB LAE absolute,Y
+11:$0B ANC Immediate
+11:$2B ANC Immediate
+11:$4B ASR Immediate
+11:$6B ARR Immediate
+11:$8B ANE Immediate
+11:$AB LXA Immediate
+11:$CB AXS Immediate
+11:$EB SBC Immediate
+12:Interrupt flag latency
+12:NMI Overlap BRK
+12:NMI Overlap IRQ
+13:DMA + Open Bus
+13:DMA + $2002 Read
+13:DMA + $2007 Read
+13:DMA + $2007 Write
+13:DMA + $4015 Read
+13:DMA + $4016 Read
+13:DMC DMA + OAM DMA
+14:Length Counter
+14:Length Table
+14:Frame Counter IRQ
+14:Frame Counter 4-step
+14:Frame Counter 5-step
+14:Delta Modulation Channel
+14:Controller Strobing
+14:Controller Clocking
+15:Instruction Timing
+15:Implied Dummy Reads
+15:Branch Dummy Reads
+15:JSR Edge Cases
+15:DMA Landing on Write
+15:DMC Reload Timing
+17:CHR ROM is not writable
+17:PPU Register Mirroring
+17:PPU Register Open Bus
+17:PPU Read Buffer
+17:Palette RAM Quirks
+18:VBlank beginning
+18:VBlank end
+18:NMI Control
+18:NMI Timing
+18:NMI Suppression
+18:NMI at VBlank end
+18:NMI disabled at VBlank
+19:Sprite overflow behavior
+19:Sprite 0 Hit behavior
+19:Suddenly Resize Sprite
+19:Misaligned OAM DMA
+19:Arbitrary Sprite zero
+19:Misaligned OAM behavior
+20:t Register Quirks
+20:Address $2004 behavior
+20:INC $4014
+20:Rendering Flag Behavior
+20:$2007 read w/ rendering
+21:Attributes As Tiles
+21:Stale BG Shift Registers
+21:Hybrid Addresses

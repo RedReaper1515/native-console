@@ -1,0 +1,206 @@
+name: macOS and exports
+
+# Builds test ROMs (Game Boy, GBA and SNES) as universal .app bundles with
+# tools/macos/build_macos_app.sh, runs them, and runs CTest on Apple Silicon.
+# Then checks the hub's "Compile for export": a Windows runner exports a
+# Windows zip and a macOS kit, and a Mac finishes that kit. Commercial ROMs
+# never enter CI.
+#
+# Opt-in, because macOS runner minutes are billed at ten times the normal
+# rate: a pull request starts this only when it carries the "run-ci" label
+# (add it when the PR is open and the run starts then), and Actions > Run
+# workflow starts it by hand. Without the label every job is skipped, which
+# uses no runner time.
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths:
+      - "CMakeLists.txt"
+      - "recompiler/**"
+      - "recompiler-gba/**"
+      - "recompiler-snes/**"
+      - "runtime/**"
+      - "runtime-gba/**"
+      - "runtime-snes/**"
+      - "hub/**"
+      - "tests/**"
+      - "tools/macos/**"
+      - "tools/snes/**"
+      - "tools/consoles.sh"
+      - "tools/fetch_snes_tests.py"
+      - ".github/workflows/macos.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  apps:
+    if: github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'run-ci')
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install ninja
+
+      - name: Test ROMs
+        run: |
+          python3 tests/fixtures/make_mapper_rom.py --mapper mbc1 --output build-ci/gb_fixture.gb
+          python3 tools/fetch_gba_tests.py --suite jsmolka
+          python3 tests/fixtures/make_snes_sram_rom.py --output build-ci/snes_sram.sfc
+          python3 tools/fetch_snes_tests.py --suite gilyon
+
+      - name: Build apps
+        run: |
+          tools/macos/build_macos_app.sh --rom build-ci/gb_fixture.gb --name gb_fixture --title "GB Fixture"
+          tools/macos/build_macos_app.sh --rom roms/gba/jsmolka/arm/arm.gba --name gba_arm --title "GBA ARM Test"
+          tools/macos/build_macos_app.sh --rom roms/gba/jsmolka/save/sram.gba --name gba_sram
+          tools/macos/build_macos_app.sh --rom roms/snes/gilyon/cputest/cputest-basic.sfc --name snes_cputest --title "SNES CPU Test"
+          tools/macos/build_macos_app.sh --rom build-ci/snes_sram.sfc --name snes_sram
+
+      - name: Run apps
+        run: |
+          set -x
+          output/macos/gb_fixture.app/Contents/MacOS/gb_fixture --headless --limit-frames 120
+          output/macos/gba_arm.app/Contents/MacOS/gba_arm --frames 600 --dump-frame build-ci/gba_arm.ppm
+          output/macos/snes_cputest.app/Contents/MacOS/snes_cputest --frames 3000 --until-idle --expect-text Success \
+            --dump-frame build-ci/snes_cputest.ppm
+          # Windowed, so the SDL frontend and its save handling run. Inside a
+          # bundle the save goes to Application Support and the bundle stays sealed.
+          output/macos/gba_sram.app/Contents/MacOS/gba_sram --limit-frames 300 --mute
+          test -s "$HOME/Library/Application Support/gbrecompiled/gba_sram/gba_sram.sav"
+          test ! -e output/macos/gba_sram.app/Contents/MacOS/gba_sram.sav
+          output/macos/snes_sram.app/Contents/MacOS/snes_sram --limit-frames 120 --mute
+          test -s "$HOME/Library/Application Support/gbrecompiled/snes_sram/snes_sram.sav"
+          test ! -e output/macos/snes_sram.app/Contents/MacOS/snes_sram.sav
+          codesign --verify --deep --strict output/macos/gba_sram.app
+          codesign --verify --deep --strict output/macos/snes_sram.app
+          plutil -p output/macos/gba_arm.app/Contents/Info.plist
+
+      - name: Screenshot of an app running
+        continue-on-error: true
+        run: |
+          open output/macos/gba_arm.app
+          sleep 8
+          screencapture -x build-ci/gba_arm_running.png
+          osascript -e 'quit app "GBA ARM Test"' || pkill gba_arm || true
+
+      - name: Upload apps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-test-apps
+          path: |
+            output/macos/*.zip
+            build-ci/*.png
+            build-ci/*.ppm
+          if-no-files-found: warn
+
+      - name: Build and test the tree
+        if: always()
+        run: |
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON \
+            -DSDL2_DIR="$HOME/Library/Caches/native-console/SDL2-2.32.10/SDL2.framework/Resources/CMake"
+          ninja -C build
+          # accuracy_runner_exit_policy needs the Mooneye/Blargg ROMs, which CI does not have.
+          ctest --test-dir build --output-on-failure -j4 -E accuracy_runner_exit_policy
+
+      - name: Hub export on macOS
+        run: |
+          build/bin/native_console_hub --data-dir build-ci/hub --export build-ci/gb_fixture.gb \
+            --export-to build-ci/hub-exports --export-targets macos
+          tar -tvzf build-ci/hub-exports/gb_fixture-macos-kit.tar.gz | grep -E ' gb_fixture-macos-kit/build.command$' | grep -q '^-rwxr-xr-x'
+
+  # The hub on Windows exports a test ROM, as it would on a user's PC. Its
+  # Windows zip is run here; its macOS kit is finished on a Mac below.
+  windows-export:
+    if: github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'run-ci')
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: choco install ninja -y
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Download SDL2 development libraries
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-devel-2.32.10-VC.zip" -OutFile SDL2-devel.zip
+          Expand-Archive -Path SDL2-devel.zip -DestinationPath .
+
+      - name: Build the hub and recompilers
+        run: |
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DSDL2_DIR="$PWD/SDL2-2.32.10/cmake"
+          ninja -C build gbrecomp gbarecomp snesrecomp native_console_hub
+
+      - name: Test ROMs
+        run: |
+          python tests/fixtures/make_mapper_rom.py --mapper mbc1 --output build-ci/gb_fixture.gb
+          python tools/fetch_gba_tests.py --suite jsmolka
+          python tests/fixtures/make_snes_sram_rom.py --output build-ci/snes_sram.sfc
+
+      - name: Export with the hub
+        run: |
+          build/bin/native_console_hub.exe --data-dir build-ci/hub --export build-ci/gb_fixture.gb `
+            --export roms/gba/jsmolka/arm/arm.gba --export build-ci/snes_sram.sfc `
+            --export-to build-ci/exports --export-targets windows,macos | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Get-ChildItem build-ci/exports
+
+      - name: Run the Windows exports
+        run: |
+          Expand-Archive build-ci/exports/gb_fixture-windows-x64.zip -DestinationPath build-ci/win
+          Expand-Archive build-ci/exports/arm-windows-x64.zip -DestinationPath build-ci/win
+          Expand-Archive build-ci/exports/snes_sram-windows-x64.zip -DestinationPath build-ci/win
+          $env:SDL_VIDEODRIVER = "dummy"; $env:SDL_AUDIODRIVER = "dummy"
+          & build-ci/win/gb_fixture-windows-x64/gb_fixture.exe --headless --limit-frames 120 | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          & build-ci/win/arm-windows-x64/arm.exe --frames 600 | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          & build-ci/win/snes_sram-windows-x64/snes_sram.exe --frames 120 | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Upload exports
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exports
+          path: build-ci/exports
+
+  # Skipped with windows-export when the run is not opted in.
+  mac-finishes-windows-kit:
+    needs: windows-export
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Install dependencies
+        run: brew install ninja
+
+      - name: Download the Windows-made kits
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-exports
+          path: exports
+
+      - name: Finish the kits
+        run: |
+          set -x
+          mkdir -p kits
+          for k in exports/*-macos-kit.tar.gz; do tar -xzf "$k" -C kits; done
+          for d in kits/*-macos-kit; do
+            test -x "$d/build.command"
+            "$d/build.command"
+          done
+          kits/gb_fixture-macos-kit/gb_fixture.app/Contents/MacOS/gb_fixture --headless --limit-frames 120
+          kits/arm-macos-kit/arm.app/Contents/MacOS/arm --frames 600
+          kits/snes_sram-macos-kit/snes_sram.app/Contents/MacOS/snes_sram --frames 120
+          codesign --verify --deep --strict kits/arm-macos-kit/arm.app
+          codesign --verify --deep --strict kits/snes_sram-macos-kit/snes_sram.app

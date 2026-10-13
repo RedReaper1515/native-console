@@ -1,0 +1,150 @@
+# krom RDP test ROMs: pixels differing from the reference PNG, at the
+# framebuffer's precision. Written by tools/n64/compare_rdp_tests.py
+# --update-baseline; 0 is exact. Any change to a count fails the check.
+#
+# Known reasons for non-zero counts:
+#  - 16BPP/ and 32BPP/ (Peter Lemon's demos): the references are emulator
+#    scan-outs, not framebuffers. They stretch 237 VI lines to 240 with a
+#    resampling that cannot be recovered exactly (edges of most shapes),
+#    compute (1.0 - 0) * TEXEL0 as TEXEL0 * TEXEL0 (CombinerOverflow, a
+#    hardware-checked ROM, shows 1.0 working), and leave out do_offset
+#    attribute latching (Cycle1ShadeTriangle16BPP: exact on the triangles
+#    without it). SetPrimColor32BPP and Cycle1ShadeTriangle32BPP have the
+#    16-bit pictures as references.
+#  - 8BPP/.../InternalPalette: the reference holds colours no 16-bit
+#    scan-out can produce; it is not a framebuffer view.
+#  - RDPModeInput: renders only after a button press; the reference shows
+#    a state reached by input.
+#  - AlphaCompare: the dithered alpha compare uses the hardware's random
+#    noise; parallel-rdp's hash stands in for it.
+#  - CombinerLongTailConstants: the first pixel drawn is not dithered in
+#    the reference; every other pixel matches.
+#  - LoadTLUT_*_b32: LOAD_TLUT into a 32-bit tile writes TMEM on hardware;
+#    parallel-rdp (and this port) treat it as unsupported.
+16BPP/Line/FillLine/Cycle1FillLine320x240/Cycle1FillLine16BPP320X240.N64 306
+16BPP/Line/FillLine/FillLine320x240/FillLine16BPP320X240.N64 324
+16BPP/Line/Plot/FillLine/PlotFillLine16BPP320X240.N64 3
+16BPP/Line/Rotate/FillLine/RotateFillLine16BPP320X240.N64 76798
+16BPP/Rectangle/FillRectangle/Cycle1FillRectangle320x240/Cycle1FillRectangle16BPP320X240.N64 0
+16BPP/Rectangle/FillRectangle/FillRectangle320x240/FillRectangle16BPP320X240.N64 0
+16BPP/Rectangle/FillZBufferRectangle320x240/Cycle1FillZBufferRectangle16BPP320X240.N64 240
+16BPP/Rectangle/TextureRectangle/CopyTextureRectangleRGBA16B320x240/CopyTextureRectangle16BPPRGBA16B320X240.N64 136
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleI4B320x240/Cycle1TextureRectangle16BPPI4B320X240.N64 3371
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleI8B320x240/Cycle1TextureRectangle16BPPI8B320X240.N64 2000
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleIA16B320x240/Cycle1TextureRectangle16BPPIA16B320X240.N64 1267
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleIA4B320x240/Cycle1TextureRectangle16BPPIA4B320X240.N64 2622
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleIA8B320x240/Cycle1TextureRectangle16BPPIA8B320X240.N64 1267
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleRGBA16B320x240/Cycle1TextureRectangle16BPPRGBA16B320X240.N64 1267
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleRGBA32B320x240/Cycle1TextureRectangle16BPPRGBA32B320X240.N64 994
+16BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleYUV16B320x240/Cycle1TextureRectangle16BPPYUV16B320X240.N64 203
+16BPP/Rectangle/TextureRectangle/TLUT/CopyTextureRectangleTLUTRGBA4B320x240/CopyTextureRectangle16BPPTLUTRGBA4B320X240.N64 94
+16BPP/Rectangle/TextureRectangle/TLUT/CopyTextureRectangleTLUTRGBA8B320x240/CopyTextureRectangle16BPPTLUTRGBA8B320X240.N64 136
+16BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTIA4B320x240/Cycle1TextureRectangle16BPPTLUTIA4B320X240.N64 7012
+16BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTIA8B320x240/Cycle1TextureRectangle16BPPTLUTIA8B320X240.N64 1267
+16BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTRGBA4B320x240/Cycle1TextureRectangle16BPPTLUTRGBA4B320X240.N64 7012
+16BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTRGBA8B320x240/Cycle1TextureRectangle16BPPTLUTRGBA8B320X240.N64 1267
+16BPP/SetPrimColor/SetPrimColor16BPP.N64 0
+16BPP/Triangle/Cube/FillTriangle320x240/CubeFillTriangle16BPP320X240.N64 6160
+16BPP/Triangle/FillTriangle/Cycle1FillTriangle320x240/Cycle1FillTriangle16BPP320X240.N64 462
+16BPP/Triangle/FillTriangle/FillTriangle320x240/FillTriangle16BPP320X240.N64 476
+16BPP/Triangle/FillZBufferTriangle320x240/Cycle1FillZBufferTriangle16BPP320X240.N64 835
+16BPP/Triangle/Plot/FillTriangle/LeftMajorTriangle320x240/LeftMajorTriangle16BPP320X240.N64 51
+16BPP/Triangle/Plot/FillTriangle/RightMajorTriangle320x240/RightMajorTriangle16BPP320X240.N64 51
+16BPP/Triangle/Rotate/FillTriangle/LeftMajorTriangle320x240/RotateLeftMajorTriangle16BPP320X240.N64 25652
+16BPP/Triangle/Rotate/FillTriangle/RightMajorTriangle320x240/RotateRightMajorTriangle16BPP320X240.N64 24493
+16BPP/Triangle/ShadeTriangle320x240/Cycle1ShadeTriangle16BPP320X240.N64 4783
+16BPP/Triangle/TextureTriangle/CopyTextureTriangleRGBA16B320x240/CopyTextureTriangle16BPPRGBA16B320X240.N64 136
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleI4B320x240/Cycle1TextureTriangle16BPPI4B320X240.N64 3371
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleI8B320x240/Cycle1TextureTriangle16BPPI8B320X240.N64 2000
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleIA16B320x240/Cycle1TextureTriangle16BPPIA16B320X240.N64 1267
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleIA4B320x240/Cycle1TextureTriangle16BPPIA4B320X240.N64 2622
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleIA8B320x240/Cycle1TextureTriangle16BPPIA8B320X240.N64 1267
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleRGBA16B320x240/Cycle1TextureTriangle16BPPRGBA16B320X240.N64 1267
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleRGBA32B320x240/Cycle1TextureTriangle16BPPRGBA32B320X240.N64 994
+16BPP/Triangle/TextureTriangle/Cycle1TextureTriangleYUV16B320x240/Cycle1TextureTriangle16BPPYUV16B320X240.N64 209
+16BPP/Triangle/TextureTriangle/TLUT/CopyTextureTriangleTLUTRGBA4B320x240/CopyTextureTriangle16BPPTLUTRGBA4B320X240.N64 94
+16BPP/Triangle/TextureTriangle/TLUT/CopyTextureTriangleTLUTRGBA8B320x240/CopyTextureTriangle16BPPTLUTRGBA8B320X240.N64 136
+16BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTIA4B320x240/Cycle1TextureTriangle16BPPTLUTIA4B320X240.N64 7012
+16BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTIA8B320x240/Cycle1TextureTriangle16BPPTLUTIA8B320X240.N64 1267
+16BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTRGBA4B320x240/Cycle1TextureTriangle16BPPTLUTRGBA4B320X240.N64 7012
+16BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTRGBA8B320x240/Cycle1TextureTriangle16BPPTLUTRGBA8B320X240.N64 1267
+32BPP/Line/FillLine/Cycle1FillLine320x240/Cycle1FillLine32BPP320X240.N64 306
+32BPP/Line/FillLine/FillLine320x240/FillLine32BPP320X240.N64 324
+32BPP/Line/Plot/FillLine/PlotFillLine32BPP320X240.N64 3
+32BPP/Line/Rotate/FillLine/RotateFillLine32BPP320X240.N64 514
+32BPP/Rectangle/FillRectangle/Cycle1FillRectangle320x240/Cycle1FillRectangle32BPP320X240.N64 0
+32BPP/Rectangle/FillRectangle/FillRectangle320x240/FillRectangle32BPP320X240.N64 0
+32BPP/Rectangle/FillZBufferRectangle320x240/Cycle1FillZBufferRectangle32BPP320X240.N64 240
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleI4B320x240/Cycle1TextureRectangle32BPPI4B320X240.N64 3822
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleI8B320x240/Cycle1TextureRectangle32BPPI8B320X240.N64 2303
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleIA16B320x240/Cycle1TextureRectangle32BPPIA16B320X240.N64 1562
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleIA4B320x240/Cycle1TextureRectangle32BPPIA4B320X240.N64 3073
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleIA8B320x240/Cycle1TextureRectangle32BPPIA8B320X240.N64 1562
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleRGBA16B320x240/Cycle1TextureRectangle32BPPRGBA16B320X240.N64 1562
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleRGBA32B320x240/Cycle1TextureRectangle32BPPRGBA32B320X240.N64 1342
+32BPP/Rectangle/TextureRectangle/Cycle1TextureRectangleYUV16B320x240/Cycle1TextureRectangle32BPPYUV16B320X240.N64 203
+32BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTIA4B320x240/Cycle1TextureRectangle32BPPTLUTIA4B320X240.N64 7055
+32BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTIA8B320x240/Cycle1TextureRectangle32BPPTLUTIA8B320X240.N64 1562
+32BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTRGBA4B320x240/Cycle1TextureRectangle32BPPTLUTRGBA4B320X240.N64 7055
+32BPP/Rectangle/TextureRectangle/TLUT/Cycle1TextureRectangleTLUTRGBA8B320x240/Cycle1TextureRectangle32BPPTLUTRGBA8B320X240.N64 1562
+32BPP/SetPrimColor/SetPrimColor32BPP.N64 75878
+32BPP/Triangle/Cube/FillTriangle320x240/CubeFillTriangle32BPP320X240.N64 6161
+32BPP/Triangle/FillTriangle/Cycle1FillTriangle320x240/Cycle1FillTriangle32BPP320X240.N64 462
+32BPP/Triangle/FillTriangle/FillTriangle320x240/FillTriangle32BPP320X240.N64 476
+32BPP/Triangle/FillZBufferTriangle320x240/Cycle1FillZBufferTriangle32BPP320X240.N64 835
+32BPP/Triangle/Plot/FillTriangle/LeftMajorTriangle320x240/LeftMajorTriangle32BPP320X240.N64 51
+32BPP/Triangle/Plot/FillTriangle/RightMajorTriangle320x240/RightMajorTriangle32BPP320X240.N64 51
+32BPP/Triangle/Rotate/FillTriangle/LeftMajorTriangle320x240/RotateLeftMajorTriangle32BPP320X240.N64 25652
+32BPP/Triangle/Rotate/FillTriangle/RightMajorTriangle320x240/RotateRightMajorTriangle32BPP320X240.N64 25964
+32BPP/Triangle/ShadeTriangle320x240/Cycle1ShadeTriangle32BPP320X240.N64 76773
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleI4B320x240/Cycle1TextureTriangle32BPPI4B320X240.N64 3822
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleI8B320x240/Cycle1TextureTriangle32BPPI8B320X240.N64 2303
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleIA16B320x240/Cycle1TextureTriangle32BPPIA16B320X240.N64 1562
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleIA4B320x240/Cycle1TextureTriangle32BPPIA4B320X240.N64 3073
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleIA8B320x240/Cycle1TextureTriangle32BPPIA8B320X240.N64 1562
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleRGBA16B320x240/Cycle1TextureTriangle32BPPRGBA16B320X240.N64 1562
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleRGBA32B320x240/Cycle1TextureTriangle32BPPRGBA32B320X240.N64 1342
+32BPP/Triangle/TextureTriangle/Cycle1TextureTriangleYUV16B320x240/Cycle1TextureTriangle32BPPYUV16B320X240.N64 209
+32BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTIA4B320x240/Cycle1TextureTriangle32BPPTLUTIA4B320X240.N64 7055
+32BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTIA8B320x240/Cycle1TextureTriangle32BPPTLUTIA8B320X240.N64 1562
+32BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTRGBA4B320x240/Cycle1TextureTriangle32BPPTLUTRGBA4B320X240.N64 7055
+32BPP/Triangle/TextureTriangle/TLUT/Cycle1TextureTriangleTLUTRGBA8B320x240/Cycle1TextureTriangle32BPPTLUTRGBA8B320X240.N64 1562
+8BPP/Rectangle/TextureRectangle/TLUT/InternalPalette/InternalPalette.N64 76731
+AlphaCompare/AlphaCompare.N64 38
+AlphaCoverage/AlphaCoverage.N64 0
+CombinerLongTailConstants/CombinerLongTailConstants.N64 1
+CombinerOverflow/CombinerOverflow.N64 0
+LoadTLUT/LoadTLUT_b16_b16.N64 0
+LoadTLUT/LoadTLUT_b16_b32.N64 3264
+LoadTLUT/LoadTLUT_b16_b4.N64 0
+LoadTLUT/LoadTLUT_b16_b8.N64 0
+LoadTLUT/LoadTLUT_b16_b8_uls16.N64 0
+LoadTLUT/LoadTLUT_b16_overflow.N64 0
+LoadTLUT/LoadTLUT_b32_b16.N64 0
+LoadTLUT/LoadTLUT_b32_b32.N64 1664
+LoadTLUT/LoadTLUT_b32_b4.N64 0
+LoadTLUT/LoadTLUT_b32_b8.N64 0
+LoadTLUT/LoadTLUT_b8_b16.N64 0
+LoadTLUT/LoadTLUT_b8_b32.N64 832
+LoadTLUT/LoadTLUT_b8_b4.N64 0
+LoadTLUT/LoadTLUT_b8_b8.N64 0
+RDPModeInput/RDPModeInput.N64 33981
+RDPTex0And1/RDPTex0And1.N64 0
+TEXRECT_Palette/TEXRECT_Palette.N64 0
+TextureCoordinates/TextureCoordinates.N64 0
+TextureCoordinates1/TextureCoordinates1.N64 0
+TextureCoordinates1b/TextureCoordinates1b.N64 0
+TextureCoordinates2/TextureCoordinates2.N64 0
+TextureCoordinates2b/TextureCoordinates2b.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT0_1.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT0_2.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT0_3.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT0_4.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT15_1.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT15_2.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT15_3.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT15_4.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT1_1.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT1_2.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT1_3.N64 0
+TexturesMaskShiftMirror/TexturesMaskCMShiftT1_4.N64 0
