@@ -7,7 +7,7 @@ game's variables by name, kept in files of its own. What is left in the bank's
 file is a binding, a few lines that hand the registers over. This makes a
 small game, has `gb_lift.py source` make its folder, writes five of its
 functions that way under `src/native/`, and holds `gb_lift.py build` to what
-LIFTING.md says of such code:
+docs/LIFTING.md says of such code:
 
 - the C a binding calls is compiled into the checker and into the game from
   where it is, in `src/` or a folder under it, and its own headers are found;

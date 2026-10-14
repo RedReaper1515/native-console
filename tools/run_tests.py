@@ -15,7 +15,7 @@ Rendered-only Blargg tests use a pinned framebuffer hash at a stable verdict fra
 Usage:
     python3 tools/run_tests.py                  # run all tests
     python3 tools/run_tests.py --json           # dump JSON results
-    python3 tools/run_tests.py --md             # write ACCURACY.md
+    python3 tools/run_tests.py --md             # write docs/ACCURACY.md
     python3 tools/run_tests.py --filter accept  # only tests matching pattern
 """
 
@@ -724,7 +724,7 @@ def main():
     parser = argparse.ArgumentParser(description="GB Recompiler accuracy test runner")
     parser.add_argument("--filter",   default=None, help="Only run tests matching this substring")
     parser.add_argument("--json",     action="store_true", help="Dump JSON results to stdout")
-    parser.add_argument("--md",       action="store_true", help="Write ACCURACY.md")
+    parser.add_argument("--md",       action="store_true", help="Write docs/ACCURACY.md")
     parser.add_argument("--rebuild",  action="store_true", help="Force recompile/rebuild even if cached")
     parser.add_argument("--dry-run",  action="store_true", help="List tests without running them")
     parser.add_argument(
@@ -769,7 +769,7 @@ def main():
         print(json.dumps(results, indent=2))
 
     if args.md:
-        generate_accuracy_md(results, WORKSPACE / "ACCURACY.md")
+        generate_accuracy_md(results, WORKSPACE / "docs/ACCURACY.md")
 
     # A compatibility run is only successful when at least one selected test
     # actually passes and every selected test reaches that passing verdict.

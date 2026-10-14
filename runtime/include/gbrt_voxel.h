@@ -4,7 +4,7 @@
 /*
  * Voxel view: a host-side 3D rendering of a tile-based game's playfield.
  *
- * A voxel profile (a text file, see VOXEL_VIEW.md) tells the runtime where the
+ * A voxel profile (a text file, see docs/VOXEL_VIEW.md) tells the runtime where the
  * game keeps its grid of room objects and what shape each object ID has. When
  * a frame completes, the runtime snapshots VRAM, OAM, the I/O registers, and
  * the pixel sources, and follows the object grid through scrolling room

@@ -2,7 +2,7 @@
 """Lifted C as a source folder: made from an export, kept, edited and rebuilt.
 
 `gb_lift.py baseline` writes whole files, so running it again loses every
-edit. This is the folder a person works in instead (LIFTING.md, "Working in
+edit. This is the folder a person works in instead (docs/LIFTING.md, "Working in
 the source"):
 
   src/lifted_bank_NN.c  the structured C, one file a bank; yours once written
@@ -546,7 +546,7 @@ def bank_preamble(export: dict, bank: int, time_mode: str, lift) -> str:
             f"(sha256 {export['rom']['sha256'][:16]}...), lifted to C.\n"
             " * Written by tools/gb_lift.py source, and yours from then on: run again, it\n"
             " * keeps every function you changed, comments included, and writes the ones\n"
-            f" * you did not change afresh (LIFTING.md, \"Working in the source\"). Time: {time_mode}. */\n"
+            f" * you did not change afresh (docs/LIFTING.md, \"Working in the source\"). Time: {time_mode}. */\n"
             "#include \"gblift.h\"\n"
             f"#include \"{lift.NAMES_HEADER}\"")
 
@@ -606,7 +606,7 @@ STUB_SOURCE = """\
 /* The lifted functions of this game are not in this folder. They are the
  * src/ files of the source folder this project is in, which that folder's
  * CMakeLists.txt adds to the game: edit those, and build from there
- * (LIFTING.md, "Working in the source"). */
+ * (docs/LIFTING.md, "Working in the source"). */
 typedef int lifted_functions_are_in_src;
 """
 
@@ -703,7 +703,7 @@ def support_code(folder: Path, files: dict[str, tuple[str, list[Unit], str]], li
 
     Source written by hand is ordinary functions with arguments, kept
     wherever in src/ they belong, and a lifted function that has become a few
-    lines handing its registers to one of them (LIFTING.md, "Functions
+    lines handing its registers to one of them (docs/LIFTING.md, "Functions
     written by hand"). Such code is every `.c` file of src/ that has no
     lifted function in it, and every `.c` file of a folder under src/, which
     may have none: a function of the ROM's has its place in a bank's file,

@@ -25,7 +25,7 @@ of the folder a person can read and correct:
   places it was seen to return to, and its line says `[as played]`.
 - Whatever is in none of the three is left over: undefined.
 
-A signature is then held against the function (LIFTING.md, "Signatures"):
+A signature is then held against the function (docs/LIFTING.md, "Signatures"):
 by the checker, which gives what is not taken another value, puts back what
 is kept and does not compare what is left over; and by the game run with
 `--lift-signatures`, which puts a value that is nobody's into what is left

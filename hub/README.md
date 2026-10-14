@@ -33,7 +33,7 @@ built from `hub/` alongside `gbrecomp`.
   `--record-run`, keeping every button with the cycle it changed on; the
   player's own save is not used. *Continue run* adds a sitting to the newest
   run; *Runs folder* opens `runs/<id>/`, where each run is a folder to send
-  whole. What a run is for and how it is replayed: `RUN_RECORDS.md`. A
+  whole. What a run is for and how it is replayed: `docs/RUN_RECORDS.md`. A
   backend offers it by returning arguments from `record_run_args`.
 - **Texture packs** (Game Boy and Game Boy Color): the detail panel's
   *Texture pack* picker switches between original art and any pack installed
@@ -42,18 +42,21 @@ built from `hub/` alongside `gbrecomp`.
   deletes the selected one; *Packs folder* opens the folder. Play, Steam
   shortcuts, and `--launch` pass the selection as `--texture-pack`. A game
   built before texture packs existed shows a rebuild notice, because older
-  executables ignore the argument. See [TEXTURE_PACKS.md](../TEXTURE_PACKS.md).
+  executables ignore the argument. See [TEXTURE_PACKS.md](../docs/TEXTURE_PACKS.md).
 - **Edited data** (Game Boy and Game Boy Color): a game started with its data
   as somebody has edited it. See [Edited data](#edited-data).
 - **Add to Steam**: add one game, your favorites, one console, or the whole
   library to Steam as non-Steam games, with the cover art turned into Steam
   library artwork. See [Steam](#steam).
 - **Consoles**: Game Boy and Game Boy Color build today. Game Boy Advance
-  builds with `gbarecomp` (in progress, see `GBA.md`) and Super Nintendo,
-  SA-1 cartridges included, with `snesrecomp` (in progress, see `SNES.md`),
-  NES with `nesrecomp` (in progress, see `NES.md`), Nintendo DS with
-  `ndsrecomp` (in progress, see `NDS.md`) and Nintendo 64 with `n64recomp`
-  (in progress, see `N64.md`):
+  builds with `gbarecomp` (see `docs/GBA.md`) and Super Nintendo,
+  SA-1 cartridges included, with `snesrecomp` (some titles work, see `docs/SNES.md`),
+  NES with `nesrecomp` (some titles work, see `docs/NES.md`), Nintendo DS with
+  `ndsrecomp` (not playable yet, see `docs/NDS.md`) and Nintendo 64 with `n64recomp`
+  (not playable yet, see `docs/N64.md`). The console list marks each console
+  that is not fully playable ("some", "not yet", with the reason when the
+  pointer rests on it), and a game's page and Settings say the same
+  (`Maturity` in `hub_consoles.h`, which the README's table matches):
   each build first plays the game headless for about 20 seconds (6 for NES,
   30 for Nintendo DS, 50 for Nintendo 64) to find code that static analysis
   misses (trace kept in the game's `profile/` folder). A Nintendo 64 game
@@ -67,7 +70,8 @@ built from `hub/` alongside `gbrecomp`.
   Nintendo DS dumps whose secure area is still encrypted and DSi-only
   titles.
 - **Compile for export**: build ROMs for other computers: a Windows zip, a
-  Linux / SteamOS tarball, or a macOS kit that becomes an `.app` on any Mac.
+  Linux / SteamOS tarball, or a macOS kit that becomes an `.app` on any Mac,
+  for the consoles and targets that have been tested.
   See [Compile for export](#compile-for-export).
 - **Settings**: every toolchain path is editable and auto-detected
   (one recompiler per console, CMake, Ninja, vcvars64.bat, SDL2), plus build type, compile jobs,
@@ -78,7 +82,7 @@ built from `hub/` alongside `gbrecomp`.
   release was unpacked into. Any other saved path is kept while what it
   names exists, and looked for again when it does not. "Wii common key file" names
   the key a retail Wii disc needs to be built (yours to supply; see
-  `WII.md`), and "Try Wii games" turns the Wii on, which is not supported
+  `docs/WII.md`), and "Try Wii games" turns the Wii on, which is not supported
   yet and is off until it is. "GameCube renderer" under
   Launching starts GameCube games with `--renderer software`,
   `--renderer opengl` or `--renderer fast` (the card rasterises and blends:
@@ -106,7 +110,7 @@ Without `--data-dir` (or `NATIVE_CONSOLE_HUB_DATA`) the hub uses
 library.json      game entries and metadata
 settings.json     toolchain and preferences
 covers/           cover images (<id>.png, or user-imported files)
-runs/<id>/        recorded runs of a game, one folder each (RUN_RECORDS.md)
+runs/<id>/        recorded runs of a game, one folder each (docs/RUN_RECORDS.md)
 data-trees/<id>/  a game's data as files to edit, made by Make data tree (Edited data)
 games/<id>/rom/   the ROM copy
 games/<id>/game/  the latest build: <id>.exe, SDL2.dll, and the runtime's save
@@ -153,7 +157,7 @@ copy games to a non-NTFS drive (the copy is simply uncompressed).
 
 A Game Boy game's data can be taken apart into files, edited, and put
 together again into an image the game loads in place of its own ROM
-([DATA_FILES.md](../DATA_FILES.md)). On a Game Boy or Game Boy Color game's
+([DATA_FILES.md](../docs/DATA_FILES.md)). On a Game Boy or Game Boy Color game's
 page, **Edited data** says where that data is, and every start from then on
 uses it:
 
@@ -262,8 +266,25 @@ folder:
 | Target | File | How it is built |
 | --- | --- | --- |
 | Windows (x64) | `<id>-windows-x64.zip`: the `.exe`, `SDL2.dll`, a README | MSVC on this computer (Windows hubs only) |
-| Linux / SteamOS (x86-64) | `<id>-linux-x86_64.tar.gz`: the executable, a README | Valve's Steam Runtime SDK in Docker (see [LINUX.md](../LINUX.md)); runs on a Steam Deck |
-| macOS (build kit) | `<id>-macos-kit.tar.gz`: the generated project, `build.command`, a README | Finished on any Mac (see [MACOS.md](../MACOS.md)) |
+| Linux / SteamOS (x86-64) | `<id>-linux-x86_64.tar.gz`: the executable, a README | Valve's Steam Runtime SDK in Docker (see [LINUX.md](../docs/LINUX.md)); runs on a Steam Deck |
+| macOS (build kit) | `<id>-macos-kit.tar.gz`: the generated project, `build.command`, a README | Finished on any Mac (see [MACOS.md](../docs/MACOS.md)) |
+
+A console is exported only for the targets one of its games has been
+exported for and run on; the others are refused with a message saying so
+(each backend's `export_problem`, through `untested_export_problem` in
+`hub_consoles.cpp`):
+
+| Console | Windows | Linux / SteamOS | macOS |
+| --- | --- | --- | --- |
+| Game Boy, Game Boy Color | yes | yes | yes |
+| Game Boy Advance | yes | yes | yes |
+| Super Nintendo | yes | yes | yes |
+| Nintendo DS, Nintendo 64, GameCube | yes | no | no |
+| NES, Wii | no | no | no |
+
+Nintendo DS, Nintendo 64 and GameCube were each exported for Windows with
+their first game (the P6 rows of their plans); their Linux and macOS work
+(P7) has not started. No NES or Wii game has been exported yet.
 
 The ROM is recompiled once, and every target compiles that same portable C
 project; Game Boy Advance ROMs are profiled first, as in library builds. A

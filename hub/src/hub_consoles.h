@@ -20,13 +20,29 @@ namespace hub {
 
 struct Settings;
 
+// How far a console's games can be played, which the hub shows beside it.
+// The README's list at the top says the same and is kept with it.
+enum class Maturity {
+    Playable,     // most games play
+    SomeTitles,   // some titles work; others may not start or may break
+    NotPlayable,  // games build and may start, but are not playable yet
+};
+
 struct ConsoleInfo {
     std::string id;          // "gb", "gbc", "gba", "snes", "gc"
     std::string name;        // "Game Boy Color"
     std::string short_name;  // "GBC"
     std::string family_id;   // backend family that handles it
     unsigned rgb = 0;        // 0xRRGGBB of its badge, for a console the hub has no colour for
+    Maturity maturity = Maturity::Playable;
 };
+
+// "Some titles work" / "Not playable yet"; empty for Maturity::Playable.
+const char* maturity_label(Maturity m);
+// The tag the console list shows on the right ("some", "not yet"); empty for Playable.
+const char* maturity_tag(Maturity m);
+// One sentence for the game's page and Settings; empty for Playable.
+const char* maturity_note(Maturity m);
 
 struct RomInfo {
     std::string console_id;    // one of ConsoleInfo::id
@@ -208,6 +224,12 @@ const ConsoleBackend* backend_for_file(const std::string& path);
 std::vector<std::string> roms_in_folder(const std::string& dir);
 
 // Shared helpers for backends.
+// An export_problem for a family whose exports have been tested only on
+// `tested` ("windows", "linux", "macos"; none at all when it is empty): an
+// export is refused for any other target until somebody has exported a game
+// there and run it. The README's export table says the same.
+std::string untested_export_problem(const std::string& family_name, const std::string& target_id,
+                                    const std::vector<std::string>& tested);
 std::string sanitize_header_title(const std::string& raw);
 std::string title_from_file_name(const std::string& path);
 // Traces for --trace: data_dir/boot.txt (the profiling step's output) first,

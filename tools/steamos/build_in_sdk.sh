@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds one recompiled game for Linux / SteamOS inside Valve's Steam Runtime
 # 3 "sniper" SDK container. Run through tools/steamos/build_steamos.ps1 (or
-# the docker command in LINUX.md); it expects these mounts:
+# the docker command in docs/LINUX.md); it expects these mounts:
 #
 #   /src   native-console checkout (read-only is fine)
 #   /work  persistent build cache (a named Docker volume)

@@ -286,9 +286,11 @@ public:
                ".*.glbin) are written next to the executable.";
     }
 
+    // A Windows export of Shrek 2 works (docs/GC-PLAN.md, P6); no Wii game
+    // has been exported, and Linux and macOS are P7, not started for either.
     std::string export_problem(const std::string& target_id) const override {
-        if (target_id == "windows") return "";
-        return family_name() + " games cannot be exported for this target yet";
+        if (wii_) return untested_export_problem(family_name(), target_id, {});
+        return untested_export_problem(family_name(), target_id, {"windows"});
     }
 
     bool supports_cover_capture() const override { return true; }

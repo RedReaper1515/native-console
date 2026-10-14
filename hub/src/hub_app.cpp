@@ -588,7 +588,7 @@ public:
         }
         ImGui::EndDisabled();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-            ImGui::SetTooltip("Takes the game's ROM apart into files to edit (DATA_FILES.md), in\n%s,\n"
+            ImGui::SetTooltip("Takes the game's ROM apart into files to edit (docs/DATA_FILES.md), in\n%s,\n"
                               "with the options this hub builds games with, and chooses the tree for this game.\n"
                               "A tree that is already there is left as it is.",
                               edited_data::tree_dir(settings_.data_dir, g.id).c_str());
@@ -1581,18 +1581,32 @@ private:
         ImGui::PopFont();
         ImGui::Unindent(12 * scale_);
         ImGui::Indent(8 * scale_);
-        auto console_button = [&](const std::string& id, const std::string& label, bool supported) {
+        auto console_button = [&](const std::string& id, const std::string& label, const std::string& short_label,
+                                  bool supported, Maturity maturity) {
             bool active = console_filter_ == id;
+            // The tag on the right: "soon" for a console that is turned off,
+            // otherwise how far its games play. A name that would run into
+            // the tag gives way to the short name ("NES").
+            const char* tag = id.empty() ? "" : !supported ? "soon" : maturity_tag(maturity);
+            std::string shown = label;
+            if (*tag && !short_label.empty()) {
+                ImGui::PushFont(font_small_);
+                const float tag_width = ImGui::CalcTextSize(tag).x;
+                ImGui::PopFont();
+                const float room = ImGui::GetContentRegionAvail().x - 8 * scale_ - tag_width - 10 * scale_;
+                if (ImGui::CalcTextSize(("      " + label).c_str()).x > room) shown = short_label;
+            }
             if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_Header));
             else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
             ImVec2 pos = ImGui::GetCursorScreenPos();
-            if (ImGui::Button(("      " + label + "##console_" + id).c_str(), ImVec2(-8 * scale_, 30 * scale_))) {
+            if (ImGui::Button(("      " + shown + "##console_" + id).c_str(), ImVec2(-8 * scale_, 30 * scale_))) {
                 console_filter_ = id;
                 if (view_ != View::Library && view_ != View::Favorites) view_ = View::Library;
             }
             ImGui::PopStyleVar();
             ImGui::PopStyleColor();
+            if (*maturity_note(maturity) && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", maturity_note(maturity));
             if (ImGui::BeginPopupContextItem(("##console_ctx_" + id).c_str())) {
                 const std::string item = id.empty() ? std::string("Add all games to Steam...") : "Add " + label + " games to Steam...";
                 if (ImGui::MenuItem(item.c_str())) open_steam_picker(games_in_scope(false, id));
@@ -1601,18 +1615,19 @@ private:
             if (!id.empty()) {
                 ImDrawList* dl = ImGui::GetWindowDrawList();
                 dl->AddCircleFilled(ImVec2(pos.x + 16 * scale_, pos.y + 15 * scale_), 5 * scale_, console_color(id));
-                if (!supported) {
+                if (*tag) {
                     ImGui::PushFont(font_small_);
-                    ImVec2 ts = ImGui::CalcTextSize("soon");
-                    dl->AddText(ImVec2(pos.x + ImGui::GetContentRegionAvail().x - ts.x - 4 * scale_, pos.y + 8 * scale_), IM_COL32(150, 156, 168, 255), "soon");
+                    ImVec2 ts = ImGui::CalcTextSize(tag);
+                    const ImU32 col = supported && maturity == Maturity::NotPlayable ? theme_.warn : theme_.text_dim;
+                    dl->AddText(ImVec2(pos.x + ImGui::GetContentRegionAvail().x - ts.x - 4 * scale_, pos.y + 8 * scale_), col, tag);
                     ImGui::PopFont();
                 }
             }
         };
-        console_button("", "All consoles", true);
+        console_button("", "All consoles", "", true, Maturity::Playable);
         for (const auto& c : all_consoles()) {
             const ConsoleBackend* b = backend_for_family(c.family_id);
-            console_button(c.id, c.name, b && b->supported());
+            console_button(c.id, c.name, c.short_name, b && b->supported(), c.maturity);
         }
         ImGui::Unindent(8 * scale_);
 
@@ -2640,6 +2655,12 @@ private:
             ImGui::SameLine();
             ImGui::TextDisabled("· %s", g.notes.c_str());
         }
+        if (ci && *maturity_note(ci->maturity)) {
+            ImGui::PushTextWrapPos();
+            ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(ci->maturity == Maturity::NotPlayable ? theme_.warn : theme_.text_dim),
+                               "%s", maturity_note(ci->maturity));
+            ImGui::PopTextWrapPos();
+        }
         draw_status_text(g);
         if (!g.last_error.empty()) {
             ImGui::PushTextWrapPos();
@@ -3133,6 +3154,17 @@ private:
             }
             ImGui::SameLine();
             ImGui::TextDisabled("%s", exts.c_str());
+            // The family's first console speaks for it: the consoles of one
+            // family are equally far along.
+            for (const auto& c : all_consoles()) {
+                if (c.family_id != b->family_id()) continue;
+                if (*maturity_label(c.maturity)) {
+                    ImGui::SameLine();
+                    ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(c.maturity == Maturity::NotPlayable ? theme_.warn : theme_.text_dim),
+                                       "- %s", maturity_label(c.maturity));
+                }
+                break;
+            }
             if (!b->supported()) {
                 ImGui::PushTextWrapPos();
                 ImGui::TextDisabled("%s", b->unsupported_reason().c_str());

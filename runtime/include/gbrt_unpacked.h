@@ -10,7 +10,7 @@
  *
  * So the routine is left to run, to its end, every time. Told which routine
  * it is, where its stream starts as it is entered and where its output lies
- * as it returns (`tools/gb_data.py`, DATA_FILES.md), this module does two
+ * as it returns (`tools/gb_data.py`, docs/DATA_FILES.md), this module does two
  * things at the routine's return:
  *
  * - `--unpacked-harvest FILE`: it keeps what the routine made, once for each

@@ -1,6 +1,6 @@
 /**
  * @file lift_package.h
- * @brief Lifted source to build into a generated game (LIFTING.md)
+ * @brief Lifted source to build into a generated game (docs/LIFTING.md)
  *
  * A lift package is a manifest naming C sources written against gblift.h and
  * the ROM subroutine each of their functions stands for. Generated with

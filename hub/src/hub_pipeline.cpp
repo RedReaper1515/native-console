@@ -761,7 +761,7 @@ void JobQueue::run_profile(Job& job) {
     job.state = JobState::Succeeded;
 }
 
-// A Game Boy game's ROM taken apart into files to edit (DATA_FILES.md): the
+// A Game Boy game's ROM taken apart into files to edit (docs/DATA_FILES.md): the
 // recompiler describes the ROM with the options a build uses, and
 // tools/gb_data.py splits it. Seconds, where a build is a minute.
 void JobQueue::run_data_tree(Job& job) {

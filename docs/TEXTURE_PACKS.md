@@ -89,7 +89,7 @@ shades, for example a flashing enemy.
    tiles fall back to the original art.
 
 4. **Build and run** from the command line, or add the pack to a game in the
-   [Hub](hub/README.md) with *Texture pack → Add pack...*.
+   [Hub](../hub/README.md) with *Texture pack → Add pack...*.
 
    ```bash
    python3 tools/gb_texture_pack.py build game-hd/pack.json --out game-hd.gbtp --rom game.gb
@@ -186,7 +186,7 @@ headless runner, where `--dump-frame` then writes the composed frame). The
 runtime API is `runtime-gba/include/gba_texture_pack.h`; the build tool is
 `tools/gba_texture_pack.py` (standard library; Pillow speeds up PNG
 decoding); packs are made from recordings of play with the pipeline in
-[tools/gba/texpack](tools/gba/texpack/README.md), which upscales whole
+[tools/gba/texpack](../tools/gba/texpack/README.md), which upscales whole
 background layers and sprites (xBRZ, MMPX or an AI model) and cuts them
 into tiles.
 

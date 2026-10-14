@@ -15,7 +15,7 @@ game drew.
 
 `profile` writes the same object table as a runtime voxel profile, which a
 generated executable loads with --voxel-profile to draw the game in 3D
-(see VOXEL_VIEW.md).
+(see docs/VOXEL_VIEW.md).
 
 Shape classes:
   ground   flat, GROUND voxels thick

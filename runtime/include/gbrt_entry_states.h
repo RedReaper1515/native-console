@@ -2,7 +2,7 @@
  * gbrt_entry_states.h - the machine as it was each time a function was
  * entered, for the lift checker.
  *
- * The checker (`tools/gb_lift.py check`, LIFTING.md) runs a function of the
+ * The checker (`tools/gb_lift.py check`, docs/LIFTING.md) runs a function of the
  * ROM and the C written for it from the same state and compares where they
  * end. The states it makes up are random registers and random memory, or a
  * moment of the game's memory with random registers, and a good part of a

@@ -2,7 +2,7 @@
 
 Makes a high-resolution texture pack for a generated GBA game by upscaling
 the art the game actually draws. The runtime side (recording, the `.gbatp`
-format, composition) is described in [TEXTURE_PACKS.md](../../../TEXTURE_PACKS.md).
+format, composition) is described in [TEXTURE_PACKS.md](../../../docs/TEXTURE_PACKS.md).
 
 1. **Record.** Play the game with `--record-textures FILE`. Every 10 frames,
    when the picture changed, it appends the I/O registers, palette RAM, VRAM

@@ -63,7 +63,7 @@ struct GeneratorOptions {
     // generated execution keeps the ordinary direct wrapper-to-body path.
     NativePatchPackage native_patch;
 
-    // Optional lifted source (LIFTING.md). Each bound subroutine keeps its
+    // Optional lifted source (docs/LIFTING.md). Each bound subroutine keeps its
     // recompiled body and gains a call to its lifted C in front of it.
     LiftPackage lift;
 };

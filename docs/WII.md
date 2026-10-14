@@ -1,5 +1,8 @@
 # Wii
 
+> **Not playable yet.** Games build and may start, but expect wrong
+> graphics, missing sound and crashes. The hub marks Wii games the same way.
+
 Status: **in progress, not yet supported.** The machine, the disc reader, the
 recompiler path and the hub backend exist and pass their tests against
 programs and a disc built in this repository. One retail game has been
@@ -10,12 +13,12 @@ button presses. It has sound: forty seconds of its title music are the
 same to the bit as Dolphin's. On the fast OpenGL renderer it holds a
 console's speed through all of that but the two places it loads; nobody
 has played it by hand.
-[docs/WII-PLAN.md](docs/WII-PLAN.md)
+[docs/WII-PLAN.md](WII-PLAN.md)
 has the phases, the gates and what is open.
 
 The Wii is the second console of the GameCube family. It shares
 `runtime-gc/` and `gcrecomp` with the GameCube and adds the files named
-`wii_*`; everything in [docs/GC-PLAN.md](docs/GC-PLAN.md) about the
+`wii_*`; everything in [docs/GC-PLAN.md](GC-PLAN.md) about the
 processor, the graphics chip and the renderers applies to both.
 
 ## What you need

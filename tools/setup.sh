@@ -102,7 +102,7 @@ main() {
     echo -e "\n${GREEN}Setup complete!${NC}"
     echo -e "\nTo recompile a ROM:"
     echo -e "  ./build/bin/gbrecomp <rom.gb> -o <output_dir>"
-    echo -e "\nFor the full ground truth workflow, see ${YELLOW}GROUND_TRUTH_WORKFLOW.md${NC}"
+    echo -e "\nFor the full ground truth workflow, see ${YELLOW}docs/GROUND_TRUTH_WORKFLOW.md${NC}"
     echo -e "\nOr use the automated script:"
     echo -e "  python3 tools/run_ground_truth.py <rom.gb>"
 }

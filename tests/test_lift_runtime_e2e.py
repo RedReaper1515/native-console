@@ -313,7 +313,7 @@ def main() -> int:
             + ", ".join(f"{key}: {str(original[key])[:80]} vs {str(with_lift.get(key))[:80]}"
                         for key in differing[:4]))
 
-        # Asked for evidence (LIFTING.md), the same game runs its recompiled
+        # Asked for evidence (docs/LIFTING.md), the same game runs its recompiled
         # bodies: lifted source does not pass through the recorder. It ends
         # in the same state, and the `push hl / ret` is in the record.
         evidence_path = root / "evidence.json"

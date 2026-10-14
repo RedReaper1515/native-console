@@ -64,7 +64,7 @@ can be given later:
 | Given | What it turns on |
 |---|---|
 | `--states FOLDER` | Play recorded from each save state in the folder (`*.state`): 900 frames (`--frames N`) with buttons pressed at random, and `--rounds N` times with other buttons. |
-| `--run FOLDER` | A recorded run (`RUN_RECORDS.md`) played again in pieces of a minute with the recorder on: `run_record.py verify --states`, then `sweep`. |
+| `--run FOLDER` | A recorded run (`docs/RUN_RECORDS.md`) played again in pieces of a minute with the recorder on: `run_record.py verify --states`, then `sweep`. |
 | `--charmap FILE` | `text`: the strings as text. Without one, `glyphs` draws the sheet of the game's letters and writes a charmap to fill in. |
 | `--unpackers FILE` | The pack that only watches, the same play again with `--unpacked-harvest`, `unpack --tables` for each unpacker that declares tables, and `unpacked`. |
 | `--sym FILE` | `names --sym`, repeatable. With or without one, a file that has no name is called by what the game used it as (`names --seen`; `--no-seen-names` leaves the address). |
@@ -192,7 +192,7 @@ python3 tools/gb_data.py build output/data/game -o output/data/game.gb
 
 ## What the files are
 
-`split` reads a lift export (`LIFTING.md`), which lists every run of ROM
+`split` reads a lift export (`docs/LIFTING.md`), which lists every run of ROM
 bytes that no decoded instruction covers. Each such run is a region. So is
 each run of code between them, cut where a bank ends, and the cartridge
 header. Every byte of the ROM is in exactly one region:
@@ -250,7 +250,7 @@ starts.
 
 One thing an image does not go with:
 
-- `--data-mod` (`DATA_MODS.md`). A data-mod artifact is bound to the exact
+- `--data-mod` (`docs/DATA_MODS.md`). A data-mod artifact is bound to the exact
   ROM, and refuses any other. Data mods are packages to hand to other people,
   with no byte of the ROM in them; a data tree is the ROM itself in pieces,
   for working on at home.
@@ -297,7 +297,7 @@ from. So:
 - what reads a state (`gb_discover.py`, `glyphs`) reads it as before:
   nothing in the file has moved.
 
-A recorded run (`RUN_RECORDS.md`) is of one image, on purpose: the record
+A recorded run (`docs/RUN_RECORDS.md`) is of one image, on purpose: the record
 has the image's hash, and a replay goes on only from a state made with that
 image. `--replay-run` with `--load-state-file` refuses any other, as before.
 
@@ -388,7 +388,7 @@ python3 tools/gb_trace_back.py show output/data/hp.json --rom roms/game.gb \
     --sym output/src/game/names.sym --export output/data/game-export.json
 ```
 
-`RUNTIME.md` has the flags. A watched address is any RAM from `8000` up:
+`docs/RUNTIME.md` has the flags. A watched address is any RAM from `8000` up:
 work RAM, cartridge RAM, high RAM, video memory, the sprite table.
 
 ### Reading a tree
@@ -1457,7 +1457,7 @@ watches ends in the same state as one given none; with replacements, the
 registers, the counters and the time are the same and only the bytes
 replaced, and what the game makes of them, differ.
 
-That difference is why a recorded run (`--record-run`, `RUN_RECORDS.md`)
+That difference is why a recorded run (`--record-run`, `docs/RUN_RECORDS.md`)
 keeps what was replaced. A run played while a pack replaces something has
 in its record how many replacements the pack had and a hash of them, and
 replays only with a pack that has the same ones; a run played with nothing
@@ -1641,7 +1641,7 @@ What this is and is not:
 ## Data the source names
 
 An instruction's operand is code, and no image may change it. The game's
-source can: lifted source kept in a folder (`LIFTING.md`, *Data the source
+source can: lifted source kept in a folder (`docs/LIFTING.md`, *Data the source
 names*) writes `ld hl, $43DE` as `ctx->hl = BaseStats;` for every operand a
 record saw the game read its ROM through, and a name is whatever the
 compiler is told it is. What such an operand leads to can then move like
@@ -2304,7 +2304,7 @@ What this does not do:
 ## On Pokémon Red
 
 With an export made with its far calls, 49 declared tables and played
-evidence (`LIFTING.md`): 5,377 files, of which 2,709 are data (829,277
+evidence (`docs/LIFTING.md`): 5,377 files, of which 2,709 are data (829,277
 bytes), 2,667 code (219,223 bytes) and one the header. `build` makes the
 original ROM from them (SHA-1 `ea9bcae6…`) in half a second. A game given
 that image ends 1,500 scripted frames with every register, counter and byte
@@ -2322,7 +2322,7 @@ ends in the same state as a plain one.
 
 Fifteen seconds recorded from each of 204 save states, the ones the game
 made at every checkpoint while exploring itself as far as its fourth badge
-(`LIFTING.md`), take ten seconds in all and add up to 73,827 bytes of data
+(`docs/LIFTING.md`), take ten seconds in all and add up to 73,827 bytes of data
 read, 9% of it: 32,094 go to the tile area as they are, from 289 regions,
 7,148 to a tile map, 1,025 to sound registers, and 213 are halves of
 addresses jumped to. By the instruction that read them, with the
@@ -2513,7 +2513,7 @@ annotations ends as the game made without them does, to every register,
 counter and byte of RAM, and falls back to the interpreter exactly as often:
 over a new game's first 4,300 frames, over 900 frames from each of the 204
 save states by the buttons the records were made with, and over 1,800 from
-each by others. Lifted from the new export (`LIFTING.md`), 4,445 functions
+each by others. Lifted from the new export (`docs/LIFTING.md`), 4,445 functions
 check as matching and none as a mismatch, where 4,459 did: the 14 fewer were
 decoded out of data. The lifted game spends the same 140,990,536 cycles of
 3,600 frames in lifted code, 97.9%, and ends as the original does. The

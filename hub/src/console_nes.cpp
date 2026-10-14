@@ -125,6 +125,11 @@ public:
         return file_name.rfind(game_id + ".state", 0) == 0;
     }
 
+    // No NES export has been tested yet, on any target.
+    std::string export_problem(const std::string& target_id) const override {
+        return untested_export_problem(family_name(), target_id, {});
+    }
+
     bool supports_cover_capture() const override { return true; }
 
     std::vector<std::string> cover_capture_args(const std::string& game_dir,

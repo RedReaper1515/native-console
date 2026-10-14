@@ -3,8 +3,8 @@
 
 A generated Game Boy game run with `--trace-back FILE --trace-back-of ADDRESS`
 writes down, for every write to the watched bytes, which instruction wrote
-and what the value was made of, followed back through RAM (RUNTIME.md,
-DATA_FILES.md). This prints that record for a person:
+and what the value was made of, followed back through RAM (docs/RUNTIME.md,
+docs/DATA_FILES.md). This prints that record for a person:
 
   show RECORD      each write as a tree: the instruction, the calls it was
                    made in, and under it what the value was made of

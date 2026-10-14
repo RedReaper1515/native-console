@@ -1,5 +1,8 @@
 # Super Nintendo (in progress)
 
+> **Some titles work.** Others may not start, or may have wrong graphics,
+> sound or crashes. The hub marks Super Nintendo games the same way.
+
 The hub recompiles and plays `.sfc` and `.smc` ROMs, including SA-1
 cartridges. Every test ROM we have gives the same result recompiled as
 interpreted, and runs clean in cycle-exact lockstep against the interpreter
@@ -9,7 +12,7 @@ first stage. On 6,500 frames of scripted play both of its CPUs run 100.0 %
 native code, clean in `--differential`, and the Windows (MSVC) and Linux
 (gcc 14, Steam Runtime) builds end in byte-identical state. The plan, phase
 gates, how each item of the SNES assembly-to-C checklist is tested, and the
-current results are in [docs/SNES-PLAN.md](docs/SNES-PLAN.md).
+current results are in [docs/SNES-PLAN.md](SNES-PLAN.md).
 
 ## Layout
 

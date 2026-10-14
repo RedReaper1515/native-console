@@ -1,6 +1,6 @@
 /*
  * Texture packs: loading, per-frame tile lookup and composition at the
- * pack's scale. See gba_texture_pack.h and TEXTURE_PACKS.md.
+ * pack's scale. See gba_texture_pack.h and docs/TEXTURE_PACKS.md.
  */
 #include "gba_texture_pack.h"
 

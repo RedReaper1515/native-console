@@ -14,7 +14,7 @@
  *
  * Everything the function does to the machine goes through this header, so
  * the same source can be run against the original by the checker
- * (lift/checker, see LIFTING.md) and compiled into the game.
+ * (lift/checker, see docs/LIFTING.md) and compiled into the game.
  *
  * ctx->pc is the function's to keep or not. In the game an interrupt taken
  * inside lifted code returns to ctx->pc, and a save state made there records

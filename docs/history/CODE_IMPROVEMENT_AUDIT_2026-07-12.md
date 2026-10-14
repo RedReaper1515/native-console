@@ -51,7 +51,7 @@ The project has a useful architecture and unusually good diagnostic foundationsâ
 
 The most important conclusions are:
 
-1. **Pause further fast-path expansion until the current accuracy baseline is trustworthy.** Fresh runs of `reg_f` and `ei_timing`, both recorded as passing in `ACCURACY.md`, fail in the current tree. The new generated ROM fast-read path also contains a confirmed out-of-bounds case for MBC1 mode 1.
+1. **Pause further fast-path expansion until the current accuracy baseline is trustworthy.** Fresh runs of `reg_f` and `ei_timing`, both recorded as passing in `docs/ACCURACY.md`, fail in the current tree. The new generated ROM fast-read path also contains a confirmed out-of-bounds case for MBC1 mode 1.
 2. **Fix the analyzer's bank and state model before enabling more direct dispatch.** MBC5's ninth bank bit is truncated, 256+ bank loops can fail to terminate, multi-ROM analysis has shared mutable state, and constant/bank propagation is path-order-dependent and can retain stale values.
 3. **Make tests capable of failing the build.** The current accuracy runner can return success with zero passing tests, compilation errors, timeouts, or incomplete results. `BUILD_TESTS=ON` refers to a missing directory, and release CI does not execute a generated ROM.
 4. **Treat PPU/DMA timing as the largest runtime-accuracy program.** Fixed scanline phases, immediate HDMA, and simplified OAM DMA bus blocking cannot reproduce several documented DMG/CGB behaviors.
@@ -76,8 +76,8 @@ The most important conclusions are:
 | Fresh build: `ninja -C build_audit` | Pass with warnings | Main code builds. Warnings include GNU-only extensions, unused analyzer counters, unused IR parameters, and an unused SDL variable. |
 | Test configure: `cmake -G Ninja -B build_audit_tests -DBUILD_TESTS=ON .` | Fail | Top-level CMake calls `add_subdirectory(tests)`, but `tests/` does not exist (`CMakeLists.txt:56-58`). |
 | `python3 tools/run_tests.py --dry-run` | 75 errors, process exit 0 | The runner lists the intended external corpus but treats every skipped/dry-run case as an error and still succeeds because only literal `fail` increments the exit code. |
-| Fresh `reg_f --rebuild` | Fail | `ACCURACY.md:43` records this test as passing. Current-tree regression or baseline drift must be resolved. |
-| Fresh `ei_timing --rebuild` | Fail | `ACCURACY.md:105` records this test as passing. Current-tree regression or baseline drift must be resolved. |
+| Fresh `reg_f --rebuild` | Fail | `docs/ACCURACY.md:43` records this test as passing. Current-tree regression or baseline drift must be resolved. |
+| Fresh `ei_timing --rebuild` | Fail | `docs/ACCURACY.md:105` records this test as passing. Current-tree regression or baseline drift must be resolved. |
 | Fresh `unused_hwio-C --rebuild` | Fail | Confirms an unresolved hardware-I/O accuracy case. |
 | Fresh `ei_timing --differential 200000 --differential-fail-on-fallback` | Pass: 200,000 steps / 19 frames matched | Generated and interpreter execution agree, but both share the runtime. This does not prove hardware correctness and explains why an external test can fail while differential mode passes. |
 | Fresh Tetris generation | Pass with many undefined-instruction diagnostics | Aggressive scanning can classify data as code and emits noisy error-level diagnostics without a strict failure policy. Summary counts were left in hexadecimal due stream formatting state. |
@@ -342,7 +342,7 @@ Debug logging flushes frequently and can perturb the timing being investigated. 
 
 ### P3 â€” Documentation and project hygiene
 
-1. Refresh `ACCURACY.md`; it is a March snapshot and still describes a DMG-oriented status that conflicts with current CGB work. Generate it only from a provenance-rich successful run.
+1. Refresh `docs/ACCURACY.md`; it is a March snapshot and still describes a DMG-oriented status that conflicts with current CGB work. Generate it only from a provenance-rich successful run.
 2. Update or replace `docs/RECOMPILER_CORRECTNESS_AUDIT_PLAN.md`; several proposed items now exist (notably differential mode), while other warnings remain valid.
 3. Reconcile README build prerequisites and setup filenames, Android/GBC roadmap claims, duplicate setup sections, and benchmark semantics.
 4. Add a root license file matching the README claim and include it in release artifacts.
@@ -421,6 +421,6 @@ A contained first milestone should combine P0.1, P0.2, and the smallest part of 
 3. add repository-owned MBC1 mode-1 and 256/512-bank MBC5 fixtures;
 4. make analyzer scan state invocation-local;
 5. add one PR job that builds, generates, rebuilds, and runs those fixtures;
-6. rerun `reg_f` and `ei_timing` from fresh output and update `ACCURACY.md` only after they are genuinely passing.
+6. rerun `reg_f` and `ei_timing` from fresh output and update `docs/ACCURACY.md` only after they are genuinely passing.
 
 This milestone is intentionally a guardrail milestone. It reduces the risk that subsequent analyzer, PPU, and performance work makes the project faster at producing or executing incorrect output.

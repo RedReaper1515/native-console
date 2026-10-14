@@ -303,7 +303,7 @@ def main() -> int:
 
         # --- Nothing declared: the command says what is missing, and the tree is as it was. ---
         said = gb_data("streams", tree, expect=2)
-        assert "streams.json is not there" in said and "DATA_FILES.md" in said, said
+        assert "streams.json is not there" in said and "docs/DATA_FILES.md" in said, said
         assert built() == rom
 
         # --- Declared: every start followed, and the passages written as text. ---

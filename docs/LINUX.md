@@ -1,5 +1,9 @@
 # Linux and SteamOS
 
+> **From source only, and less tested.** Releases are built for Windows;
+> these builds are not tested again for every change, and consoles other
+> than the ones named below do not build here yet.
+
 Game Boy, Game Boy Color, Game Boy Advance and Super Nintendo games build as native x86-64
 Linux executables. They run on SteamOS (Steam Deck) and on any desktop Linux
 with glibc 2.29 or newer and SDL2. The ROM is compiled into the executable, the
@@ -76,4 +80,4 @@ scripts need Python 3.10 (the SDK has 3.9):
 
 The hub's **Compile for export** makes the same Linux build from Windows,
 also through Docker and the sniper SDK. It writes `<id>-linux-x86_64.tar.gz`
-for each ROM you choose; see [hub/README.md](hub/README.md#compile-for-export).
+for each ROM you choose; see [hub/README.md](../hub/README.md#compile-for-export).

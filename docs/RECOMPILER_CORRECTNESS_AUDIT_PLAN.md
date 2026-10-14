@@ -31,8 +31,8 @@ The repository now has focused coverage for:
 - fresh generated-project, multi-ROM, native-patch, relocation, and release
   fixtures.
 
-The [accuracy report](../ACCURACY.md) is the external-test snapshot. The
-[code improvement audit](CODE_IMPROVEMENT_AUDIT_2026-07-12.md) retains the
+The [accuracy report](ACCURACY.md) is the external-test snapshot. The
+[code improvement audit](history/CODE_IMPROVEMENT_AUDIT_2026-07-12.md) retains the
 completed P0 findings and implementation evidence. Neither a successful build
 nor interpreter agreement is an independent hardware oracle.
 
@@ -124,4 +124,4 @@ agreement alone as a hardware-accuracy claim.
 
 Open implementation work is tracked in the [project backlog](../TODO.md).
 Measured performance work follows the
-[native recompilation strategy](NATIVE_RECOMPILATION_STRATEGY_2026-07-14.md).
+[native recompilation strategy](history/NATIVE_RECOMPILATION_STRATEGY_2026-07-14.md).

@@ -7,7 +7,7 @@ followed again for the next game. Each stage says what is done, with which
 tool, what proves it, and what in it is the game's own work and what is the
 same for every game.
 
-The tools are in `LIFTING.md`, `DATA_FILES.md` and `RUN_RECORDS.md`. This
+The tools are in `docs/LIFTING.md`, `docs/DATA_FILES.md` and `docs/RUN_RECORDS.md`. This
 document is the order to use them in, the gates between the stages, and the
 parts that are not built yet.
 
@@ -23,7 +23,7 @@ to the original by the checker. A wrong function is found the day it is
 written, by name, with the state it went wrong in.
 
 What makes that true was measured on Pokémon Red
-(`LIFTING.md`, *Functions written by hand*): nine functions written as
+(`docs/LIFTING.md`, *Functions written by hand*): nine functions written as
 ordinary C, each matching the ROM in every state tried and taking the same
 time on every path, and the game with them ending 108 runs of 3,000 frames
 with every byte of its RAM as the original has it.
@@ -99,7 +99,7 @@ disassembly costs more than one with.
 ### 3b. Signatures
 
 `gb_lift.py signatures`: what every function takes, gives and keeps, in one
-file of the folder (`LIFTING.md`, *Signatures*). It is worked out by a
+file of the folder (`docs/LIFTING.md`, *Signatures*). It is worked out by a
 program, from the original run with one register changed at a time and from
 who reads what after each call, and it is what every later step writes calls
 from. A person corrects a line where they know better; the tool keeps it.
@@ -120,7 +120,7 @@ stage 4 and after it, and again whenever more of the game has been played.
 `gb_lift.py source --data-tree`: an instruction's operand that a played
 game read its ROM through is a name in the source, `ctx->hl = BaseStats;`,
 and what it leads to can be moved by the data tools, with a header that
-tells the source where (`LIFTING.md`, *Data the source names*). A program
+tells the source where (`docs/LIFTING.md`, *Data the source names*). A program
 does it, from the records of stage 2's tree and the names of stage 3. It is
 the first half of stage 7 brought forward: an address that is a name can
 later be an array, and one that is a number cannot.
@@ -140,7 +140,7 @@ code no record saw run stays a number, and holds what it spells in place.
 `gb_lift.py convert`: every function that has a signature written again by
 a program as a C function with those arguments and that result, its calls
 written the same way, and a binding where the lifted function stood
-(`LIFTING.md`, *Functions a program converts*). No model, and no reading:
+(`docs/LIFTING.md`, *Functions a program converts*). No model, and no reading:
 it is what stage 5's writer starts from in place of the lifted function,
 and it is where a pass that a program can do is added once and run on
 every function. The passes there are still to write are listed in that

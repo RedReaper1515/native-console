@@ -123,7 +123,7 @@ Generated `ADD`, `ADC`, `SUB`, `SBC`, `AND`, `OR`, `XOR`, and `CP` with `(HL)` n
 - Tetris DX differential: 500,000 steps matched; not run as fallback-free because the workload records 545 existing fallbacks over 1,800 frames
 - freshly regenerated Release projects built and ran for small DMG, mapper-heavy DMG, and CGB workloads
 
-The complete 75-ROM catalogue was not rerun for this slice. No claim is made beyond the focused external suites and representative game evidence above; the public accuracy snapshot remains governed by `ACCURACY.md`.
+The complete 75-ROM catalogue was not rerun for this slice. No claim is made beyond the focused external suites and representative game evidence above; the public accuracy snapshot remains governed by `docs/ACCURACY.md`.
 
 ## Next work
 

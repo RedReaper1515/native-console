@@ -1,5 +1,8 @@
 # NES (in progress)
 
+> **Some titles work.** Others may not start, or may have wrong graphics,
+> sound or crashes. The hub marks NES games the same way.
+
 The hub recompiles and plays `.nes` ROMs of the common cartridge boards.
 Of the 160 hardware test ROMs we run, 158 pass in the interpreter, and all
 of them give the same result recompiled and run clean in cycle-exact
@@ -9,7 +12,7 @@ creation, the world map and into battle. On 9,000 frames of scripted play it
 runs 99.9 % native code, clean in `--differential`, and a save state made
 by recompiled code resumes exactly in the interpreter and the other way
 round. The plan, phase gates and current results are in
-[docs/NES-PLAN.md](docs/NES-PLAN.md).
+[docs/NES-PLAN.md](NES-PLAN.md).
 
 ## Layout
 

@@ -6,7 +6,7 @@ for other consoles. Its phases P0-P6 are the ones below, it adds platforms and
 export as P7, and it calls the accuracy-and-speed phase P8. This is the working plan
 for turning `.gba` ROMs into native executables the same way the Game Boy path
 does: recompile the ROM to C, configure with CMake, build with Ninja, launch
-from the hub. `GBA.md` describes the hub stub and the target layout; this file
+from the hub. `docs/GBA.md` describes the hub stub and the target layout; this file
 says how we get there, what we reuse from other projects, and how every nuance
 in the GBA assembly-to-C checklist gets tested.
 

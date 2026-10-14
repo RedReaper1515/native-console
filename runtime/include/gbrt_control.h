@@ -12,7 +12,7 @@
  *
  * The buttons are buttons like a player's. A run recorded with
  * `--record-run` while a program plays has every one of them in its record
- * and replays with no program there (RUN_RECORDS.md). What would not be in
+ * and replays with no program there (docs/RUN_RECORDS.md). What would not be in
  * the record is refused while one is recorded or replayed: a byte written
  * into the machine, a state loaded.
  *

@@ -5,7 +5,7 @@
     build     validate pack.json and its PNGs and write a .gbtp file
     inspect   print what a .gbtp file contains
 
-Run the game with `--texture-pack pack.gbtp`. See TEXTURE_PACKS.md.
+Run the game with `--texture-pack pack.gbtp`. See docs/TEXTURE_PACKS.md.
 """
 
 from __future__ import annotations

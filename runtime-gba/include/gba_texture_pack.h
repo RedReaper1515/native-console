@@ -1,6 +1,6 @@
 /*
  * GBA texture packs: host-side high-resolution tile replacement
- * (gba_texture_pack.c). See TEXTURE_PACKS.md.
+ * (gba_texture_pack.c). See docs/TEXTURE_PACKS.md.
  *
  * While a pack is active the PPU records, for every screen pixel, the tile
  * pixel that made its top layer and the one under it (tile address in VRAM,

@@ -41,8 +41,9 @@ changed runtime. Passing its packaging tests does not add game-route acceptance.
 
 ## Reproduction inputs and ROM identities
 
-Retained cycle-anchored inputs are under
-[`tools/profiles/issue-repros-20260909`](../tools/profiles/issue-repros-20260909).
+Retained cycle-anchored inputs were under
+`tools/profiles/issue-repros-20260909` (removed on 2026-10-14; they are in
+the history before that).
 `belmont.input` and `legends.input` reach their first levels; `startup.input`
 drives the 3,000-frame smoke for Gaiden, German Zelda, and Prehistorik Man.
 Prehistorik Man was only inspected through its animated title sequence.

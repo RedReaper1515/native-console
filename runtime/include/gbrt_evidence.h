@@ -9,7 +9,7 @@
  * generated game records every such jump it makes: the instruction, where it
  * went, what the target will return to, and the CALL that entered the
  * function it happened in. `tools/gb_lift.py edges --evidence FILE` turns
- * the record into entry points and call edges (LIFTING.md).
+ * the record into entry points and call edges (docs/LIFTING.md).
  *
  * The recorder keeps a shadow of the call stack, fed from the helpers every
  * CALL, RST, RET and JP HL goes through, whether the code running is

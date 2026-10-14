@@ -6,7 +6,7 @@
  * into readable C: every function with its blocks and disassembly, who calls
  * whom, which registers a function reads before it writes them, which fixed
  * memory addresses it touches, and which ROM bytes are not code. See
- * LIFTING.md for the schema.
+ * docs/LIFTING.md for the schema.
  */
 
 #ifndef RECOMPILER_LIFT_EXPORT_H

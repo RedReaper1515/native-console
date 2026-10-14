@@ -157,6 +157,12 @@ public:
         return file_name.rfind(game_id + ".state", 0) == 0;
     }
 
+    // A Windows export of Phantom Hourglass unpacks and runs (docs/NDS-PLAN.md, P6);
+    // Linux and macOS are P7, not started.
+    std::string export_problem(const std::string& target_id) const override {
+        return untested_export_problem(family_name(), target_id, {"windows"});
+    }
+
     bool supports_cover_capture() const override { return true; }
 
     // A DS game takes longer to reach its title than a cartridge of the

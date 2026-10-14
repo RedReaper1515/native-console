@@ -5,7 +5,7 @@ recompiled as interpreted, in cycle-exact lockstep. The Legend of Zelda: The
 Minish Cap (USA) builds, boots, and plays through the menus, file creation
 (EEPROM save), the intro and into the game at 99.9 % native code, clean in
 `--differential` over 6,000 frames of scripted play. The plan, phase gates, test strategy and current
-results are in [docs/GBA-PLAN.md](docs/GBA-PLAN.md).
+results are in [docs/GBA-PLAN.md](GBA-PLAN.md).
 
 ## Layout
 

@@ -36,7 +36,7 @@ Blargg `interrupt_time` also passes both its normal-speed and CGB double-speed 1
 
 The passing boot-register test validates the runtime's configured post-boot state; it does not mean the CGB boot ROM is emulated. See [Accuracy](ACCURACY.md) for the complete configured suite.
 
-Tetris DX received a fresh generated-project optimization smoke on 2026-07-13. Generated and interpreted execution matched for 500,000 steps, and the stable-span and scalar PPU paths produced the same 1,800-frame state SHA-256, `4bf4c98fec004470ea680ce89e27aa6971fccd232d6b7ca0fa84076c58431bdf`. The generated workload still records 545 interpreter fallbacks over 1,800 frames, so this is CGB behavior/performance evidence rather than a fallback-free analyzer-coverage claim. See [the NR-1 through NR-3 result](docs/NR123_DYNAMIC_OPTIMIZATION_RESULTS_2026-07-13.md). That state hash predates the 2026-09-10 post-boot DIV model, which changes CGB start-up state, so it no longer reproduces.
+Tetris DX received a fresh generated-project optimization smoke on 2026-07-13. Generated and interpreted execution matched for 500,000 steps, and the stable-span and scalar PPU paths produced the same 1,800-frame state SHA-256, `4bf4c98fec004470ea680ce89e27aa6971fccd232d6b7ca0fa84076c58431bdf`. The generated workload still records 545 interpreter fallbacks over 1,800 frames, so this is CGB behavior/performance evidence rather than a fallback-free analyzer-coverage claim. See [the NR-1 through NR-3 result](history/NR123_DYNAMIC_OPTIMIZATION_RESULTS_2026-07-13.md). That state hash predates the 2026-09-10 post-boot DIV model, which changes CGB start-up state, so it no longer reproduces.
 
 ## Post-boot DIV
 

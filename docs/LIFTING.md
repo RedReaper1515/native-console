@@ -562,7 +562,7 @@ may read, which counts a register that is only saved.
 an address in the ROM, of a table, and as long as the source has it as a
 number the table has to stay at $43DE: nothing can tell the instruction that
 it went somewhere else. The data tools say so of every thing an operand
-leads to (`DATA_FILES.md`, *Data that grows, by moving*), and on a real game
+leads to (`docs/DATA_FILES.md`, *Data that grows, by moving*), and on a real game
 that is the largest reason data cannot move.
 
 With a name in its place the table can go anywhere the name is told about:
@@ -1026,7 +1026,7 @@ lists.
 
 | Field | Meaning |
 |---|---|
-| `id` | `gbfn:v1:BBBB:AAAA`, bank and address in hexadecimal. The same ID `NATIVE_PATCHES.md` uses. |
+| `id` | `gbfn:v1:BBBB:AAAA`, bank and address in hexadecimal. The same ID `docs/NATIVE_PATCHES.md` uses. |
 | `name`, `symbol` | The generated name, and the `.sym` name if one was loaded. |
 | `kind` | How the function was found; see below. |
 | `recompiler_function` | The recompiler emits a function at this address too, so a native patch can bind it. |
@@ -1128,7 +1128,7 @@ ROM offset, and a guess from the bytes (`header`, `padding`, `ascii_text`,
 data classifier had marked it; `referenced_by` lists functions that load a
 pointer into it, which is where to start when working out what a table is.
 `tools/gb_data.py split` writes each of them to a file of its own, to be
-edited and put back into a ROM image the game loads (`DATA_FILES.md`).
+edited and put back into a ROM image the game loads (`docs/DATA_FILES.md`).
 
 ### `memory`
 
@@ -1684,7 +1684,7 @@ python3 tools/gb_lift.py executed output/lift/game.json --map logs/played.execut
 
 `--executed FILE` has the game run in the interpreter and note every byte
 of the ROM that was part of an instruction it executed, the first byte of
-an instruction apart from the later ones. `--data-use` (`DATA_FILES.md`)
+an instruction apart from the later ones. `--data-use` (`docs/DATA_FILES.md`)
 notes every byte it read as data. Both can be kept in one run, and the game
 ends in the same state as without. `gb_lift.py executed` puts any number of
 each together (`--map` and `--data-use` are repeatable, and what any file
@@ -2524,7 +2524,7 @@ with 999,999; `--no-lift` on that executable still starts with 3,000.
 **The source folder.** Pokémon Red's folder
 (see [Working in the source](#working-in-the-source)), 2026-10-10, from an
 export made with `--pointer-scan strict`, `--lift-edges` and annotations of
-what a played game showed to be data (`DATA_FILES.md`), with the
+what a played game showed to be data (`docs/DATA_FILES.md`), with the
 disassembly's symbol file brought as `--symbols`. Made in 6 seconds: 6,243
 functions in 166,607 lines and 32 files, 2,736 of them under a name.
 

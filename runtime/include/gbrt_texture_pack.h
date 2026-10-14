@@ -14,7 +14,7 @@
  *
  * Replacement never feeds back into guest-visible state: registers, memory,
  * timing, saves, and the accurate framebuffer are unchanged. See
- * TEXTURE_PACKS.md for the file format and authoring workflow.
+ * docs/TEXTURE_PACKS.md for the file format and authoring workflow.
  */
 
 #include <stdbool.h>

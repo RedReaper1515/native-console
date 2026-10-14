@@ -108,7 +108,7 @@ echo.
 echo   2. Ground truth workflow:
 echo      python tools\run_ground_truth.py path\to\game.gb
 echo.
-echo Detailed instructions in GROUND_TRUTH_WORKFLOW.md
+echo Detailed instructions in docs/GROUND_TRUTH_WORKFLOW.md
 echo.
 
 pause

@@ -7,7 +7,7 @@ A thing an operand leads to could not move: the operand is code, and no
 image may change it. Lifted source can have the operand by name, and a name
 is turned where the source is compiled. This makes a small game with five
 tables, each read through `ld hl, table`, and holds the two tools to what
-DATA_FILES.md and LIFTING.md say of the step:
+docs/DATA_FILES.md and docs/LIFTING.md say of the step:
 
 - `gb_data.py pointers` on a record says of all five that an operand leads
   to them, and that they stay;

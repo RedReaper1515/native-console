@@ -1,5 +1,9 @@
 # macOS
 
+> **From source only, and less tested.** Releases are built for Windows;
+> these builds are not tested again for every change, and consoles other
+> than the ones named below do not build here yet.
+
 Game Boy, Game Boy Color, Game Boy Advance and Super Nintendo games build as macOS
 application bundles (`<id>.app`). The apps are universal, so they run
 natively on Apple Silicon and Intel Macs. They need macOS 11 or newer. SDL2 is
@@ -12,7 +16,7 @@ Without a Mac at hand, use **Compile for export** in the hub (on Windows or
 Linux) and tick *macOS (build kit)*. It writes `<id>-macos-kit.tar.gz`: the
 recompiled project plus `build.command`. Copy the archive to a Mac, open it,
 and double-click `build.command`. It runs the step below and leaves `<id>.app`
-next to itself. See [hub/README.md](hub/README.md#compile-for-export).
+next to itself. See [hub/README.md](../hub/README.md#compile-for-export).
 
 A kit copied over USB or a network share opens normally. A kit downloaded
 from a browser or received by AirDrop is quarantined, and Gatekeeper refuses

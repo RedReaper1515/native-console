@@ -124,6 +124,12 @@ public:
         return file_name == game_id + ".sav" || file_name == game_id + ".bmp" || file_name == game_id + ".trace";
     }
 
+    // A Windows export of Ocarina of Time unpacks and runs (docs/N64-PLAN.md, P6);
+    // Linux and macOS are P7, not started.
+    std::string export_problem(const std::string& target_id) const override {
+        return untested_export_problem(family_name(), target_id, {"windows"});
+    }
+
     bool supports_cover_capture() const override { return true; }
     // A cartridge of this console shows its makers' logos for twenty seconds
     // or more before its title: three times the frame the setting names.

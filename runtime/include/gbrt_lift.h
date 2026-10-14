@@ -1,7 +1,7 @@
 /*
  * gbrt_lift.h - running lifted source inside a generated game.
  *
- * LIFTING.md describes lifted source: C written against gblift.h that does
+ * docs/LIFTING.md describes lifted source: C written against gblift.h that does
  * what one subroutine of the game does. A game generated with
  * `gbrecomp --lift` carries such source. Where the recompiled code reaches a
  * lifted subroutine's first instruction it calls gbrt_lift_enter() and the C
@@ -49,7 +49,7 @@ typedef struct GBLiftCounters {
 /* Give a context its lifted functions. The table must outlive the context. */
 void gbrt_lift_install(GBContext* ctx, const GBLiftBinding* bindings, size_t count);
 
-/* Signatures (--lift-signatures FILE, LIFTING.md): what each lifted function
+/* Signatures (--lift-signatures FILE, docs/LIFTING.md): what each lifted function
  * gives back and what it leaves as it came. With a file loaded, a function
  * that returns to its caller has every register and flag it keeps put back
  * as it came, and every one it neither keeps nor gives set to a value that
@@ -64,7 +64,7 @@ void gbrt_lift_set_signatures_file(const char* path);
 bool gbrt_lift_signatures_requested(void);
 bool gbrt_lift_load_signatures(GBContext* ctx);
 
-/* Callers (--lift-callers FILE, LIFTING.md): where each lifted function
+/* Callers (--lift-callers FILE, docs/LIFTING.md): where each lifted function
  * returned to while the game was played. Assembly does not list who calls a
  * function that is reached through a table or an address in data; a played
  * game does. Noted when a function is back with its caller: the address it

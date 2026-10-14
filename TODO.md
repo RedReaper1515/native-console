@@ -1,23 +1,23 @@
 # Project backlog
 
 This file tracks open work only. Completed accuracy remediation is summarized in
-the [accuracy report](ACCURACY.md) and
-[code improvement audit](docs/CODE_IMPROVEMENT_AUDIT_2026-07-12.md). Measured
+the [accuracy report](docs/ACCURACY.md) and
+[code improvement audit](docs/history/CODE_IMPROVEMENT_AUDIT_2026-07-12.md). Measured
 performance experiments, including rejected approaches, remain in the
-[native recompilation strategy](docs/NATIVE_RECOMPILATION_STRATEGY_2026-07-14.md)
+[native recompilation strategy](docs/history/NATIVE_RECOMPILATION_STRATEGY_2026-07-14.md)
 and its linked result reports.
 
 ## P1 — Accuracy and semantic correctness
 
-- [ ] Confirm issue #24 on the reporter's platform after regenerating and
+- [ ] Confirm [upstream issue #24](https://github.com/arcanite24/gb-recompiled/issues/24) on the reporter's platform after regenerating and
   rebuilding with the direct-jump safepoint fix. Both tested ROMs now pass
   local startup; the original SIGSEGV still needs reporter confirmation.
-  See [startup investigation](docs/ISSUE_24_STARTUP_2026-09-10.md).
+  See [startup investigation](docs/history/ISSUE_24_STARTUP_2026-09-10.md).
 
-- [ ] Reproduce German Zelda's post-first-dungeon enemy crash (#11) from a
-  nearby save and validate the original CachyOS Castlevania reports (#20).
+- [ ] Reproduce German Zelda's post-first-dungeon enemy crash ([upstream #11](https://github.com/arcanite24/gb-recompiled/issues/11)) from a
+  nearby save and validate the original CachyOS Castlevania reports ([upstream #20](https://github.com/arcanite24/gb-recompiled/issues/20)).
   Current bounded evidence and remaining gates are in the
-  [September issue triage](docs/ISSUE_TRIAGE_2026-09-09.md).
+  [September issue triage](docs/history/ISSUE_TRIAGE_2026-09-09.md).
 
 - [ ] Fix bank-aware direct-target persistence and banked `JP HL` table reads
   without turning conservative unknowns into wrong compiled calls.
@@ -93,23 +93,23 @@ and its linked result reports.
 - [ ] Hub: vendor an image decoder so cover import works off Windows (WIC is
   Windows-only; PPM works everywhere).
 - [ ] Game Boy Advance: cycle timing (P7), generated-code speed, and the
-  gaps listed under "What is not done" in `GBA.md`.
-- [ ] Super Nintendo: the gaps listed under "What is not done" in `SNES.md`
+  gaps listed under "What is not done" in `docs/GBA.md`.
+- [ ] Super Nintendo: the gaps listed under "What is not done" in `docs/SNES.md`
   (other coprocessors, SA-1 bus conflicts, PAL, the P8 timing items).
-- [ ] NES: the gaps listed under "What is not done" in `NES.md` (other
+- [ ] NES: the gaps listed under "What is not done" in `docs/NES.md` (other
   cartridge boards, PAL, RAM code, Linux and macOS builds) and the failing
   test ROMs under "Known deviations" in `docs/NES-PLAN.md`.
-- [ ] Nintendo DS: the gaps listed under "What is not done" in `NDS.md`
+- [ ] Nintendo DS: the gaps listed under "What is not done" in `docs/NDS.md`
   (more games, save states, Wi-Fi, the replacement BIOS's wrong calls,
   Linux and macOS builds, speed and code size).
 - [ ] Nintendo 64: more games than Ocarina of Time, relocatable overlays
   matched wherever they load, and the gaps listed under "What is not done"
-  in `N64.md` (timing, save states, accessories);
+  in `docs/N64.md` (timing, save states, accessories);
   build krom's RDP comparisons, n64-systemtest and Dillon Beliveau's
   n64-tests into gates; for modders, symbol maps from the N64 decompilation
   projects, function overrides and pre/post hooks in `n64recomp`.
 - [ ] Wii: a first retail game through the gates (`docs/WII-PLAN.md`, P6),
-  then the items under "Not done" in `WII.md` (sound for Wii games,
+  then the items under "Not done" in `docs/WII.md` (sound for Wii games,
   MotionPlus, save states, RVZ/WIA images).
 - [ ] GameCube and Wii processor core: the instructions `wii_cputest`
   reports as differing from a 750CL (floating-point status details, the

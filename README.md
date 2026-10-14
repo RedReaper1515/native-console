@@ -8,24 +8,18 @@ recompiled to C, linked against a shared SDL2 runtime, compiled with your host
 toolchain, and added to a library with cover art, descriptions, and favorites.
 Click a game to play the native build.
 
-How far each console has come is not the same:
+How far each console has come is not the same, and the hub shows it beside
+each console:
 
-- **Game Boy, Game Boy Color and Game Boy Advance** have had the most
-  testing, and are the ones to start with ([ACCURACY.md](ACCURACY.md),
-  [GBC.md](GBC.md), [GBA.md](GBA.md)).
-- **Super Nintendo, NES, Nintendo DS and Nintendo 64** are in progress. The
-  hub builds and plays their games, and one commercial game each has been
-  checked so far: Kirby's Dream Land 3, an SA-1 cartridge
-  ([SNES.md](SNES.md)); Final Fantasy, an MMC1 cartridge ([NES.md](NES.md));
-  Phantom Hourglass ([NDS.md](NDS.md)); and Ocarina of Time
-  ([N64.md](N64.md)).
-- **GameCube** is in progress and has been tested with one game only,
-  Shrek 2, which is playable but still needs work
-  ([docs/GC-PLAN.md](docs/GC-PLAN.md)).
-- **Wii** is not supported yet ([WII.md](WII.md)).
+| Console | Status |
+|---|---|
+| Game Boy, Game Boy Color, Game Boy Advance | **Playable.** The most tested, and the ones to start with ([accuracy](docs/ACCURACY.md), [GBC](docs/GBC.md), [GBA](docs/GBA.md)). |
+| Super Nintendo, NES | **Some titles work.** One commercial game each has been checked through: Kirby's Dream Land 3, an SA-1 cartridge ([SNES](docs/SNES.md)), and Final Fantasy, an MMC1 cartridge ([NES](docs/NES.md)). Others may not start, or may break. |
+| Nintendo DS, Nintendo 64, GameCube, Wii | **Not playable yet.** Games build and may start, but expect wrong graphics, missing sound and crashes ([DS](docs/NDS.md), [N64](docs/N64.md), [GameCube](docs/GC-PLAN.md), [Wii](docs/WII.md)). |
 
-Games build for Windows, Linux / SteamOS and macOS (NES, Nintendo DS,
-Nintendo 64 and GameCube on Windows only so far).
+Releases are for Windows. Game Boy, Game Boy Advance and Super Nintendo
+games can also be built from source for Linux / SteamOS and macOS, which
+are less tested ([Linux](docs/LINUX.md), [macOS](docs/MACOS.md)).
 
 The project contains no games: bring your own, dumped from cartridges and
 discs you own. See [ROMs, piracy and preservation](#roms-piracy-and-preservation).
@@ -80,7 +74,16 @@ copyrighted game data will be closed.
   on one computer, or host and join across a network — the Game Boy and GBA
   link cables.
 - **Compile for export**: a Windows zip, a Linux / SteamOS tarball, or a
-  macOS build kit for any ROM.
+  macOS build kit, for the consoles that have been tested on each:
+
+  | Console | Windows | Linux / SteamOS | macOS |
+  | --- | --- | --- | --- |
+  | Game Boy, Game Boy Color | yes | yes | yes |
+  | Game Boy Advance | yes | yes | yes |
+  | Super Nintendo | yes | yes | yes |
+  | Nintendo DS, Nintendo 64, GameCube | yes | no | no |
+  | NES, Wii | no | no | no |
+
 - **Settings**: auto-detected toolchain paths (recompiler, CMake, Ninja,
   MSVC environment, SDL2), build type, compile jobs, launch defaults, and
   cover-capture frame.
@@ -179,59 +182,59 @@ build does not guarantee that every scene runs correctly.
 ## Game Boy Advance
 
 `recompiler-gba/` (`gbarecomp`) and `runtime-gba/` recompile `.gba` ROMs the
-same way; the hub builds them like Game Boy games. [GBA.md](GBA.md) describes
+same way; the hub builds them like Game Boy games. [GBA.md](docs/GBA.md) describes
 what works, and [docs/GBA-PLAN.md](docs/GBA-PLAN.md) holds the plan, the test
 strategy and the current results.
 
-## Super Nintendo (in progress)
+## Super Nintendo (some titles work)
 
 `recompiler-snes/` (`snesrecomp`) and `runtime-snes/` recompile `.sfc` and
-`.smc` ROMs, SA-1 cartridges included, in the same way. [SNES.md](SNES.md)
+`.smc` ROMs, SA-1 cartridges included, in the same way. [SNES.md](docs/SNES.md)
 describes what works, and [docs/SNES-PLAN.md](docs/SNES-PLAN.md) holds the
 plan, the test strategy, how each item of the SNES assembly-to-C nuances list
 is tested, and the current results.
 
-## NES (in progress)
+## NES (some titles work)
 
 `recompiler-nes/` (`nesrecomp`) and `runtime-nes/` recompile `.nes` ROMs of
 the common cartridge boards. Cartridges switch banks at run time, so
 recompiled code is keyed by the bank mapped at its address.
-[NES.md](NES.md) describes what works, and
+[NES.md](docs/NES.md) describes what works, and
 [docs/NES-PLAN.md](docs/NES-PLAN.md) holds the plan, the test strategy and
 the current results.
 
-## Nintendo DS (in progress)
+## Nintendo DS (not playable yet)
 
 `recompiler-nds/` (`ndsrecomp`) and `runtime-nds/` recompile `.nds` ROMs:
 both processors from the game's own code, with the screens, the 3D engine,
 sound, the touch screen, the microphone and the save chips in the runtime,
 and no BIOS or firmware file. A game's overlays load over one another, so a
 native function runs only while memory holds the bytes it was compiled
-from. [NDS.md](NDS.md) describes what works, and
+from. [NDS.md](docs/NDS.md) describes what works, and
 [docs/NDS-PLAN.md](docs/NDS-PLAN.md) holds the plan, the test strategy and
 the current results.
 
-## Nintendo 64 (in progress)
+## Nintendo 64 (not playable yet)
 
 `recompiler-n64/` (`n64recomp`) and `runtime-n64/` recompile `.z64`, `.n64`
 and `.v64` ROMs: the VR4300's code to C, with the RSP, the RDP (a software
 port of parallel-rdp), sound, controllers and cartridge saves in the
 runtime, and no boot ROM. krom's CPU, FPU and RSP test ROMs pass
 interpreted and recompiled, and the first game, Ocarina of Time, builds
-and plays from the hub on Windows. [N64.md](N64.md) describes what works, and
+and starts from the hub on Windows, but is not playable yet. [N64.md](docs/N64.md) describes what works, and
 [docs/N64-PLAN.md](docs/N64-PLAN.md) holds the plan, the test strategy and
 the current results.
 
-## GameCube (in progress)
+## GameCube (not playable yet)
 
 `recompiler-gc/` (`gcrecomp`) and `runtime-gc/` recompile GameCube discs: the
 processor's code to C, with the graphics processor, sound, the disc, memory
 cards and controllers in the runtime. One game has been tested, Shrek 2. It
-builds and is playable from the hub on Windows, and it still needs work, so
-expect other games to need more. [docs/GC-PLAN.md](docs/GC-PLAN.md) holds
+builds and runs from the hub on Windows, but it is not playable yet, and
+other games will need more. [docs/GC-PLAN.md](docs/GC-PLAN.md) holds
 the plan and a dated log of the results.
 
-## Wii (in progress, not yet supported)
+## Wii (not playable yet)
 
 The Wii is the GameCube's design with more of everything, and is built here
 as the GameCube family's second console: the same `gcrecomp` and
@@ -240,7 +243,7 @@ game sees it (the disc, the flash filesystem, the remotes) and encrypted
 discs. It passes its tests against programs and a disc built in this
 repository; no retail game has been verified yet, so the hub keeps it
 switched off unless asked. A retail disc needs your console's common key
-once, to build; none ships here. [WII.md](WII.md) describes what works and
+once, to build; none ships here. [WII.md](docs/WII.md) describes what works and
 how to try it, and [docs/WII-PLAN.md](docs/WII-PLAN.md) holds the plan and
 the results.
 
@@ -251,7 +254,9 @@ Each console family is a recompiler (`recompiler-<f>/`), a runtime
 that meets the shared contract gets library builds, Linux / SteamOS and
 macOS builds, and export with no changes to that code: a self-contained
 CMake project, the ROM embedded, SDL2 as the only dependency, and
-deterministic headless runs. Every console's games also get an in-game
+deterministic headless runs. The hub turns each export target on for a
+console once one of its games has been exported there and run
+(`export_problem` in its backend). Every console's games also get an in-game
 overlay menu with the same controls.
 [docs/ADDING-A-CONSOLE.md](docs/ADDING-A-CONSOLE.md) is the playbook. It
 lists the contract, the phases from test data to first commercial game with
@@ -261,27 +266,27 @@ backend.
 ## Documentation
 
 - [Hub](hub/README.md) — library, import/build pipeline, launcher, automation
-- [Game Boy Advance](GBA.md) — status, tools and usage; [plan](docs/GBA-PLAN.md)
-- [Super Nintendo](SNES.md) — status, tools and usage; [plan](docs/SNES-PLAN.md)
-- [NES](NES.md) — status, tools and usage; [plan](docs/NES-PLAN.md)
-- [Nintendo DS](NDS.md) — status, tools and usage; [plan](docs/NDS-PLAN.md)
-- [Nintendo 64](N64.md) — status, tools and usage; [plan](docs/N64-PLAN.md)
+- [Game Boy Advance](docs/GBA.md) — status, tools and usage; [plan](docs/GBA-PLAN.md)
+- [Super Nintendo](docs/SNES.md) — status, tools and usage; [plan](docs/SNES-PLAN.md)
+- [NES](docs/NES.md) — status, tools and usage; [plan](docs/NES-PLAN.md)
+- [Nintendo DS](docs/NDS.md) — status, tools and usage; [plan](docs/NDS-PLAN.md)
+- [Nintendo 64](docs/N64.md) — status, tools and usage; [plan](docs/N64-PLAN.md)
 - [GameCube](docs/GC-PLAN.md) — the plan and a dated log of results
-- [Wii](WII.md) — status, the key a disc needs, usage; [plan](docs/WII-PLAN.md)
+- [Wii](docs/WII.md) — status, the key a disc needs, usage; [plan](docs/WII-PLAN.md)
 - [Adding a console](docs/ADDING-A-CONSOLE.md) — contract, phases and gates, file checklist
-- [Runtime usage](RUNTIME.md) — controls, persistence, diagnostics, profiling
-- [Accuracy](ACCURACY.md) — external-test evidence and limitations
-- [Game Boy Color status](GBC.md) — implemented CGB behavior and gaps
-- [Native replacement SDK](NATIVE_PATCHES.md) — exact-ROM hooks
-- [Port modules](PORT_MODULES.md) — semantic access and host presentation
-- [Data-mod packages](DATA_MODS.md) — deterministic ROM-free overlays
-- [The ROM's data as files](DATA_FILES.md) — a Game Boy ROM taken apart into files, edited, and put together again for the game to load
-- [Recorded runs](RUN_RECORDS.md) — a played run kept with the cycle of every button, replayed exactly, and used to record what the game does over hours of real play
-- [Discovery tool](DISCOVERY.md) — find and name variables and sprite graphics by experiment
-- [Texture packs](TEXTURE_PACKS.md) — high-resolution tile replacement at runtime
-- [Android](ANDROID.md) — single-ROM Android generation and APK workflow
-- [Linux and SteamOS](LINUX.md) — native Linux builds from Windows through Docker
-- [macOS](MACOS.md) — universal `.app` bundles
+- [Runtime usage](docs/RUNTIME.md) — controls, persistence, diagnostics, profiling
+- [Accuracy](docs/ACCURACY.md) — external-test evidence and limitations
+- [Game Boy Color status](docs/GBC.md) — implemented CGB behavior and gaps
+- [Native replacement SDK](docs/NATIVE_PATCHES.md) — exact-ROM hooks
+- [Port modules](docs/PORT_MODULES.md) — semantic access and host presentation
+- [Data-mod packages](docs/DATA_MODS.md) — deterministic ROM-free overlays
+- [The ROM's data as files](docs/DATA_FILES.md) — a Game Boy ROM taken apart into files, edited, and put together again for the game to load
+- [Recorded runs](docs/RUN_RECORDS.md) — a played run kept with the cycle of every button, replayed exactly, and used to record what the game does over hours of real play
+- [Discovery tool](docs/DISCOVERY.md) — find and name variables and sprite graphics by experiment
+- [Texture packs](docs/TEXTURE_PACKS.md) — high-resolution tile replacement at runtime
+- [Android](docs/ANDROID.md) — single-ROM Android generation, inherited from gb-recompiled and untested
+- [Linux and SteamOS](docs/LINUX.md) — native Linux builds from Windows through Docker (from source, less tested)
+- [macOS](docs/MACOS.md) — universal `.app` bundles (from source, less tested)
 - [Project backlog](TODO.md) — prioritized remaining work
 
 Contributors and coding agents should read [AGENTS.md](AGENTS.md) before

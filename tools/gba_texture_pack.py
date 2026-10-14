@@ -6,7 +6,7 @@
 
 Run the game with `--texture-pack pack.gbatp`. pack.json comes from
 tools/gba/texpack (capture, upscale, cut into tiles) or by hand. See
-TEXTURE_PACKS.md.
+docs/TEXTURE_PACKS.md.
 
 Uses only the standard library; Pillow, when installed, decodes the PNGs
 faster.

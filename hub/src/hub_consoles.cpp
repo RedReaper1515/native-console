@@ -35,17 +35,59 @@ const std::vector<ConsoleInfo>& all_consoles() {
             {"gb", "Game Boy", "GB", "gb"},
             {"gbc", "Game Boy Color", "GBC", "gb"},
             {"gba", "Game Boy Advance", "GBA", "gba"},
-            {"snes", "Super Nintendo", "SNES", "snes"},
-            {"nes", "Nintendo Entertainment System", "NES", "nes"},
-            {"nds", "Nintendo DS", "NDS", "nds"},
-            {"n64", "Nintendo 64", "N64", "n64"},
-            {"gc", "GameCube", "GC", "gc"},
-            {"wii", "Wii", "Wii", "wii"},
+            {"snes", "Super Nintendo", "SNES", "snes", 0, Maturity::SomeTitles},
+            {"nes", "Nintendo Entertainment System", "NES", "nes", 0, Maturity::SomeTitles},
+            {"nds", "Nintendo DS", "NDS", "nds", 0, Maturity::NotPlayable},
+            {"n64", "Nintendo 64", "N64", "n64", 0, Maturity::NotPlayable},
+            {"gc", "GameCube", "GC", "gc", 0, Maturity::NotPlayable},
+            {"wii", "Wii", "Wii", "wii", 0, Maturity::NotPlayable},
         };
         for (const auto& c : extra_families().consoles) v.push_back(c);
         return v;
     }();
     return consoles;
+}
+
+const char* maturity_label(Maturity m) {
+    switch (m) {
+        case Maturity::SomeTitles: return "Some titles work";
+        case Maturity::NotPlayable: return "Not playable yet";
+        default: return "";
+    }
+}
+
+const char* maturity_tag(Maturity m) {
+    switch (m) {
+        case Maturity::SomeTitles: return "some";
+        case Maturity::NotPlayable: return "not yet";
+        default: return "";
+    }
+}
+
+const char* maturity_note(Maturity m) {
+    switch (m) {
+        case Maturity::SomeTitles:
+            return "Some titles work. Others may not start, or may have wrong graphics, sound or crashes.";
+        case Maturity::NotPlayable:
+            return "Not playable yet. Games build and may start, but expect wrong graphics, missing sound "
+                   "and crashes.";
+        default: return "";
+    }
+}
+
+std::string untested_export_problem(const std::string& family_name, const std::string& target_id,
+                                    const std::vector<std::string>& tested) {
+    for (const auto& t : tested) {
+        if (t == target_id) return "";
+    }
+    if (tested.empty()) return family_name + " games cannot be exported yet: no export of one has been tested";
+    std::string list;
+    for (size_t i = 0; i < tested.size(); ++i) {
+        const std::string& t = tested[i];
+        const char* label = t == "windows" ? "Windows" : t == "linux" ? "Linux / SteamOS" : t == "macos" ? "macOS" : t.c_str();
+        list += (i == 0 ? "" : i + 1 == tested.size() ? " and " : ", ") + std::string(label);
+    }
+    return family_name + " games can be exported for " + list + " only so far: no other target has been tested";
 }
 
 std::vector<std::string> ConsoleBackend::toolchain_problems(const Settings& s) const {

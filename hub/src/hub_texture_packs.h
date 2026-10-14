@@ -1,7 +1,7 @@
 // Texture packs for Game Boy (.gbtp) and Game Boy Advance (.gbatp) games: the
 // packs installed for a game, importing a pack, and the launch arguments that
 // select one. The runtimes own the formats and validate every entry; the hub
-// reads only the header to show and match packs. See TEXTURE_PACKS.md.
+// reads only the header to show and match packs. See docs/TEXTURE_PACKS.md.
 #pragma once
 
 #include <cstdint>

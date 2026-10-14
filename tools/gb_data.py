@@ -32,7 +32,7 @@ A data file can be edited, as long as it keeps its size, and the image built
 from the edited files is what a generated game loads with `--rom-image`. Code
 and the header cannot: the game's C was compiled from those bytes, so `build`
 refuses a change to them, and the game refuses an image that has one. To
-change code, lift it and edit the C (LIFTING.md).
+change code, lift it and edit the C (docs/LIFTING.md).
 
 `tiles` says that a data file, or a stretch of one, is uncompressed tiles,
 and draws them as a PNG beside it. The picture is then another way to edit
@@ -77,7 +77,7 @@ into the pack for the game to have in place of what its routine makes.
 `watch-pack` writes the pack with no replacement in it, from a tree in which
 pictures have been edited as well as from one in which none has: the pack
 `build` wrote before the first edit. That is the pack to harvest with over a
-run recorded with nothing replaced (RUN_RECORDS.md), which is not replayed
+run recorded with nothing replaced (docs/RUN_RECORDS.md), which is not replayed
 with a pack that replaces something.
 
 `pointers` and `free` are for data that grows (gb_data_pointers.py says
@@ -1210,7 +1210,7 @@ def command_watch_pack(args: argparse.Namespace) -> int:
     unpackers = tree_unpackers(directory, manifest)
     if unpackers is None:
         raise DataError(f"{directory / gb_unpacked.DECLARATION} is not there: it says which routine unpacks, and "
-                        f"has to be written first (DATA_FILES.md)")
+                        f"has to be written first (docs/DATA_FILES.md)")
     pack = Path(args.output)
     try:
         pack.parent.mkdir(parents=True, exist_ok=True)
@@ -1254,7 +1254,7 @@ def command_unpacked(args: argparse.Namespace) -> int:
     unpackers = tree_unpackers(directory, manifest)
     if unpackers is None:
         raise DataError(f"{directory / gb_unpacked.DECLARATION} is not there: it says which routine unpacks, and "
-                        f"has to be written first (DATA_FILES.md)")
+                        f"has to be written first (docs/DATA_FILES.md)")
     by_name = {unpacker["name"]: unpacker for unpacker in unpackers}
     rom = b"".join(content for _, content in loaded)
     # A folder stands for the harvests in it: a game played from hundreds of save states writes
@@ -1411,7 +1411,7 @@ def moved_header(image: bytes, named: list[tuple[str, int, int]]) -> str:
     lines = ["/* Where the names of the game's source lead in the image with SHA-1",
              f" * {hashlib.sha1(image).hexdigest()}: written by tools/gb_data.py build, and written again by every",
              " * build that is given --moved-header. It is for a game that runs that image and no",
-             " * other (DATA_FILES.md, \"Data the source names\"). "
+             " * other (docs/DATA_FILES.md, \"Data the source names\"). "
              + ("Every name not here is where the ROM" if named else "No name is here: nothing the source"),
              " * has it. */" if named else " * names has moved. */",
              f"#define LIFTED_MOVED_IMAGE \"{hashlib.sha1(image).hexdigest()}\""]
@@ -2146,7 +2146,7 @@ def command_unpack(args: argparse.Namespace) -> int:
     unpackers = tree_unpackers(directory, manifest)
     if unpackers is None:
         raise DataError(f"{directory / gb_unpacked.DECLARATION} is not there: it says which routine unpacks, and "
-                        f"has to be written first (DATA_FILES.md)")
+                        f"has to be written first (docs/DATA_FILES.md)")
     try:
         return gb_data_unpack.run(args, manifest, b"".join(content for _, content in loaded), unpackers,
                                   unpacked_picture)
@@ -2180,7 +2180,7 @@ def command_streams(args: argparse.Namespace) -> int:
     path = directory / gb_data_streams.DECLARATION
     if not path.exists():
         raise DataError(f"{path} is not there: it says what the commands of the game's sound engine are and where "
-                        f"their streams start, and has to be written first (DATA_FILES.md)")
+                        f"their streams start, and has to be written first (docs/DATA_FILES.md)")
     try:
         declaration = gb_data_streams.load_declaration(path)
     except gb_data_streams.StreamsError as error:

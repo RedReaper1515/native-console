@@ -152,9 +152,9 @@ void print_usage(const char* program) {
     std::cout << "  --symbol-policy <p>   Symbol analyzer policy: infer-boundaries (default) or names-only\n";
     std::cout << "  --annotations <file>  Load analyzer guidance (function/label/data ranges) from a text file\n";
     std::cout << "  --use-trace <file>    Use runtime trace to find entry points\n";
-    std::cout << "  --lift-export <file>  Write the analysis as JSON for lifting to source (see LIFTING.md); generates no code\n";
-    std::cout << "  --lift-edges <file>   Calls made through helpers, found by `gb_lift.py edges`: their targets are analysed as entry points (see LIFTING.md)\n";
-    std::cout << "  --lift <manifest>     Build lifted source into the game in place of the subroutines it stands for (see LIFTING.md)\n";
+    std::cout << "  --lift-export <file>  Write the analysis as JSON for lifting to source (see docs/LIFTING.md); generates no code\n";
+    std::cout << "  --lift-edges <file>   Calls made through helpers, found by `gb_lift.py edges`: their targets are analysed as entry points (see docs/LIFTING.md)\n";
+    std::cout << "  --lift <manifest>     Build lifted source into the game in place of the subroutines it stands for (see docs/LIFTING.md)\n";
     std::cout << "  --version             Print the Native Console version\n";
     std::cout << "  --version-json        Print machine-readable version and ABI identity\n";
     std::cout << "  -h, --help            Show this help\n";

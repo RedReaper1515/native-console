@@ -136,7 +136,7 @@ scripts and CI work without special cases.
   screenshots, a mute option and a frame limit are expected. The existing
   runtimes already spell these flags differently: GB uses `--headless
   --limit-frames` and `--no-audio`, GBA uses `--frames` and `--mute`. Pick
-  one existing set (see [RUNTIME.md](../RUNTIME.md) and [GBA.md](../GBA.md))
+  one existing set (see [RUNTIME.md](RUNTIME.md) and [GBA.md](GBA.md))
   rather than inventing a third. Whatever the spelling, the mute flag
   silences that run only: it must not set the saved Mute setting, or the
   next settings change writes it to the player's preferences file. The
@@ -157,7 +157,7 @@ scripts and CI work without special cases.
 Every console's games have an in-game overlay menu. Players get the same
 controls whichever console a game came from. The Game Boy runtime's settings
 menu is the reference: see the controls table and the settings menu in
-[RUNTIME.md](../RUNTIME.md). It is built with the Dear ImGui copy vendored in
+[RUNTIME.md](RUNTIME.md). It is built with the Dear ImGui copy vendored in
 `runtime/vendor/imgui`. The GBA menu is in progress; the SNES frontend
 (`runtime-snes/platform/snes_sdl.cpp`) was adapted from it and has a
 self-test (`--menu-selftest`, CTest `snes_menu_selftest`) that drives the
@@ -353,6 +353,12 @@ as GBA did.
   interpreter under a built-in input script and records entry points. The
   trace goes to `<game_dir>/profile/`, and the recompile step uses it.
 - Cover capture runs headless and never touches the real save.
+- The backend's `export_problem` refuses every target nobody has exported
+  one of its games for and run there: start with
+  `untested_export_problem(family_name(), target_id, {})`, add `"windows"`
+  once the P6 game's Windows export unpacks and runs, and `"linux"` and
+  `"macos"` at P7. Update the export tables in the README and
+  `hub/README.md` with it.
 - **Check what the window shows.** Headless dumps wait for pending copies
   to finish, so they can look right while the window doesn't. On GameCube
   the window went black and then froze after a cutscene skip, and every
@@ -405,7 +411,8 @@ was not met. Fix the console instead.
   byte-identical. Then run the Linux build in the SDK, in the sniper
   runtime, and on a plain distribution.
 - **Gate:** the A/B check is identical. Linux CTest passes. The macOS CI job
-  is green. The hub's export of the P6 game works for all three targets.
+  is green. The hub's export of the P6 game works for all three targets,
+  and the backend's `export_problem` lets all three through.
 
 ### P8: accuracy and speed
 
@@ -453,7 +460,7 @@ Existing files:
 | `tools/consoles.sh`, `tools/steamos/build_steamos.ps1` | One entry in each table function; the `-Console` value set (see P7) |
 | `.github/workflows/macos.yml` | Path filters, a test-ROM app, the export job |
 | `tools/create_distribution.py`, `tests/test_release_bundle.py`, `.github/workflows/release.yml` | A `CONSOLES` row, a `SMOKES` recipe, and its test ROM (see P7) |
-| `README.md`, `hub/README.md`, `LINUX.md`, `MACOS.md` | Supported consoles, the `--console` values, build targets |
+| `README.md`, `hub/README.md`, `docs/LINUX.md`, `docs/MACOS.md` | Supported consoles, the `--console` values, build targets |
 | `AGENTS.md`, `TODO.md`, `THIRD_PARTY.md` | Documentation map, backlog, ported code |
 
 Hub builds made with a wrapper script, or from a separate clean checkout of

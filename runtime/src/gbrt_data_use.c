@@ -1899,7 +1899,7 @@ enum {
      * through arithmetic that an address stepped along or indexed is not put through, or what
      * it made was jumped to. A byte of a pointer that is also that cannot be turned to another
      * place. An operand is marked like a byte read as data: lifted source that names an
-     * operand turns it as a pointer in data is turned (LIFTING.md, "Data the source names"),
+     * operand turns it as a pointer in data is turned (docs/LIFTING.md, "Data the source names"),
      * and must not turn one that was a number, or the start of code the game runs on into. */
     WORKED_AS_NUMBER = 0x80,
 };

@@ -5,7 +5,7 @@ recorders over it.
 A run is a folder a game wrote with `--record-run DIR` while somebody played:
 one `segment-NNNN.run` for each sitting, beside the cartridge memory the
 sitting began with (`segment-NNNN.sav`). The format is in
-runtime/include/gbrt_run.h and RUN_RECORDS.md.
+runtime/include/gbrt_run.h and docs/RUN_RECORDS.md.
 
     run_record.py info RUN
         What the run holds: its segments, how long each is, whether each was

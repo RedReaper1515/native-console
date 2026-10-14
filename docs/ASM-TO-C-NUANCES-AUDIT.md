@@ -63,5 +63,5 @@ Legend: **OK** handled and verified · **OK\*** handled with a caveat ·
   upstream PR #21.
 - The differential harness cannot see any free-running-only bug because it
   single-steps; the runs above are the first native-mode evidence for this
-  tree on Windows. `docs/REVIEW-2026-09-09.md` proposes a free-running
+  tree on Windows. `docs/history/REVIEW-2026-09-09.md` proposes a free-running
   differential mode.

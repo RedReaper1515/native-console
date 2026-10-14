@@ -39,7 +39,7 @@ if(GBRECOMP_ENABLE_NATIVE_PATCHES)
     target_compile_definitions(gbrt PUBLIC GBRT_ENABLE_NATIVE_PATCHES)
 endif()
 
-# Lifted source (LIFTING.md): gblift.h as the runtime provides it. A game
+# Lifted source (docs/LIFTING.md): gblift.h as the runtime provides it. A game
 # generated with `gbrecomp --lift` turns this on; the tests build it too.
 option(GBRECOMP_ENABLE_LIFT
     "Compile the runtime side of lifted source" ${BUILD_TESTS})

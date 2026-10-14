@@ -1,7 +1,7 @@
 // 3D view profiles for Game Boy games: the profiles installed for a game, the
 // profiles built into the hub, importing a .voxel file, and the launch
 // arguments that select one. The runtime owns the format and validates every
-// line; the hub reads only the header, title and ROM lines. See VOXEL_VIEW.md.
+// line; the hub reads only the header, title and ROM lines. See docs/VOXEL_VIEW.md.
 #pragma once
 
 #include <string>

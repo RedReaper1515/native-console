@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lift Game Boy functions to C and check the C against the original.
 
-Works from the export `gbrecomp ROM --lift-export FILE` writes (LIFTING.md):
+Works from the export `gbrecomp ROM --lift-export FILE` writes (docs/LIFTING.md):
 
   summary   what the export holds
   function  one function's dossier: disassembly, callers, callees, memory
@@ -2028,7 +2028,7 @@ def build_parser() -> argparse.ArgumentParser:
                               "a function matches if it does in any and mismatches in none")
     package.add_argument("--function", action="append", default=[], help="package only BB:AAAA; repeatable")
     package.add_argument("--exclude-hazard", action="append", default=[],
-                         help="leave out functions with this hazard (see LIFTING.md); repeatable")
+                         help="leave out functions with this hazard (see docs/LIFTING.md); repeatable")
     package.set_defaults(run=command_package)
 
     image = commands.add_parser("image", help="turn a save state into a memory image")

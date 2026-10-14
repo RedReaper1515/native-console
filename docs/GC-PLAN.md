@@ -1,5 +1,9 @@
 # GameCube backend: plan
 
+> **Not playable yet.** Games build and may start, but expect wrong
+> graphics, missing sound and crashes. The hub marks GameCube games the same
+> way.
+
 Started 2026-09-11 on branch `feature/gc-backend`, following
 [ADDING-A-CONSOLE.md](ADDING-A-CONSOLE.md). This is the working plan for
 turning GameCube disc images (`.gcm`, `.iso`, `.ciso`) and bare `.dol`

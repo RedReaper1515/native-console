@@ -5,7 +5,7 @@ A game started with `--control PORT` connects to the program that listens
 there and stops at the start of every frame. Stopped, it says what its
 memory holds; told which buttons are held and for how many frames, it runs
 on (`runtime/include/gbrt_control.h` has what goes over the connection,
-`RUNTIME.md` the option). This module starts the game and is that program's
+`docs/RUNTIME.md` the option). This module starts the game and is that program's
 side of it:
 
     from gb_control import Game
@@ -19,7 +19,7 @@ side of it:
 
 What is held is buttons like a player's: with `--record-run DIR` among the
 game's options the run is recorded as it is played and replays afterwards
-with no program there (`RUN_RECORDS.md`). While a run is recorded or
+with no program there (`docs/RUN_RECORDS.md`). While a run is recorded or
 replayed the game refuses to have a byte written or a state loaded, since
 neither would be in the record.
 

@@ -79,7 +79,7 @@ game, and replays with no script:
 ```
 
 A program can play it too, one that looks at the game's memory before it
-presses (`--control`, `tools/gb_control.py`; `RUNTIME.md`, *A program that
+presses (`--control`, `tools/gb_control.py`; `docs/RUNTIME.md`, *A program that
 plays*). What it holds reaches the game at the start of a frame and is
 recorded like any other button, so the run replays with no program there.
 The program can read all it likes while a run is recorded, and have a save
@@ -95,7 +95,7 @@ without the hardware. A record is of a whole Game Boy, so `--no-audio` and
 replayed. `--headless` alone gives no sound and leaves the machine whole.
 
 A run can be played with a pack of unpacked data (`--unpacked`,
-`DATA_FILES.md`). A pack that only says what to watch changes nothing, with
+`docs/DATA_FILES.md`). A pack that only says what to watch changes nothing, with
 `--unpacked-harvest` or without. A pack that replaces something puts other
 bytes into the game's memory than the game made, so the run is a run of the
 game with those replacements: the record says how many they were and a hash
@@ -192,7 +192,7 @@ python3 tools/gb_data.py uses output/data/game output/data/my-run/*.json
 ```
 
 What the game unpacked while the run was played is had the same way
-(`DATA_FILES.md`). For a run played with nothing replaced the pack has to be
+(`docs/DATA_FILES.md`). For a run played with nothing replaced the pack has to be
 one that replaces nothing, which is what `gb_data.py build` writes for a
 tree with no unpacked picture edited, and what `gb_data.py watch-pack`
 writes from the tree as it stands, whether pictures in it have been edited

@@ -1,4 +1,4 @@
-// A Game Boy game started with data somebody edited (DATA_FILES.md): what a
+// A Game Boy game started with data somebody edited (docs/DATA_FILES.md): what a
 // game remembers (a data tree folder, or an image already built from one),
 // building a tree into an image and its pack before the start
 // (tools/gb_data.py build), the arguments the game takes them with

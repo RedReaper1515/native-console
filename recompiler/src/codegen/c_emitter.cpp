@@ -3115,7 +3115,7 @@ GeneratedOutput generate_output(const ir::Program& program,
             });
         }
         std::ostringstream lift_ss;
-        lift_ss << "/* Lifted functions bound by gbrecomp (LIFTING.md). */\n";
+        lift_ss << "/* Lifted functions bound by gbrecomp (docs/LIFTING.md). */\n";
         lift_ss << "#include \"gbrt_lift.h\"\n\n";
         for (const LiftBinding& binding : options.lift.bindings) {
             lift_ss << "void " << binding.symbol << "(GBContext* ctx);\n";

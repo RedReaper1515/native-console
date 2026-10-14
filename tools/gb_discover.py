@@ -4,7 +4,7 @@
 Every experiment starts from a runtime savestate, runs the generated executable
 headless with scripted input, and reads RAM, OAM, and VRAM back out of the
 savestate it writes on exit. Guesses are then confirmed by editing the
-savestate and watching what the game does. See DISCOVERY.md.
+savestate and watching what the game does. See docs/DISCOVERY.md.
 
 The tool never touches the executable's own save: every run gets a fresh
 --save-dir under the work directory.
@@ -496,7 +496,7 @@ def export_tiles(state: Savestate, out: Path, rom: bytes | None, region=None,
             "tiles": [f"{t:02X}" for t in tiles], "vram_bank": sprite.cgb_bank,
             "x_flip": sprite.x_flip, "y_flip": sprite.y_flip,
             "dmg_palette": sprite.dmg_palette, "png": name,
-            # Texture packs key replacements by these (TEXTURE_PACKS.md).
+            # Texture packs key replacements by these (docs/TEXTURE_PACKS.md).
             "tile_sha256": [hashlib.sha256(state.tile_data(t, sprite.cgb_bank)).hexdigest() for t in tiles],
         }
         if rom is not None:

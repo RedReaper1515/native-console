@@ -1,5 +1,8 @@
 # Android output
 
+> **Untested.** This comes from the Game Boy project Native Console started
+> from and is not part of its releases or its tests; it may no longer work.
+
 `gbrecomp --android` emits a single-ROM Android project alongside the normal desktop project.
 
 Current Android scope:

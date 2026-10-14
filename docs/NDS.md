@@ -1,5 +1,9 @@
 # Nintendo DS (in progress)
 
+> **Not playable yet.** Games build and may start, but expect wrong
+> graphics, missing sound and crashes. The hub marks Nintendo DS games the
+> same way.
+
 The hub recompiles and plays `.nds` ROMs: both of the console's processors
 (the ARM9 and the ARM7) are recompiled from the game's own code, and the
 two screens, the 3D engine, sound, the touch screen, the microphone, the
@@ -14,7 +18,7 @@ the first scene on the ship), ends that route in the same state bit for bit
 as a build that uses the decompilation's symbols, and is clean in
 `--differential` over 6,000 scripted frames. In its window it holds full
 speed with no audio underruns. The plan, phase gates and current results
-are in [docs/NDS-PLAN.md](docs/NDS-PLAN.md).
+are in [docs/NDS-PLAN.md](NDS-PLAN.md).
 
 One commercial game has been taken through so far. Other games should be
 expected to find gaps; see [What is not done](#what-is-not-done).
@@ -67,7 +71,7 @@ out/build/game --frames 600 --dump-frame title.ppm --quiet
 
 The executable opens a window unless a test option asks for a headless run
 (`--frames`, `--dump-frame`, `--differential`, `--coverage` and the rest of
-[nds_runner.c](runtime-nds/src/nds_runner.c)'s list). `nds_run` and
+[nds_runner.c](../runtime-nds/src/nds_runner.c)'s list). `nds_run` and
 `nds_play` are the same two programs for a ROM file, with the interpreter
 alone.
 

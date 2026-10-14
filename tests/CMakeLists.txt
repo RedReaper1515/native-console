@@ -208,7 +208,7 @@ add_test(NAME generated_jump_safepoints_end_to_end
         ${GBRECOMP_GENERATED_CMAKE_ARGS})
 set_tests_properties(generated_jump_safepoints_end_to_end PROPERTIES TIMEOUT 240)
 
-# Lifting to source (LIFTING.md): the export, the mechanical lift and the
+# Lifting to source (docs/LIFTING.md): the export, the mechanical lift and the
 # checker, on a ROM with a function for every instruction. Needs a C compiler
 # on PATH, like the generated-project tests.
 add_test(NAME lift_export_baseline_and_checker_end_to_end
@@ -916,7 +916,7 @@ add_test(NAME generated_workspace_end_to_end
         ${GBRECOMP_GENERATED_CMAKE_ARGS})
 set_tests_properties(generated_workspace_end_to_end PROPERTIES TIMEOUT 900)
 
-# Lifted C as a source folder (LIFTING.md, "Working in the source"): made by
+# Lifted C as a source folder (docs/LIFTING.md, "Working in the source"): made by
 # `gb_lift.py source`, edited, and built into the game by `gb_lift.py build`.
 # A comment and a tidied body have to be kept and still match the ROM's code,
 # a function changed on purpose has to stop the build until changes.txt says
