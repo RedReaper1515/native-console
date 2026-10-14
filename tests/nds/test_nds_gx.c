@@ -1,5 +1,5 @@
 /*
- * Directed tests for the DS geometry engine (runtime-nds/src/nds_gx.c): the
+ * Directed tests for the DS geometry engine (runtimes/runtime-nds/src/nds_gx.c): the
  * command FIFO and its timing, the matrix commands and stacks, lighting,
  * texture coordinate generation, the tests, and polygon set-up (culling,
  * clipping, the viewport, the RAM limits).

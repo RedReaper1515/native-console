@@ -50,37 +50,37 @@ else()
 endif()
 
 # Subdirectories
-add_subdirectory(recompiler)
+add_subdirectory(recompilers/recompiler-gb)
 
 # Game Boy Advance runtime (the CPU core needs no SDL) and recompiler.
-add_subdirectory(runtime-gba)
-add_subdirectory(recompiler-gba)
+add_subdirectory(runtimes/runtime-gba)
+add_subdirectory(recompilers/recompiler-gba)
 
 # Super Nintendo runtime (the CPU cores need no SDL) and recompiler.
-add_subdirectory(runtime-snes)
-add_subdirectory(recompiler-snes)
+add_subdirectory(runtimes/runtime-snes)
+add_subdirectory(recompilers/recompiler-snes)
 
 # NES runtime (the CPU core needs no SDL) and recompiler.
-add_subdirectory(runtime-nes)
-add_subdirectory(recompiler-nes)
+add_subdirectory(runtimes/runtime-nes)
+add_subdirectory(recompilers/recompiler-nes)
 
 # GameCube runtime. The recompiler and the rest of the machine arrive in
 # later phases; see docs/GC-PLAN.md.
-add_subdirectory(runtime-gc)
-add_subdirectory(recompiler-gc)
+add_subdirectory(runtimes/runtime-gc)
+add_subdirectory(recompilers/recompiler-gc)
 
 # Nintendo DS runtime. The CPU cores so far; see docs/NDS-PLAN.md.
-add_subdirectory(runtime-nds)
-add_subdirectory(recompiler-nds)
+add_subdirectory(runtimes/runtime-nds)
+add_subdirectory(recompilers/recompiler-nds)
 
 # Nintendo 64 runtime and recompiler; see docs/N64-PLAN.md.
-add_subdirectory(runtime-n64)
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/recompiler-n64/CMakeLists.txt)
-    add_subdirectory(recompiler-n64)
+add_subdirectory(runtimes/runtime-n64)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/recompilers/recompiler-n64/CMakeLists.txt)
+    add_subdirectory(recompilers/recompiler-n64)
 endif()
 
 if(SDL2_FOUND)
-    add_subdirectory(runtime)
+    add_subdirectory(runtimes/runtime-gb)
 endif()
 
 # Optional: Native Console Hub (library, import/build pipeline, launcher)

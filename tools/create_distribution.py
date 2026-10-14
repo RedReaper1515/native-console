@@ -50,7 +50,7 @@ CONSOLES = (
     Console(
         "gb",
         "gbrecomp",
-        "runtime",
+        "runtimes/runtime-gb",
         (
             "CMakeLists.txt",
             "include/gbrt.h",
@@ -62,11 +62,11 @@ CONSOLES = (
         ),
     ),
     # Generated GBA, SNES, NES, DS and GameCube projects take Dear ImGui from
-    # runtime/vendor/imgui, which the Game Boy row ships.
+    # runtimes/runtime-gb/vendor/imgui, which the Game Boy row ships.
     Console(
         "gba",
         "gbarecomp",
-        "runtime-gba",
+        "runtimes/runtime-gba",
         (
             "include/gba_recomp.h",
             "include/gba.h",
@@ -78,7 +78,7 @@ CONSOLES = (
     Console(
         "snes",
         "snesrecomp",
-        "runtime-snes",
+        "runtimes/runtime-snes",
         (
             "include/snes_recomp.h",
             "include/snes.h",
@@ -90,7 +90,7 @@ CONSOLES = (
     Console(
         "nes",
         "nesrecomp",
-        "runtime-nes",
+        "runtimes/runtime-nes",
         (
             "include/nes_recomp.h",
             "include/nes.h",
@@ -102,7 +102,7 @@ CONSOLES = (
     Console(
         "nds",
         "ndsrecomp",
-        "runtime-nds",
+        "runtimes/runtime-nds",
         (
             "include/nds_recomp.h",
             "include/nds.h",
@@ -114,7 +114,7 @@ CONSOLES = (
     Console(
         "gc",
         "gcrecomp",
-        "runtime-gc",
+        "runtimes/runtime-gc",
         (
             "CMakeLists.txt",
             "include/gc.h",
@@ -127,7 +127,7 @@ CONSOLES = (
     Console(
         "n64",
         "n64recomp",
-        "runtime-n64",
+        "runtimes/runtime-n64",
         (
             "include/n64_recomp.h",
             "include/n64.h",

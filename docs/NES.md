@@ -17,12 +17,12 @@ round. The plan, phase gates and current results are in
 ## Layout
 
 ```text
-runtime-nes/     6502 core (interpreter + shared instruction handlers),
+runtimes/runtime-nes/     6502 core (interpreter + shared instruction handlers),
                  machine (memory map, controllers, OAM DMA, device clocks,
                  interrupts), cartridge boards, dot-accurate PPU, APU, save
                  states, recompiled-code dispatcher, headless runner, SDL2
                  frontend and overlay menu (platform/)
-recompiler-nes/  nesrecomp: analyzer and C emitter
+recompilers/recompiler-nes/  nesrecomp: analyzer and C emitter
 tests/nes/       SingleStepTests harness, PPU, APU and cartridge unit tests,
                  test-ROM baseline, menu self-test
 tools/nes/       test-ROM runner, recompile suite, 6502 assembler, the
@@ -101,7 +101,7 @@ in both.
 
 The menu's **Overscan** setting (on by default) hides the top and bottom 8
 lines, as a television does; many games leave garbage there. Scale filters:
-**Nearest**, **Linear** and **CRT** (`runtime-nes/src/nes_crt.c`, the SNES
+**Nearest**, **Linear** and **CRT** (`runtimes/runtime-nes/src/nes_crt.c`, the SNES
 runtime's filter).
 
 Controls (rebindable in the menu): arrows, X or L = A, Z or K = B, Enter =

@@ -1,6 +1,6 @@
 """Run guest programs through the reference rasteriser and through OpenGL, and hold the two to each other.
 
-The reference rasteriser in runtime-gc/src/gc_gx_raster.c is what the
+The reference rasteriser in runtimes/runtime-gc/src/gc_gx_raster.c is what the
 hardware tests are held to, so it is what "correct" means here. The OpenGL
 path is a fast path and is right exactly insofar as it agrees with the
 reference. This runs a program both ways and compares two things:

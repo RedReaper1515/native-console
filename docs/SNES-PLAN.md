@@ -18,10 +18,10 @@ every item of the SNES assembly-to-C nuances checklist is tested
    used locally only, never committed.
 2. **No copyrighted firmware.** The SNES has no CPU BIOS. The SPC700's 64-byte
    boot ROM is our own program implementing the documented upload protocol
-   (`runtime-snes/src/snes_apu.c`).
+   (`runtimes/runtime-snes/src/snes_apu.c`).
 3. **One semantics source.** The interpreter and generated C call the same
    force-inlined handlers `snes_op_XX(c, mode)` in
-   `runtime-snes/include/snes_cpu_impl.h`. The mode argument (E, M, X) is a
+   `runtimes/runtime-snes/include/snes_cpu_impl.h`. The mode argument (E, M, X) is a
    constant in generated code, so the width branches fold away. The vectors
    validate the handlers once; the emitter only sequences them.
 4. **Guest state is explicit.** Registers and flags live in `SnesCpu`; every
@@ -58,7 +58,7 @@ release pinned by SHA-256) into `roms/snes/` and writes `MANIFEST.json`.
 ## Layout
 
 ```text
-runtime-snes/
+runtimes/runtime-snes/
   include/snes_cpu.h        65C816 state (shared by the S-CPU and the SA-1)
   include/snes_cpu_impl.h   instruction handlers, force-inlined; opcode table
   include/snes_cpu_decode.h opcode classification (analyzer, emitter, tools)
@@ -80,7 +80,7 @@ runtime-snes/
   src/snes_runner.c         headless runner and --differential
   platform/                 SDL2 frontend and overlay menu
   tools/snes_run.c, snes_play.c
-recompiler-snes/src/        rom, analyzer, emitter, CLI (snesrecomp)
+recompilers/recompiler-snes/src/        rom, analyzer, emitter, CLI (snesrecomp)
 tests/snes/                 SST harnesses, PPU, APU and SA-1 unit tests, ROM baseline
 hub/src/console_snes.cpp    hub backend
 tools/fetch_snes_tests.py

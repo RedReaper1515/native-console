@@ -4,7 +4,7 @@
 A game started with `--control PORT` connects to the program that listens
 there and stops at the start of every frame. Stopped, it says what its
 memory holds; told which buttons are held and for how many frames, it runs
-on (`runtime/include/gbrt_control.h` has what goes over the connection,
+on (`runtimes/runtime-gb/include/gbrt_control.h` has what goes over the connection,
 `docs/RUNTIME.md` the option). This module starts the game and is that program's
 side of it:
 

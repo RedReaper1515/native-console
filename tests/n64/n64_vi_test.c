@@ -22,7 +22,7 @@
  */
 
 /*
- * The VI's scan-out (runtime-n64/src/n64_vi.c), checked pixel for pixel in
+ * The VI's scan-out (runtimes/runtime-n64/src/n64_vi.c), checked pixel for pixel in
  * the host frame.
  *
  * Each test writes a small framebuffer into RDRAM - chosen colours, and

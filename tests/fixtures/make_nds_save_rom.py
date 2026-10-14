@@ -11,7 +11,7 @@ save and draws a frame that is not black.
 
 The game code is "####", which is in no table of save chips, so the runtime
 has to recognise the chip from the write: two address bytes and four data
-bytes make it a 64 KiB EEPROM (runtime-nds/src/nds_save.c).
+bytes make it a 64 KiB EEPROM (runtimes/runtime-nds/src/nds_save.c).
 
 What a test can check:
 

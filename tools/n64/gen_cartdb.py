@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write runtime-n64/src/n64_cartdb.c from ares's Nintendo 64 save database.
+"""Write runtimes/runtime-n64/src/n64_cartdb.c from ares's Nintendo 64 save database.
 
 The save hardware of an N64 cartridge (EEPROM 4/16 Kbit, SRAM, FlashRAM) and
 the accessories a game supports are not in its header. ares
@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "runtime-n64" / "src" / "n64_cartdb.c"
+OUT = ROOT / "runtimes" / "runtime-n64" / "src" / "n64_cartdb.c"
 
 LINE = re.compile(r'^\s*if\(id == "(\w{3})"\)\s*\{([^}]*)\}')
 

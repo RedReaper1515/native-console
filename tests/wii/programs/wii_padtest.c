@@ -5,7 +5,7 @@
  * how any of that works. It waits for the first remote, asks for buttons,
  * accelerometer and pointer, and says whether what arrives is what the
  * runner put on the remote (gc_run --pad-test, or --pad-test=classic for
- * the other extension; the figures are in runtime-gc/tools/gc_run.c).
+ * the other extension; the figures are in runtimes/runtime-gc/tools/gc_run.c).
  *
  * So a pass covers the lot: the module's start-up, the remote's connection
  * and its two channels, the handshake that reads its calibration out of

@@ -1,6 +1,6 @@
 /*
  * The lift checker runs original code on its own small SM83 interpreter
- * (lift/checker/lift_cpu.c). Whatever that interpreter gets wrong, every
+ * (lift/checkers/checker-gb/lift_cpu.c). Whatever that interpreter gets wrong, every
  * verdict of the checker gets wrong with it, so this holds it to the
  * runtime's interpreter: each opcode, from many random states, must leave
  * the same registers, flags, memory and cycle count in both.

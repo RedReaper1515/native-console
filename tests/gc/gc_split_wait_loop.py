@@ -5,10 +5,10 @@ and a trace's addresses inside a block no longer cut it.
 An interrupt returns into the middle of a wait loop, so a trace from before
 resumed entries were left out of traces names the loop's second and third
 instructions. gcrecomp leaves out traced addresses inside a block static
-analysis finds on its own (recompiler-gc/src/main.cpp), so the loop stays one
+analysis finds on its own (recompilers/recompiler-gc/src/main.cpp), so the loop stays one
 block. A branch from outside into the middle of a loop still cuts it into
 blocks, and the emitter has to recognise the loop across them
-(idle_loop_end in recompiler-gc/src/emitter.cpp): Shrek 2 spent 28 % of a run
+(idle_loop_end in recompilers/recompiler-gc/src/emitter.cpp): Shrek 2 spent 28 % of a run
 in one such loop.
 
 Program A is `lis r3, 0x8000; loop: lwz r0, 0x3000(r3); cmplwi r0, 0;

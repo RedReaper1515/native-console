@@ -83,7 +83,7 @@ def main():
             print(f"FAIL: n64recomp ({variant})")
             return 1
         r = run(["cmake", "-G", "Ninja", "-S", out, "-B", out / "build", "-DCMAKE_BUILD_TYPE=Release",
-                 f"-DN64RT_PREBUILT_LIBS={libs}", f"-DN64RT_PREBUILT_INCLUDE={ROOT / 'runtime-n64' / 'include'}"])
+                 f"-DN64RT_PREBUILT_LIBS={libs}", f"-DN64RT_PREBUILT_INCLUDE={ROOT / 'runtimes' / 'runtime-n64' / 'include'}"])
         if r.returncode:
             print(r.stdout[-2000:], r.stderr[-2000:])
             print(f"FAIL: configure ({variant})")

@@ -327,7 +327,7 @@ class Workspace:
         """The runtime a generated game is built from: its sources are copied into the project."""
         options = self.inputs["options"]
         folder = Path(options[options.index("--runtime-dir") + 1]) if "--runtime-dir" in options[:-1] else \
-            Path(os.environ.get("GBRECOMP_RUNTIME_DIR") or ROOT / "runtime")
+            Path(os.environ.get("GBRECOMP_RUNTIME_DIR") or ROOT / "runtimes" / "runtime-gb")
         return tree_digest(folder, (".c", ".cpp", ".h", "CMakeLists.txt")) if folder.is_dir() else ""
 
     # ---- saying and running ------------------------------------------------------------------

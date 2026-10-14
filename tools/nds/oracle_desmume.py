@@ -12,7 +12,7 @@ Run it with the oracle environment's interpreter (docs/NDS-PLAN.md, Decisions):
         [--dump-ram FILE] [--dump-mem ADDR:LEN[:FILE]]... [--regs]
         [--save-dir DIR] [--rtc-time "YYYY-MM-DD HH:MM:SS"] [--quiet] [@FILE]...
 
---keys, --touch and --lid are nds_run's (runtime-nds/src/nds_runner.c): the
+--keys, --touch and --lid are nds_run's (runtimes/runtime-nds/src/nds_runner.c): the
 input is held while frames FRAME to FRAME+N-1 run, frames counted from 0, N 1
 when left out, and it is set before the frame runs. DeSmuME cannot close the
 lid for less than 20 frames, so --lid needs its N here. @FILE reads more

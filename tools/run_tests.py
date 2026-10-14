@@ -286,7 +286,7 @@ def run_test(name: str, rom_path: Path, frame_limit: int, suite: str,
         return result
 
     fingerprint = build_cache_fingerprint(
-        rom_path, GBRECOMP, WORKSPACE / "runtime", model
+        rom_path, GBRECOMP, WORKSPACE / "runtimes" / "runtime-gb", model
     )
     generated_cache_current = (
         (out_dir / "CMakeLists.txt").exists()

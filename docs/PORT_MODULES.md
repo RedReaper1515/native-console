@@ -5,7 +5,7 @@ of exact-ROM source-built extensions into a generated project. This host
 functionality is optional: the generated game, accurate PPU path, and headless
 execution remain available independently.
 
-The v3 ABI is declared in `runtime/include/gbrt_port.h`. It deliberately does
+The v3 ABI is declared in `runtimes/runtime-gb/include/gbrt_port.h`. It deliberately does
 not expose SDL, ImGui, a graphics API, generated function names, `GBContext`,
 or writable guest-memory pointers. In addition to bounded read services, a
 reviewed source-built exact-ROM integration can submit one synchronous

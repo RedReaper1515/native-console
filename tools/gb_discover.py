@@ -24,7 +24,7 @@ import zlib
 from dataclasses import dataclass
 from pathlib import Path
 
-# GBSavestateFileHeader in runtime/src/gbrt.c.
+# GBSavestateFileHeader in runtimes/runtime-gb/src/gbrt.c.
 HEADER = struct.Struct("<IIQIIIIIIIII")
 SAVESTATE_MAGIC = 0x56534247  # 'GBSV'
 WRAM_SIZE = 0x1000 * 8

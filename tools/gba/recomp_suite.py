@@ -58,7 +58,7 @@ def build_one(rom: Path, data: Path, out_root: Path, env: dict, BUILD: Path) -> 
     cmake = shutil.which("cmake", path=path) or "cmake"
     ninja = shutil.which("ninja", path=path) or "ninja"
     cfg = subprocess.run([cmake, "-G", "Ninja", "-S", str(out), "-B", str(out / "build"),
-                          f"-DGBART_PREBUILT_LIB={lib}", f"-DGBART_PREBUILT_INCLUDE={REPO / 'runtime-gba' / 'include'}"],
+                          f"-DGBART_PREBUILT_LIB={lib}", f"-DGBART_PREBUILT_INCLUDE={REPO / 'runtimes' / 'runtime-gba' / 'include'}"],
                          capture_output=True, text=True, env=env)
     if cfg.returncode:
         return None, "configure failed: " + cfg.stdout[-400:] + cfg.stderr[-400:]

@@ -740,7 +740,7 @@ texels of a bilinear fetch are combined in one step with the product weights
 where `fs` and `ft` are the low seven bits of the fixed-point S and T coordinates, and the sum of
 the four weighted channels is shifted right by **fourteen** — the two seven-bit weights multiplied
 together. Again a truncation. The existing float implementation in
-`runtime-gc/src/gc_gx_texture.c` adds 0.5 before truncating, i.e. rounds, and will therefore
+`runtimes/runtime-gc/src/gc_gx_texture.c` adds 0.5 before truncating, i.e. rounds, and will therefore
 differ by one unit from this on roughly half of all filtered texels.
 
 Both of these are Dolphin's arithmetic, not a hardware measurement, so the note in that file

@@ -39,7 +39,7 @@ prose.
    cannot show: what the *DSP* side of the protocol does, the AX command numbering, the parameter
    block layout, and the sample decoder. Dolphin is a second implementation, not hardware; claims
    that rest on it alone are marked as such.
-5. **`runtime-gc/src/gc_io.c`** in this repository, for what already exists. The DSP block is
+5. **`runtimes/runtime-gc/src/gc_io.c`** in this repository, for what already exists. The DSP block is
    `dsp_regs[]` at `gc_io.c:993`; the mailbox and control handling is `gc_io.c:60-291`; the audio
    interface is `gc_io.c:293-359` and `ai_regs[]` at `gc_io.c:1062`.
 

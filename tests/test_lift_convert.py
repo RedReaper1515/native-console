@@ -95,7 +95,7 @@ def assemble(origin: int, items: list) -> tuple[bytes, dict[str, int]]:
 
 # Where a function's first push puts its low byte when the checker has made up the state it is
 # entered in: the stack pointer is $DFF0 there unless the state says otherwise, with the caller's
-# return address under it (make_state in lift/checker/lift_check.c).
+# return address under it (make_state in lift/checkers/checker-gb/lift_check.c).
 STACK_BYTE = 0xDFEC
 
 

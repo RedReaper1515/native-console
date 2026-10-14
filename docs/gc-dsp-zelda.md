@@ -7,8 +7,8 @@ with AX but the mailbox and the ROM's upload protocol, and a game that
 uploads it and is answered as AX waits for ever for the second word of the
 real greeting.
 
-This is the description `runtime-gc/src/gc_zelda.c` (the conversation) and
-`runtime-gc/src/gc_zelda_mix.c` (the sound) are written from, and
+This is the description `runtimes/runtime-gc/src/gc_zelda.c` (the conversation) and
+`runtimes/runtime-gc/src/gc_zelda_mix.c` (the sound) are written from, and
 `tests/gc/gc_zelda_test.c` and `tests/gc/gc_zelda_mix_test.c` hold them to.
 
 ## Provenance

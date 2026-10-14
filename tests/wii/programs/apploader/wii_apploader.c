@@ -4,7 +4,7 @@
  * Every disc carries a small program whose job is to load the game: the
  * console calls it for three functions, calls the second until it says it is
  * finished - each time reading what it asks for off the disc - and jumps to
- * the address the third returns (runtime-gc/src/gc_apploader.c tells the
+ * the address the third returns (runtimes/runtime-gc/src/gc_apploader.c tells the
  * story from the other side). A retail disc's is Nintendo's and stays on the
  * disc it came on. This one is ours, so that a disc built in this
  * repository can boot the way a game does: through an encrypted partition,

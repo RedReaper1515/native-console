@@ -17,12 +17,12 @@ current results are in [docs/SNES-PLAN.md](SNES-PLAN.md).
 ## Layout
 
 ```text
-runtime-snes/     65C816 core (interpreter + shared instruction handlers, used
+runtimes/runtime-snes/     65C816 core (interpreter + shared instruction handlers, used
                   by the S-CPU and the SA-1), machine (memory map, I/O, DMA/HDMA,
                   timing, interrupts), PPU, SPC700 + S-DSP, SA-1, save states,
                   recompiled-code dispatcher, headless runner, SDL2 frontend
                   and overlay menu (platform/)
-recompiler-snes/  snesrecomp: analyzer and C emitter
+recompilers/recompiler-snes/  snesrecomp: analyzer and C emitter
 tests/snes/       SingleStepTests harnesses (65C816, SPC700), PPU, APU and SA-1
                   unit tests, test-ROM baseline, menu self-test
 tools/snes/       test-ROM runner, recompile suite, 65C816 assembler and
@@ -93,7 +93,7 @@ lines. On a full-screen plane it costs about 1 ms a frame at 2x and 2.8 ms at 4x
 (`--dump-large FILE.ppm` writes the larger picture headless).
 
 Scale filters: **Nearest**, **Linear**, and **CRT**
-(`runtime-snes/src/snes_crt.c`, a copy of the GBA runtime's), which draws
+(`runtimes/runtime-snes/src/snes_crt.c`, a copy of the GBA runtime's), which draws
 the picture as a CRT television shows it: each line is a glowing beam,
 blurred a little along the line, that is thin where the picture is dark and
 swells as it brightens; an aperture grille of red, green and blue stripes is

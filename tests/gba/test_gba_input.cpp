@@ -1,5 +1,5 @@
 /*
- * GBA input bindings (runtime-gba/platform/gba_input.cpp):
+ * GBA input bindings (runtimes/runtime-gba/platform/gba_input.cpp):
  *
  * - Every platform's defaults bind each control to at most one action.
  * - Mac shortcuts use Command, never F-keys (a Mac laptop's F-keys are

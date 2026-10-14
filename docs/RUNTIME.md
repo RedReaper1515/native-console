@@ -51,7 +51,7 @@ The Palette selector changes DMG display colors to green, black and white, or am
 
 Battery-backed RAM and MBC3 RTC data are loaded and saved by the SDL platform layer. Savestates provide ten slots per game and are checked against the ROM and state-format version before loading. The ROM a state is checked against is the one the game was built from: a state made while a ROM image stood in for it (`--rom-image`) loads with another image or with none, and the game says in a line that what the state holds in memory from the other image stays until the game loads the data again (`docs/DATA_FILES.md`).
 
-Treat savestates as local to a compatible runtime/game build. A runtime update can intentionally reject an older state when internal hardware state changes. Battery `.sav` files are the more durable persistence format.
+Treat savestates as local to a compatible runtimes/runtime-gb/game build. A runtime update can intentionally reject an older state when internal hardware state changes. Battery `.sav` files are the more durable persistence format.
 
 ## Link cable
 
@@ -234,7 +234,7 @@ record's buttons and not the program's.
 With a window the game runs at the speed a person plays it, and with
 `--headless` as fast as the program answers. If the program goes away the
 game closes with exit code 1. What goes over the connection is written down
-in `runtime/include/gbrt_control.h`, for a program in another language.
+in `runtimes/runtime-gb/include/gbrt_control.h`, for a program in another language.
 
 ### A backward trace from a RAM address
 
@@ -417,7 +417,7 @@ fit in the runtime's diagnostic inventory. Treat `complete=no` or a nonzero
 (including jumps, calls, returns, restarts, HALT, and STOP) are included in the
 per-site instruction and cycle totals.
 
-If the summary says `No interpreter fallback recorded`, investigate runtime/device work instead of analyzer coverage.
+If the summary says `No interpreter fallback recorded`, investigate runtimes/runtime-gb/device work instead of analyzer coverage.
 
 ## Differential execution
 

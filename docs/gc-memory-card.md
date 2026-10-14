@@ -39,7 +39,7 @@ the sole support for a claim that an emulated card must satisfy.
 **No hardware test exists for any of this.** `roms/gc/hwtests/` contains `cputest`, `gxtest` and
 `iostest`; none of them touches EXI or the memory card. So every claim here rests on libogc's
 source, on the arithmetic that has to be true for libogc's own structures to fit, or on the
-observed behaviour of `runtime-gc`. Each claim below says which. Anything not established by those
+observed behaviour of `runtimes/runtime-gc`. Each claim below says which. Anything not established by those
 is marked **Unverified:**.
 
 A note on what libogc is and is not evidence *for*. libogc is an independent reimplementation of
@@ -74,7 +74,7 @@ Two consequences an emulator must get right:
   calls it "other EXI devices", and `exi.c:134` notes it is used only when a debugger is attached.
 * **Device 0 on channel 0 is the card; device 1 on channel 0 is something else entirely** — the
   RTC, the 64-byte settings SRAM and the font ROM share it (`system.c:511`, `538`, `556`). That is
-  the device `runtime-gc` already answers (§A.4). A card and the settings block live on the same
+  the device `runtimes/runtime-gc` already answers (§A.4). A card and the settings block live on the same
   channel and are distinguished only by the device-select bits in the channel's control/status
   register.
 
@@ -96,7 +96,7 @@ array with a **stride of five words (20 bytes) per channel**: `_exiReg[nChn*5 + 
 | `+ 3` | `0x0C + 0x14n` | **CR** — transfer control | the transfer request; bit 0 is TSTART |
 | `+ 4` | `0x10 + 0x14n` | **immediate data** | one 32-bit word of payload |
 
-This is exactly the layout `runtime-gc/src/gc_io.c:1048-1058` already declares (`exi_regs`), with
+This is exactly the layout `runtimes/runtime-gc/src/gc_io.c:1048-1058` already declares (`exi_regs`), with
 the block based at `0x6800` and 0x40 bytes long (`gc_io.c:1075`) — three channels of 0x14 is 0x3C.
 
 ### The CSR bits libogc uses
@@ -204,7 +204,7 @@ then does not answer gets a hang.
   is expected to call again. If the machine's time source does not advance, `diff_usec` never grows
   and the probe returns 0 for ever; a game that treats that as "no card" carries on, and a game
   that polls until it changes hangs. The dependency is on `SYS_Time()`, i.e. on the Gekko timebase,
-  which `runtime-gc` already advances for the VI.
+  which `runtimes/runtime-gc` already advances for the VI.
 
 * For a channel that *is* attached, the test inverts: if bit 12 has gone clear or bit 11 has gone
   set, the card is considered gone and the cached ID is dropped.
@@ -243,9 +243,9 @@ One more constraint from the same code: `EXI_Deselect()` re-probes after every d
 (`card.c:975`). **Bit 12 must stay set for the whole session**; dropping it mid-operation is read
 as the card being pulled out and turns into `CARD_ERROR_NOCARD`.
 
-## A.4 What `runtime-gc` does today
+## A.4 What `runtimes/runtime-gc` does today
 
-`runtime-gc/src/gc_io.c:523-562` implements `exi_start()`, hooked onto the three control registers
+`runtimes/runtime-gc/src/gc_io.c:523-562` implements `exi_start()`, hooked onto the three control registers
 (`gc_io.c:1051`, `1054`, `1057`). Its behaviour:
 
 * Any transfer completes inside the write that started it, by clearing TSTART (`gc_io.c:561`).
@@ -255,7 +255,7 @@ as the card being pulled out and turns into `CARD_ERROR_NOCARD`.
 * A **DMA read** zeroes the destination, and then, if the channel is 0 and the last recorded
   command word was `0x20000100`, overlays the 64-byte settings image (`gc_io.c:544-549`).
 * A **DMA write** is discarded.
-* `GC_INT_EXI` (`runtime-gc/include/gc.h:52`) exists and is never asserted.
+* `GC_INT_EXI` (`runtimes/runtime-gc/include/gc.h:52`) exists and is never asserted.
 
 Three structural gaps stand between that and a card, none of them large but all of them load-bearing:
 
@@ -642,7 +642,7 @@ read in a decompiled SDK as a behaviour reference): it re-runs the generator fro
 at `0x0C` and calls the card broken unless every serial byte equals the console's flash ID plus the
 generator's byte. This was found by Shrek 2 calling a card we formatted corrupted (GC-PLAN.md, "A
 real game's saves"). An emulated card therefore needs its header and the settings block's flash ID
-to agree: `runtime-gc` recovers the flash ID from the header and reports it in the settings block,
+to agree: `runtimes/runtime-gc` recovers the flash ID from the header and reports it in the settings block,
 which is what the unlock handshake achieves on hardware.
 
 ## D.3 The checksum
@@ -953,7 +953,7 @@ offsets within the 64 bytes are:
 | `0x3A` | `flashID_chksum[0]` |
 | `0x3B` | `flashID_chksum[1]` |
 
-**This is a live bug in the runtime as it stands.** `runtime-gc/src/gc_io.c:501-516` builds a
+**This is a live bug in the runtime as it stands.** `runtimes/runtime-gc/src/gc_io.c:501-516` builds a
 settings image that is zero everywhere except bytes `0x10`–`0x13` and the checksum pair. With
 `flash_id[0]` all zero, the required checksum is `(~0) & 0xFF = 0xFF`, and the image supplies `0x00`
 — so the first libogc-based program to mount an already-unlocked card in slot A would fail with
@@ -970,7 +970,7 @@ expected to agree.
 Both are outside this document's subject and both are in the 64 bytes the card's mount path reads,
 so they are recorded here rather than lost.
 
-**The settings checksum range is disputed.** `runtime-gc/src/gc_io.c:490-499` computes the sum and
+**The settings checksum range is disputed.** `runtimes/runtime-gc/src/gc_io.c:490-499` computes the sum and
 complement-sum over **bytes `0x04`–`0x3F`** — everything after the pair — and `docs/GC-PLAN.md`
 describes the rule the same way, on the evidence that a commercial game stopped spinning once it was
 implemented. libogc computes it over **four halfwords only, bytes `0x0C`–`0x13`**:

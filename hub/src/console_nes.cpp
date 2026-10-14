@@ -21,7 +21,7 @@ namespace hub {
 
 namespace {
 
-// The boards runtime-nes/src/nes_cart.c implements, by iNES mapper number.
+// The boards runtimes/runtime-nes/src/nes_cart.c implements, by iNES mapper number.
 const char* board_name(unsigned mapper, bool chr_rom) {
     switch (mapper) {
         case 0: return "NROM";

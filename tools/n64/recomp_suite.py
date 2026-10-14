@@ -41,7 +41,7 @@ def check(rom: Path, out_root: Path, build: Path, frames: int, diff_frames: int)
         return "error", "n64recomp: " + (r.stderr or r.stdout)[-300:]
     libs = ";".join(str(build / "lib" / LIB.format(n)) for n in ("n64runtime", "n64rsp", "n64rdp"))
     r = subprocess.run(["cmake", "-G", "Ninja", "-S", str(out), "-B", str(out / "build"), "-DCMAKE_BUILD_TYPE=Release",
-                        f"-DN64RT_PREBUILT_LIBS={libs}", f"-DN64RT_PREBUILT_INCLUDE={ROOT / 'runtime-n64' / 'include'}"],
+                        f"-DN64RT_PREBUILT_LIBS={libs}", f"-DN64RT_PREBUILT_INCLUDE={ROOT / 'runtimes' / 'runtime-n64' / 'include'}"],
                        capture_output=True, text=True)
     if r.returncode:
         return "error", "configure: " + r.stdout[-300:] + r.stderr[-300:]

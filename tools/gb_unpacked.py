@@ -194,7 +194,7 @@ def made_sizes(unpacker: dict) -> list[int]:
 
 
 def pack_bytes(rom_size: int, rom_sha256: str, unpackers: list[dict], entries: list[tuple]) -> bytes:
-    """The pack the game reads (runtime/src/gbrt_unpacked.c has the layout).
+    """The pack the game reads (runtimes/runtime-gb/src/gbrt_unpacked.c has the layout).
     An entry is (index of its unpacker, the stream's bank and address, the
     SHA-256 of what the routine makes as 32 bytes, the bytes to have instead)."""
     out = bytearray(b"GBUP" + struct.pack("<II", 1, rom_size) + bytes.fromhex(rom_sha256))

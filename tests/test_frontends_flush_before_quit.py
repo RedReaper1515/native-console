@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 # The frontends: one per console runtime, and the Game Boy's.
-FRONTEND_GLOBS = ("runtime-*/platform/*_sdl.cpp", "runtime/src/platform_sdl.cpp")
+FRONTEND_GLOBS = ("runtimes/runtime-*/platform/*_sdl.cpp", "runtimes/runtime-gb/src/platform_sdl.cpp")
 # The fewest files the patterns must find: six consoles had a frontend when
 # this was written, and a pattern that stops matching must not pass.
 MIN_FRONTENDS = 6

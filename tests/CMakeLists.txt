@@ -123,7 +123,7 @@ add_test(
         "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/test_generation_progress.py"
         --gbrecomp "$<TARGET_FILE:gbrecomp>"
-        --runtime-dir "${PROJECT_SOURCE_DIR}/runtime"
+        --runtime-dir "${PROJECT_SOURCE_DIR}/runtimes/runtime-gb"
         --fixture-generator
         "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/make_mapper_rom.py"
 )
@@ -552,10 +552,10 @@ if(TARGET gbrt)
     # The lift checker's own interpreter against the runtime's, per opcode.
     add_executable(test_lift_cpu
         test_lift_cpu.c
-        "${PROJECT_SOURCE_DIR}/lift/checker/lift_cpu.c"
-        "${PROJECT_SOURCE_DIR}/lift/checker/lift_machine.c")
+        "${PROJECT_SOURCE_DIR}/lift/checkers/checker-gb/lift_cpu.c"
+        "${PROJECT_SOURCE_DIR}/lift/checkers/checker-gb/lift_machine.c")
     target_include_directories(test_lift_cpu PRIVATE
-        "${PROJECT_SOURCE_DIR}/lift/checker")
+        "${PROJECT_SOURCE_DIR}/lift/checkers/checker-gb")
     target_compile_definitions(test_lift_cpu PRIVATE GBLIFT_USE_RUNTIME_CONTEXT)
     target_link_libraries(test_lift_cpu PRIVATE gbrt)
     add_test(NAME lift_checker_cpu_matches_runtime_interpreter COMMAND test_lift_cpu)
@@ -837,24 +837,24 @@ add_test(NAME hub_voxel_profiles_install_and_launch COMMAND test_hub_voxel_profi
 foreach(bundle_file NativeConsoleMacBundle.cmake Info.plist.in make_macos_app.sh)
     add_test(NAME macos_bundle_${bundle_file}_copies_match
              COMMAND ${CMAKE_COMMAND} -E compare_files
-                     ${PROJECT_SOURCE_DIR}/runtime/cmake/${bundle_file}
-                     ${PROJECT_SOURCE_DIR}/runtime-gba/cmake/${bundle_file})
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/cmake/${bundle_file}
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-gba/cmake/${bundle_file})
     add_test(NAME macos_bundle_${bundle_file}_snes_copy_matches
              COMMAND ${CMAKE_COMMAND} -E compare_files
-                     ${PROJECT_SOURCE_DIR}/runtime/cmake/${bundle_file}
-                     ${PROJECT_SOURCE_DIR}/runtime-snes/cmake/${bundle_file})
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/cmake/${bundle_file}
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-snes/cmake/${bundle_file})
     add_test(NAME macos_bundle_${bundle_file}_nes_copy_matches
              COMMAND ${CMAKE_COMMAND} -E compare_files
-                     ${PROJECT_SOURCE_DIR}/runtime/cmake/${bundle_file}
-                     ${PROJECT_SOURCE_DIR}/runtime-nes/cmake/${bundle_file})
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/cmake/${bundle_file}
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-nes/cmake/${bundle_file})
     add_test(NAME macos_bundle_${bundle_file}_nds_copy_matches
              COMMAND ${CMAKE_COMMAND} -E compare_files
-                     ${PROJECT_SOURCE_DIR}/runtime/cmake/${bundle_file}
-                     ${PROJECT_SOURCE_DIR}/runtime-nds/cmake/${bundle_file})
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/cmake/${bundle_file}
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-nds/cmake/${bundle_file})
     add_test(NAME macos_bundle_${bundle_file}_n64_copy_matches
              COMMAND ${CMAKE_COMMAND} -E compare_files
-                     ${PROJECT_SOURCE_DIR}/runtime/cmake/${bundle_file}
-                     ${PROJECT_SOURCE_DIR}/runtime-n64/cmake/${bundle_file})
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/cmake/${bundle_file}
+                     ${PROJECT_SOURCE_DIR}/runtimes/runtime-n64/cmake/${bundle_file})
 endforeach()
 
 # A frontend that calls SDL_Quit() with text still in stdout's buffer now and
@@ -877,10 +877,10 @@ add_executable(test_hub_edited_data
     ${PROJECT_SOURCE_DIR}/hub/src/hub_edited_data.cpp
     ${PROJECT_SOURCE_DIR}/hub/src/hub_library.cpp
     ${PROJECT_SOURCE_DIR}/hub/src/hub_json.cpp
-    ${PROJECT_SOURCE_DIR}/runtime/src/gbrt_hash.c)
+    ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/src/gbrt_hash.c)
 target_include_directories(test_hub_edited_data PRIVATE
     ${PROJECT_SOURCE_DIR}/hub/src
-    ${PROJECT_SOURCE_DIR}/runtime/include)
+    ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/include)
 target_compile_features(test_hub_edited_data PRIVATE cxx_std_20)
 if(MSVC)
     target_compile_options(test_hub_edited_data PRIVATE /utf-8)

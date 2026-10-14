@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A small two-pass 65C816 assembler for the project's own test ROMs.
 
-The opcode table comes from runtime-snes/include/snes_cpu_decode.h (the
+The opcode table comes from runtimes/runtime-snes/include/snes_cpu_decode.h (the
 SNES_OPINFO lines), the same table the recompiler uses, so the assembler,
 the analyzer and the interpreter agree on every encoding.
 
@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-DECODE_H = REPO / "runtime-snes" / "include" / "snes_cpu_decode.h"
+DECODE_H = REPO / "runtimes" / "runtime-snes" / "include" / "snes_cpu_decode.h"
 
 ALIASES = {"IMP": "IMP"}
 

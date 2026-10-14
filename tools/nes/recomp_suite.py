@@ -153,7 +153,7 @@ def check(rom: Rom, opts, env: dict, tools: tuple[str, str]) -> Row:
         cfg = run([cmake, "-G", "Ninja", "-S", project / "p", "-B", project / "b", "-DCMAKE_BUILD_TYPE=Release",
                    "-DCMAKE_DISABLE_FIND_PACKAGE_SDL2=ON",  # headless: the prebuilt runtime has no frontend
                    "-DNESRT_PREBUILT_LIBS=" + ";".join(str(p) for p in opts.libs),
-                   f"-DNESRT_PREBUILT_INCLUDE={REPO / 'runtime-nes' / 'include'}"], opts.timeout, env)
+                   f"-DNESRT_PREBUILT_INCLUDE={REPO / 'runtimes' / 'runtime-nes' / 'include'}"], opts.timeout, env)
         if cfg.returncode:
             row.note = "configure failed: " + (cfg.stdout[-300:] + cfg.stderr[-300:]).strip()
             return row

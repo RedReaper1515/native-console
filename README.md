@@ -141,10 +141,10 @@ ROM -> decoder and analyzer -> IR + metadata -> generated C project
         \_______________________ hub drives this per game _______________/
 ```
 
-- `recompiler/` decodes and analyzes banked LR35902 code, emits reviewable C
+- `recompilers/recompiler-gb/` decodes and analyzes banked LR35902 code, emits reviewable C
   and machine-readable metadata, and falls back safely to an interpreter for
   anything static analysis did not compile.
-- `runtime/` provides DMG/CGB execution, cartridge mappers, SDL video, audio,
+- `runtimes/runtime-gb/` provides DMG/CGB execution, cartridge mappers, SDL video, audio,
   input, battery saves, RTC data, savestates, and the ImGui launcher.
 - `hub/` catalogues games, generates and runs each game's build script, and
   launches the results. Console backends live in `hub/src/console_*.cpp`.
@@ -181,14 +181,14 @@ build does not guarantee that every scene runs correctly.
 
 ## Game Boy Advance
 
-`recompiler-gba/` (`gbarecomp`) and `runtime-gba/` recompile `.gba` ROMs the
+`recompilers/recompiler-gba/` (`gbarecomp`) and `runtimes/runtime-gba/` recompile `.gba` ROMs the
 same way; the hub builds them like Game Boy games. [GBA.md](docs/GBA.md) describes
 what works, and [docs/GBA-PLAN.md](docs/GBA-PLAN.md) holds the plan, the test
 strategy and the current results.
 
 ## Super Nintendo (some titles work)
 
-`recompiler-snes/` (`snesrecomp`) and `runtime-snes/` recompile `.sfc` and
+`recompilers/recompiler-snes/` (`snesrecomp`) and `runtimes/runtime-snes/` recompile `.sfc` and
 `.smc` ROMs, SA-1 cartridges included, in the same way. [SNES.md](docs/SNES.md)
 describes what works, and [docs/SNES-PLAN.md](docs/SNES-PLAN.md) holds the
 plan, the test strategy, how each item of the SNES assembly-to-C nuances list
@@ -196,7 +196,7 @@ is tested, and the current results.
 
 ## NES (some titles work)
 
-`recompiler-nes/` (`nesrecomp`) and `runtime-nes/` recompile `.nes` ROMs of
+`recompilers/recompiler-nes/` (`nesrecomp`) and `runtimes/runtime-nes/` recompile `.nes` ROMs of
 the common cartridge boards. Cartridges switch banks at run time, so
 recompiled code is keyed by the bank mapped at its address.
 [NES.md](docs/NES.md) describes what works, and
@@ -205,7 +205,7 @@ the current results.
 
 ## Nintendo DS (not playable yet)
 
-`recompiler-nds/` (`ndsrecomp`) and `runtime-nds/` recompile `.nds` ROMs:
+`recompilers/recompiler-nds/` (`ndsrecomp`) and `runtimes/runtime-nds/` recompile `.nds` ROMs:
 both processors from the game's own code, with the screens, the 3D engine,
 sound, the touch screen, the microphone and the save chips in the runtime,
 and no BIOS or firmware file. A game's overlays load over one another, so a
@@ -216,7 +216,7 @@ the current results.
 
 ## Nintendo 64 (not playable yet)
 
-`recompiler-n64/` (`n64recomp`) and `runtime-n64/` recompile `.z64`, `.n64`
+`recompilers/recompiler-n64/` (`n64recomp`) and `runtimes/runtime-n64/` recompile `.z64`, `.n64`
 and `.v64` ROMs: the VR4300's code to C, with the RSP, the RDP (a software
 port of parallel-rdp), sound, controllers and cartridge saves in the
 runtime, and no boot ROM. krom's CPU, FPU and RSP test ROMs pass
@@ -227,7 +227,7 @@ the current results.
 
 ## GameCube (not playable yet)
 
-`recompiler-gc/` (`gcrecomp`) and `runtime-gc/` recompile GameCube discs: the
+`recompilers/recompiler-gc/` (`gcrecomp`) and `runtimes/runtime-gc/` recompile GameCube discs: the
 processor's code to C, with the graphics processor, sound, the disc, memory
 cards and controllers in the runtime. One game has been tested, Shrek 2. It
 builds and runs from the hub on Windows, but it is not playable yet, and
@@ -238,7 +238,7 @@ the plan and a dated log of the results.
 
 The Wii is the GameCube's design with more of everything, and is built here
 as the GameCube family's second console: the same `gcrecomp` and
-`runtime-gc/`, plus MEM2, Hollywood's registers, IOS emulated at the level a
+`runtimes/runtime-gc/`, plus MEM2, Hollywood's registers, IOS emulated at the level a
 game sees it (the disc, the flash filesystem, the remotes) and encrypted
 discs. It passes its tests against programs and a disc built in this
 repository; no retail game has been verified yet, so the hub keeps it
@@ -249,8 +249,9 @@ the results.
 
 ## Adding a console
 
-Each console family is a recompiler (`recompiler-<f>/`), a runtime
-(`runtime-<f>/`) and a hub backend (`hub/src/console_<f>.cpp`). A family
+Each console family is a recompiler (`recompilers/recompiler-<f>/`), a
+runtime (`runtimes/runtime-<f>/`) and a hub backend
+(`hub/src/console_<f>.cpp`). A family
 that meets the shared contract gets library builds, Linux / SteamOS and
 macOS builds, and export with no changes to that code: a self-contained
 CMake project, the ROM embedded, SDL2 as the only dependency, and

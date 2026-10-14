@@ -251,13 +251,13 @@ public:
             return true;
         }
         // A Wii's flash memory: the game's saves and the console's settings
-        // (runtime-gc/include/wii_nand.h).
+        // (runtimes/runtime-gc/include/wii_nand.h).
         if (wii_ && (file_name == game_id + ".nand" || file_name == game_id + ".nand.bak")) return true;
-        // Save states, slots 1-10 (runtime-gc/include/gc_state.h).
+        // Save states, slots 1-10 (runtimes/runtime-gc/include/gc_state.h).
         for (int slot = 1; slot <= 10; slot++) {
             if (file_name == game_id + ".state" + std::to_string(slot)) return true;
         }
-        // The OpenGL renderer's shader cache (runtime-gc/src/gc_gl_programs.c):
+        // The OpenGL renderer's shader cache (runtimes/runtime-gc/src/gc_gl_programs.c):
         // the list of pipelines the game has drawn with, <id>.pipelines, and
         // the compiled programs, <id>.<16 hex digits>.glbin. Kept, so a rebuilt
         // game compiles the pipelines it needs before they are drawn with; a

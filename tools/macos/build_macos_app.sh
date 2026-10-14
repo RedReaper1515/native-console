@@ -14,7 +14,7 @@
 #
 # Output: DIR/ID.app and DIR/ID-macos.zip (default DIR: output/macos).
 # Recompiles here, then finishes with the generated project's own
-# runtime/cmake/make_macos_app.sh (the step a hub "macOS kit" runs on a Mac).
+# runtimes/runtime-gb/cmake/make_macos_app.sh (the step a hub "macOS kit" runs on a Mac).
 # Written for the bash 3.2 that ships with macOS.
 set -euo pipefail
 

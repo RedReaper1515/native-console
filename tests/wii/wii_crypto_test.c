@@ -1,7 +1,7 @@
 /*
  * AES-128 and SHA-1 against the vectors their standards publish.
  *
- * runtime-gc/src/wii_crypto.c was written from the standards rather than
+ * runtimes/runtime-gc/src/wii_crypto.c was written from the standards rather than
  * taken from a library, so this is what says it is right: the worked
  * examples in FIPS-197, the CBC vectors in NIST SP 800-38A, and the SHA-1
  * test cases in RFC 3174. Every key here is one of those documents' own

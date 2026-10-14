@@ -105,7 +105,7 @@ SUITES = {
         "commit": "01516d6798e3652b583e6a366085bb51c43b528d",
         "license": "MIT",
         "files": ["src/nds_rom_database.h", "LICENSE"],
-        "note": "SkyEmu's DS ROM database: which save chip each game's card has. tools/nds/gen_save_db.py converts it into runtime-nds/src/nds_save_db.c.",
+        "note": "SkyEmu's DS ROM database: which save chip each game's card has. tools/nds/gen_save_db.py converts it into runtimes/runtime-nds/src/nds_save_db.c.",
     },
     "ph-decomp": {
         "repo": "zeldaret/ph",

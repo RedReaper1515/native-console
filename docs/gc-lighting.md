@@ -37,7 +37,7 @@ such claim is labelled "Dolphin behaviour" — a second implementation, not hard
    state the attenuation equation, the coordinate-space requirements and the specular model.
 3. **devkitPro/libogc `libogc/gx_regdef.h`** (zlib), same fetch — the layout of the light object
    (`struct __gx_litobj`, `gx_regdef.h:85-101`).
-4. **`runtime-gc/src/gc_gx_draw.c`** in this repository — the implementation under test. Read to
+4. **`runtimes/runtime-gc/src/gc_gx_draw.c`** in this repository — the implementation under test. Read to
    predict what it will output for each Part F case; nothing in it is treated as evidence of
    hardware behaviour.
 5. **dolphin-emu/hwtests `gxtest/lighting.cpp`** (GPL-2.0), identical to the vendored copy at

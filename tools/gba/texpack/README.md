@@ -50,14 +50,14 @@ Python 3 with numpy and Pillow. The upscalers load native code:
 | Method | Needs |
 |---|---|
 | `nearest` | nothing |
-| `mmpx` | `runtime-gba/src/gba_upscale.c` built as a shared library, path in `GBA_MMPX_LIB` |
+| `mmpx` | `runtimes/runtime-gba/src/gba_upscale.c` built as a shared library, path in `GBA_MMPX_LIB` |
 | `xbrz` | xBRZ (GPL-3, not included) built with `xbrz_c.cpp`, path in `GBA_XBRZ_LIB` |
 | `ai` | PyTorch with CUDA, `spandrel`, and an ESRGAN-family model file in `GBA_UPSCALE_MODEL` |
 
 MSVC build commands, from a Developer Command Prompt:
 
 ```bat
-cl /O2 /LD /I runtime-gba\include runtime-gba\src\gba_upscale.c /link /EXPORT:gba_mmpx_scale2x /OUT:mmpx.dll
+cl /O2 /LD /I runtimes/runtime-gba\include runtimes/runtime-gba\src\gba_upscale.c /link /EXPORT:gba_mmpx_scale2x /OUT:mmpx.dll
 rem xBRZ 1.9 from https://sourceforge.net/projects/xbrz/ unpacked beside xbrz_c.cpp:
 cl /O2 /EHsc /std:c++20 /LD xbrz.cpp xbrz_c.cpp /Fe:xbrz.dll
 ```

@@ -1,7 +1,7 @@
 # Wii tests.
 #
 # The Wii is the GameCube's machine grown, and shares its runtime
-# (runtime-gc). These are the tests of what is Wii-only. None of them needs
+# (runtimes/runtime-gc). These are the tests of what is Wii-only. None of them needs
 # a game, a key, devkitPPC or anything fetched: the disc they read is built
 # here, around keys made up for it.
 
@@ -10,9 +10,9 @@
 # that this test is of those two hundred lines and nothing else.
 add_executable(wii_crypto_test
     wii_crypto_test.c
-    "${PROJECT_SOURCE_DIR}/runtime-gc/src/wii_crypto.c"
+    "${PROJECT_SOURCE_DIR}/runtimes/runtime-gc/src/wii_crypto.c"
 )
-target_include_directories(wii_crypto_test PRIVATE "${PROJECT_SOURCE_DIR}/runtime-gc/include")
+target_include_directories(wii_crypto_test PRIVATE "${PROJECT_SOURCE_DIR}/runtimes/runtime-gc/include")
 add_test(NAME wii_crypto COMMAND wii_crypto_test)
 
 # The test disc's builder (wii_test_disc.h): a library, because the disc
@@ -41,7 +41,7 @@ add_test(
 )
 
 # ---------------------------------------------------------------------------
-# The machine's Wii half (runtime-gc/include/wii.h).
+# The machine's Wii half (runtimes/runtime-gc/include/wii.h).
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
@@ -143,7 +143,7 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
-# Bluetooth and the remotes (runtime-gc/include/wii_bt.h).
+# Bluetooth and the remotes (runtimes/runtime-gc/include/wii_bt.h).
 
 # The console's Bluetooth module and the remotes behind it, with the test
 # playing a game's Bluetooth stack: start-up as lwbt and as Broadcom's stack

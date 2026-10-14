@@ -1,5 +1,5 @@
 /*
- * The DS ROM front end of ndsrecomp (recompiler-nds/src): BLZ decompression,
+ * The DS ROM front end of ndsrecomp (recompilers/recompiler-nds/src): BLZ decompression,
  * CRC-16 and FxHash, the cartridge header and file system, the code modules,
  * and the reader and checker for ds-decomp symbols and relocations.
  *

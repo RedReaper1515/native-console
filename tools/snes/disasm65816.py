@@ -6,7 +6,7 @@
 ADDR is a 24-bit SNES address (hex); --mode is the SNES_MODE_* value the
 code runs in (0-3 native widths, 7 emulation; default 3 = 8-bit A and X).
 REP/SEP with immediate operands update the mode as the listing goes. The
-opcode table is the one in runtime-snes/include/snes_cpu_decode.h.
+opcode table is the one in runtimes/runtime-snes/include/snes_cpu_decode.h.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 TABLE = {}
-for line in (REPO / "runtime-snes" / "include" / "snes_cpu_decode.h").read_text().splitlines():
+for line in (REPO / "runtimes" / "runtime-snes" / "include" / "snes_cpu_decode.h").read_text().splitlines():
     m = re.search(r'X\((0x[0-9A-Fa-f]{2}), "(\w+)", SNES_AM_(\w+), SNES_FLOW_(\w+)\)', line)
     if m:
         TABLE[int(m.group(1), 16)] = (m.group(2), m.group(3))

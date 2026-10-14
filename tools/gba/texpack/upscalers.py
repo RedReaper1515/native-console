@@ -3,7 +3,7 @@
 Every upscaler takes an RGBA uint8 array (h, w, 4) and returns (h*4, w*4, 4).
 
   nearest  plain pixel repetition
-  mmpx     MMPX 2x twice, from the runtime (runtime-gba/src/gba_upscale.c)
+  mmpx     MMPX 2x twice, from the runtime (runtimes/runtime-gba/src/gba_upscale.c)
            built as a DLL/shared library: set GBA_MMPX_LIB
   xbrz     xBRZ 4x (GPL-3, not part of this repository): build xbrz.cpp from
            https://sourceforge.net/projects/xbrz/ with xbrz_c.cpp into a

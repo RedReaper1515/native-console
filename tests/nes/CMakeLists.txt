@@ -50,9 +50,9 @@ add_test(NAME nes_cart_units COMMAND test_nes_cart)
 # so the test compiles it directly.
 add_executable(test_nes_crt
     test_nes_crt.c
-    ${PROJECT_SOURCE_DIR}/runtime-nes/src/nes_crt.c
+    ${PROJECT_SOURCE_DIR}/runtimes/runtime-nes/src/nes_crt.c
 )
-target_include_directories(test_nes_crt PRIVATE ${PROJECT_SOURCE_DIR}/runtime-nes/include)
+target_include_directories(test_nes_crt PRIVATE ${PROJECT_SOURCE_DIR}/runtimes/runtime-nes/include)
 if(NOT WIN32)
     target_link_libraries(test_nes_crt PRIVATE m)
 endif()

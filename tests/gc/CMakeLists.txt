@@ -52,7 +52,7 @@ add_test(NAME gc_bus_fast COMMAND gc_bus_fast_test)
 # while one into them waits for the copy (gc_memory.h).
 add_executable(gc_memory_test gc_memory_test.c)
 target_link_libraries(gc_memory_test PRIVATE gcruntime)
-target_include_directories(gc_memory_test PRIVATE "${PROJECT_SOURCE_DIR}/runtime-gc/src")
+target_include_directories(gc_memory_test PRIVATE "${PROJECT_SOURCE_DIR}/runtimes/runtime-gc/src")
 add_test(NAME gc_memory COMMAND gc_memory_test)
 
 # What the graphics thread keeps about EFB copies: when the card's texture of
@@ -62,7 +62,7 @@ add_test(NAME gc_memory COMMAND gc_memory_test)
 if(WIN32)
     add_executable(gc_gx_copies_test gc_gx_copies_test.c)
     target_link_libraries(gc_gx_copies_test PRIVATE gcruntime)
-    target_include_directories(gc_gx_copies_test PRIVATE "${PROJECT_SOURCE_DIR}/runtime-gc/src")
+    target_include_directories(gc_gx_copies_test PRIVATE "${PROJECT_SOURCE_DIR}/runtimes/runtime-gc/src")
     add_test(NAME gc_gx_copies COMMAND gc_gx_copies_test)
 endif()
 

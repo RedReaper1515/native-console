@@ -8,8 +8,8 @@ script assembles the two DS images from it in the BlocksDS Docker image, the
 way melonDS's own freebios/Makefile.bios does (one source, -DPLATFORM_NTR and
 -DTARGET_ARM9 or -DTARGET_ARM7), and writes:
 
-    runtime-nds/include/nds_bios_data.h    the two arrays' declarations
-    runtime-nds/src/nds_bios_data.c        the images, with the license notice
+    runtimes/runtime-nds/include/nds_bios_data.h    the two arrays' declarations
+    runtimes/runtime-nds/src/nds_bios_data.c        the images, with the license notice
     roms/nds/built/freebios/               (gitignored) for reading and tools:
         bios_ntr_arm9.bin, bios_ntr_arm7.bin   the bytes as assembled
         bios9.bin, bios7.bin                   the same, zero-padded to the
@@ -58,8 +58,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_ROMS = REPO_ROOT / "roms" / "nds"
-HEADER_PATH = REPO_ROOT / "runtime-nds" / "include" / "nds_bios_data.h"
-SOURCE_PATH = REPO_ROOT / "runtime-nds" / "src" / "nds_bios_data.c"
+HEADER_PATH = REPO_ROOT / "runtimes" / "runtime-nds" / "include" / "nds_bios_data.h"
+SOURCE_PATH = REPO_ROOT / "runtimes" / "runtime-nds" / "src" / "nds_bios_data.c"
 REF_DIR = REPO_ROOT / "build-agents" / "nds-builds" / "ref"
 
 DEFAULT_IMAGE = "skylyrac/blocksds:slim-latest"

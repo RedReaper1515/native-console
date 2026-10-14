@@ -26,8 +26,8 @@ Three sources, read directly for this document:
    (`scratchpad/video.c`); all line numbers below refer to it. This is the authority for the
    timing tables and for every register value quoted.
 2. **libogc headers** `D:\devkitPro\libogc\include\ogc\{video.h, video_types.h}` (zlib).
-3. **Our own runtime**: `runtime-gc/src/gc_io.c`, `runtime-gc/src/gc.c`,
-   `runtime-gc/include/gc.h`.
+3. **Our own runtime**: `runtimes/runtime-gc/src/gc_io.c`, `runtimes/runtime-gc/src/gc.c`,
+   `runtimes/runtime-gc/include/gc.h`.
 
 No GPL source was consulted for this document — no Dolphin video-interface source is present in
 this tree, and `roms/gc/hwtests/` contains nothing that exercises the VI. Every claim therefore

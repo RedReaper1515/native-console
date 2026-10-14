@@ -147,7 +147,7 @@ def make_rom() -> tuple[bytearray, dict[str, int]]:
 
 def read_states(path: Path) -> dict:
     """A file of entry states, whole: the format is at the top of
-    runtime/src/gbrt_entry_states.c."""
+    runtimes/runtime-gb/src/gbrt_entry_states.c."""
     data = path.read_bytes()
     assert data[:8] == b"GBLIFTEN", data[:8]
     (version, page_size, eram_size, pages_per_state, state_count, page_count, function_count, listed,

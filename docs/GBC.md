@@ -43,7 +43,7 @@ Tetris DX received a fresh generated-project optimization smoke on 2026-07-13. G
 Generated executables start from a post-boot state instead of running the CGB
 boot ROM, and that boot ROM runs for a header-dependent time, so DIV at the
 `$0100` hand-off has no single value. The runtime computes it from the header
-(`ppu_cgb_boot_header_mcycles` in `runtime/src/ppu.c`):
+(`ppu_cgb_boot_header_mcycles` in `runtimes/runtime-gb/src/ppu.c`):
 
 - Header-dependent work happens before the LCD is switched on (licensee
   check, title-checksum search, fourth-letter tie-break, palette shuffle) or

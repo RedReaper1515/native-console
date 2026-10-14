@@ -1157,7 +1157,7 @@ python3 tools/gb_lift.py edges output/lift/game.json --rom game.gb -o output/lif
 
 For every call or jump, with a constant in some register, to a function the
 export cannot follow to its end, it runs that function in the checker's
-interpreter (`lift/checker/lift_probe.c`): from the ROM, with those
+interpreter (`lift/checkers/checker-gb/lift_probe.c`): from the ROM, with those
 constants, everything else in the machine made up, six times over. The run
 stops at the first transfer whose target the code does not spell out, a
 `JP HL` or a `RET` to an address no `CALL` pushed. If that is the same
@@ -1406,7 +1406,7 @@ put on the call that made it and not on the helper they all go through. It
 also keeps every address a call, an interrupt or such a jump arrived at. The
 file (`gbrt.evidence`, version 1) is written when the game shuts down.
 
-The recorder (`runtime/src/gbrt_evidence.c`) keeps a shadow of the call
+The recorder (`runtimes/runtime-gb/src/gbrt_evidence.c`) keeps a shadow of the call
 stack, fed from the runtime's own `CALL`, `RST`, `RET` and jump helpers,
 which generated and interpreted code alike go through. So nothing is added
 to the generated code, an unpaced run loses about a hundredth of its speed,
@@ -1736,7 +1736,7 @@ disassembly has a function at 636 of them, the inside of one at 126, data at
 
 ## Lifted source
 
-Lifted source includes `gblift.h` (`runtime/include/`, so it travels with every
+Lifted source includes `gblift.h` (`runtimes/runtime-gb/include/`, so it travels with every
 generated project) and nothing else from the runtime.
 
 ```c
@@ -1881,7 +1881,7 @@ for a conditional jump and returns `taken`, so it can be the condition of an
 ## The checker
 
 `gb_lift.py check` finds every `GBLIFT_FUNCTION` in the source given, builds
-those files with the checker (`lift/checker/`), and runs it as one worker per
+those files with the checker (`lift/checkers/checker-gb/`), and runs it as one worker per
 processor. For each function and each state it:
 
 1. makes a machine state and copies it;
@@ -2156,7 +2156,7 @@ matched (give several reports and a function has to match in one and mismatch
 in none). `gbrecomp ROM --lift lift.json` then generates the game as usual and:
 
 - copies the sources into the project's `lift/` folder and adds them to the
-  build, with the runtime's side of `gblift.h` (`runtime/src/gbrt_lift.c`);
+  build, with the runtime's side of `gblift.h` (`runtimes/runtime-gb/src/gbrt_lift.c`);
 - emits, where the recompiled code reaches a lifted subroutine's first
   instruction, `if (gbrt_lift_enter(ctx, ...)) return;`. That one line is the
   whole hook. However the game gets to that address (a call, a jump, falling

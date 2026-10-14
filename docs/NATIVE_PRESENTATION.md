@@ -5,7 +5,7 @@ completed-frame snapshot. It lets an exact-game port prepare widescreen or
 higher-resolution host rendering without making a graphics API part of the
 runtime and without turning native rendering into guest-visible hardware.
 
-The v1 ABI is declared in `runtime/include/gbrt_presentation.h`.
+The v1 ABI is declared in `runtimes/runtime-gb/include/gbrt_presentation.h`.
 
 ## Activation
 

@@ -152,7 +152,7 @@ if(TARGET ndsplatform)
     add_executable(test_nds_input test_nds_input.cpp)
     target_link_libraries(test_nds_input PRIVATE ndsplatform)
     add_test(NAME nds_input_layouts_and_bindings
-             COMMAND test_nds_input "${PROJECT_SOURCE_DIR}/runtime-nds/src/nds_runner.c")
+             COMMAND test_nds_input "${PROJECT_SOURCE_DIR}/runtimes/runtime-nds/src/nds_runner.c")
     get_target_property(_nds_test_sdl2_type SDL2::SDL2 TYPE)
     if(WIN32 AND _nds_test_sdl2_type STREQUAL "SHARED_LIBRARY")
         add_custom_command(TARGET test_nds_input POST_BUILD

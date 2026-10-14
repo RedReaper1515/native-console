@@ -64,7 +64,7 @@ executable activates it with:
 The runtime validates all entries before activation and never writes them
 into `GBContext.rom`. Removing the option immediately restores vanilla
 behavior; neither mode requires regenerating C. The runtime side of this
-contract lives in `runtime/src/gbrt_data_mod.c` and is covered by the
+contract lives in `runtimes/runtime-gb/src/gbrt_data_mod.c` and is covered by the
 `data_mod_overlay_preserves_original_rom` test.
 
 ## Portable replay provenance

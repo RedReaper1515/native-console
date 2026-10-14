@@ -113,7 +113,7 @@ def build_recompiled(recompiler: Path, rom: Path, out: Path, build: Path, env: d
     run([cmake, "-G", "Ninja", "-S", project, "-B", project / "build", "-DCMAKE_BUILD_TYPE=Release",
          "-DCMAKE_DISABLE_FIND_PACKAGE_SDL2=ON",  # headless: the prebuilt runtime has no frontend
          "-DNESRT_PREBUILT_LIBS=" + ";".join(str(p) for p in libs),
-         f"-DNESRT_PREBUILT_INCLUDE={REPO / 'runtime-nes' / 'include'}"], "configure", env=env)
+         f"-DNESRT_PREBUILT_INCLUDE={REPO / 'runtimes' / 'runtime-nes' / 'include'}"], "configure", env=env)
     run([ninja, "-C", project / "build"], "build", timeout=1800, env=env)
     exe = project / "build" / f"{NAME}{EXE}"
     if not exe.exists():

@@ -1,5 +1,5 @@
 /*
- * ndsrecomp's analyzer (recompiler-nds/src/analyzer.cpp) on images built
+ * ndsrecomp's analyzer (recompilers/recompiler-nds/src/analyzer.cpp) on images built
  * here: the rules that find code nothing calls directly.
  *
  *   Leaf functions   A function that pushes nothing (a getter, an empty

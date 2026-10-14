@@ -1,6 +1,6 @@
 /*
  * Writes the recompiled half of gc_recompiled_fuzz: random blocks, emitted
- * by gcrecomp's own block emitter (recompiler-gc/src/block.cpp), for the
+ * by gcrecomp's own block emitter (recompilers/recompiler-gc/src/block.cpp), for the
  * driver (gc_recompiled_fuzz.c) to run against the interpreter.
  *
  * The emitter writes the common instructions out in C rather than calling

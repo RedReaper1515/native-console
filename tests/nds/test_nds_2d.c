@@ -1,5 +1,5 @@
 /*
- * Tests for the DS's two 2D graphics engines (runtime-nds/src/nds_2d.c).
+ * Tests for the DS's two 2D graphics engines (runtimes/runtime-nds/src/nds_2d.c).
  *
  * Each test builds a small scene in VRAM, palette RAM and OAM, renders one
  * or a few lines, and checks pixels against values worked out by hand from

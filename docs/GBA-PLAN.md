@@ -20,7 +20,7 @@ in the GBA assembly-to-C checklist gets tested.
    behaviour references, never copied. PolyForm Noncommercial (mstan/gbarecomp)
    is read for ideas only.
 2. **One semantics source.** The interpreter and the generated C call the same
-   force-inlined handlers in `runtime-gba/include/gba_cpu_impl.h` (built on
+   force-inlined handlers in `runtimes/runtime-gba/include/gba_cpu_impl.h` (built on
    `gba_cpu_ops.h`), chosen by the shared classifier in `gba_cpu_decode.h`.
    The per-instruction test vectors validate them once; the emitter only
    sequences them. This is the GBA version of the GB lesson that the emitter
@@ -68,7 +68,7 @@ gives different open-bus values), so it is only an optional boot screen.
 ## Layout
 
 ```text
-runtime-gba/
+runtimes/runtime-gba/
   include/gba_cpu.h         CPU state, modes, banking, exceptions, pipeline
   include/gba_cpu_decode.h  opcode classification (interpreter, analyzer, emitter)
   include/gba_cpu_impl.h    instruction handlers, force-inlined
@@ -85,7 +85,7 @@ runtime-gba/
   src/gba_runner.c          headless runner and --differential
   platform/gba_sdl.cpp      SDL2 frontend and settings menu (Dear ImGui)
   tools/gba_run.c, gba_play.c
-recompiler-gba/src/         rom, analyzer, emitter, CLI (gbarecomp)
+recompilers/recompiler-gba/src/         rom, analyzer, emitter, CLI (gbarecomp)
 tests/gba/                  SST harness, EEPROM test, R12 baseline
 tools/fetch_gba_tests.py    pinned downloads into roms/gba/ (gitignored)
 tools/gba/                  run_gba_tests.py, recomp_suite.py, compare_frame.py, ppm_to_png.py
@@ -306,7 +306,7 @@ filter take the console's picture; affine layers with a mosaic.
 
 The vectors come from NanoBoyAdvance, which is hardware-verified. These are
 the non-obvious behaviours they forced; each is implemented in
-`runtime-gba/src/gba_cpu_*.c` and must survive any rewrite (the emitter
+`runtimes/runtime-gba/src/gba_cpu_*.c` and must survive any rewrite (the emitter
 included):
 
 - **R15 keeps its low bits.** A write to R15 in ARM state (data processing,

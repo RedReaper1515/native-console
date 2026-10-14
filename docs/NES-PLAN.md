@@ -20,7 +20,7 @@ names code ([P4](#p4-recompiler)).
 2. **No firmware.** The NES has no BIOS and no boot ROM.
 3. **One semantics source.** The interpreter and generated C call the same
    force-inlined handlers `nes_op_XX(c)` in
-   `runtime-nes/include/nes_cpu_impl.h`. The vectors validate the handlers
+   `runtimes/runtime-nes/include/nes_cpu_impl.h`. The vectors validate the handlers
    once; the emitter only sequences them.
 4. **Guest state is explicit.** Registers and flags live in `NesCpu`; every
    memory access goes through the bus (`nes_bus.c`), one call per CPU cycle.
@@ -68,7 +68,7 @@ How each suite reports:
 ## Layout
 
 ```text
-runtime-nes/
+runtimes/runtime-nes/
   include/nes_cpu.h        6502 state
   include/nes_cpu_impl.h   instruction handlers, force-inlined; opcode table
   include/nes_cpu_decode.h opcode classification (analyzer, emitter, tools)
@@ -88,7 +88,7 @@ runtime-nes/
   src/nes_runner.c         headless runner and --differential
   platform/                SDL2 frontend and overlay menu
   tools/nes_run.c, nes_play.c
-recompiler-nes/src/        rom, analyzer, emitter, CLI (nesrecomp)
+recompilers/recompiler-nes/src/        rom, analyzer, emitter, CLI (nesrecomp)
 tests/nes/                 SST harness, PPU and APU unit tests, ROM baseline
 hub/src/console_nes.cpp    hub backend
 tools/fetch_nes_tests.py

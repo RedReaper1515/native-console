@@ -17,12 +17,12 @@ on:
     types: [opened, synchronize, reopened, labeled]
     paths:
       - "CMakeLists.txt"
-      - "recompiler/**"
-      - "recompiler-gba/**"
-      - "recompiler-snes/**"
-      - "runtime/**"
-      - "runtime-gba/**"
-      - "runtime-snes/**"
+      - "recompilers/recompiler-gb/**"
+      - "recompilers/recompiler-gba/**"
+      - "recompilers/recompiler-snes/**"
+      - "runtimes/runtime-gb/**"
+      - "runtimes/runtime-gba/**"
+      - "runtimes/runtime-snes/**"
       - "hub/**"
       - "tests/**"
       - "tools/macos/**"

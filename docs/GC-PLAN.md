@@ -44,7 +44,7 @@ has an interpreter as its oracle, and the hub still drives all of it.
    makes. A user's own IPL dump may be accepted through `--ipl` for
    comparison, but it is never required and never shipped.
 3. **One semantics source.** The interpreter and the generated C call the
-   same force-inlined handlers in `runtime-gc/include/gc_cpu_impl.h`. The
+   same force-inlined handlers in `runtimes/runtime-gc/include/gc_cpu_impl.h`. The
    decode classifier in `gc_cpu_decode.h` is generated from a machine-readable
    ISA table (see [What we reuse](#what-we-reuse)) and is shared by the
    interpreter, the analyzer and the emitter.
@@ -127,7 +127,7 @@ redistributed.
 ## Layout
 
 ```text
-runtime-gc/
+runtimes/runtime-gc/
   include/gc_cpu.h          Gekko state: GPR, FPR pairs, CR, XER, FPSCR, MSR, SPRs, GQRs
   include/gc_cpu_impl.h     instruction handlers, force-inlined
   include/gc_cpu_decode.h   generated from isa.yaml; shared by interpreter, analyzer, emitter
@@ -160,7 +160,7 @@ runtime-gc/
   platform/gc_gl.c          OpenGL 3.3 fast path, shader generation from GX state
   tools/gc_run.c            headless interpreter runner
   tools/gc_play.c           interpreter-only player
-recompiler-gc/
+recompilers/recompiler-gc/
   src/dol.c                 DOL and REL parsing, relocation, section layout
   src/disc.c                GCM/ISO/CISO reading, FST walk, ID.gcdata packing
   src/analyzer.c            function discovery, jump tables, REL entry points, traces
@@ -336,7 +336,7 @@ FIFO, and `gxtest` checks it at the pixel level.
 - Memory card: a card image next to the executable, the CARD API's block
   allocation and file directory, formatted by us.
 - SDL2 frontend, and the [overlay menu](ADDING-A-CONSOLE.md#overlay-menu)
-  adapted from `runtime-snes/platform/snes_sdl.cpp`, with the same
+  adapted from `runtimes/runtime-snes/platform/snes_sdl.cpp`, with the same
   `--menu-selftest` gate.
 - **Gate:** the audio unit tests pass; a 30-second windowed run reports no
   underruns; a memory card survives a write, a restart and a rebuild; the
@@ -388,7 +388,7 @@ FIFO, and `gxtest` checks it at the pixel level.
   (`platform::link_or_copy_file`), a copy otherwise. A hard link is a whole
   file, so the game folder stays self-contained for Steam and for moving it,
   and 1.25 GB is on disk once rather than twice.
-- **The generated project relocates.** `gcrecomp` copies `runtime-gc`
+- **The generated project relocates.** `gcrecomp` copies `runtimes/runtime-gc`
   (sources, headers, frontend, and Dear ImGui into `runtime-gc/vendor/imgui`)
   into the project and finds the runtime beside itself, two levels up, or in
   the checkout it was built from, as `snesrecomp` does. Hub export for
@@ -501,7 +501,7 @@ FIFO, and `gxtest` checks it at the pixel level.
   block and the 32 before it.
 
 **The pieces**, all in the generated program's headless runner
-(`runtime-gc/src/gc_runner.c`, moved out of the text `gcrecomp` writes):
+(`runtimes/runtime-gc/src/gc_runner.c`, moved out of the text `gcrecomp` writes):
 `--differential`; `--coverage`, which counts interpreted instructions in
 `gc_machine_step` (the one path every interpreted instruction takes, so it
 needs no hook in blocks or the dispatcher), makes recompiled the rest, and
@@ -556,7 +556,7 @@ it (the backend's `install_files()`); Linux and macOS do not yet, and the hub
 refuses those targets for GameCube until they do. `tools/create_distribution.py`
 has a GameCube row (2026-09-13) and `tests/test_release_bundle.py` a smoke
 recipe for it (a generated DOL, run under `--differential`); the release
-workflow's archives now carry `gcrecomp` and `runtime-gc`.
+workflow's archives now carry `gcrecomp` and `runtimes/runtime-gc`.
 
 ### P8: accuracy and speed
 
@@ -623,7 +623,7 @@ Every row gets a test before the phase that owns it closes.
 | P3 | **Started 2026-09-12.** The command stream is read: the FIFO ring, display lists, the CP, XF and BP register files, the vertex descriptor and attribute tables, and the two pixel-engine interrupts. All seven `gxtest` programs run to completion with **zero commands the reader could not parse** - 1.8 million bytes and 143,489 commands for `lighting` alone - and `gxtest_bitfield` passes outright. The transform unit and primitive assembly follow, and then the framebuffer and the copy out of it - which takes **`gxtest_intensity` to passing, 262,144 assertions a block**, without a rasteriser, because that program fills the framebuffer by poking it. Then the rasteriser, which takes **`gxtest_rasterization` to passing - all 519 subtests, including the sub-pixel sample point** - and `gxtest_clipping` from 10 failures to 7. Then the texture environment - **`gxtest_lighting` passes, 65,536 subtests**, and `gxtest_copyfilter` passes eight blocks - and the clipper, which takes `gxtest_clipping` to 4 failures of 16, all four being steps that read a pixel their own geometry does not cover. **Five of the seven `gxtest` programs now pass.** The copy to the display buffer and its YUV conversion follow, with `gc_run --dump-frame` and `gc_drawtest` to exercise them: **a frame comes out end to end and is correct**. Then the texture unit: five formats pass their own test, since no hardware test samples a texture at all. Still to come: filtering and mipmaps, texture coordinate generation, the lights themselves, blending and alpha compare, and the video interface's own timing. |
 | P4 | Not started. |
 | P5 | **Gate met 2026-09-13.** Saves, the audio unit tests and the overlay menu earlier; the 30-second windowed run of Shrek 2 with no underruns (1,798 fields, 59.9 a second) once the pixel path went to helper threads. A 90-second run is still 12 % short. See [Where P5 stands](#where-p5-stands). |
-| P6 | **Gate met 2026-09-13** with Shrek 2: imports, builds (36 s; 41 s with the cover's trace), plays into gameplay, gets a cover, keeps its memory card across a rebuild, is **clean under `--differential` for 6,300 scripted fields**, and reports its native share (96.951 % by instructions and 40.376 % by address without a trace; 99.995 % by instructions with one). Windows export works; a release packs `gcrecomp` and `runtime-gc`. See [P6](#p6-hub-integration-and-the-first-game). |
+| P6 | **Gate met 2026-09-13** with Shrek 2: imports, builds (36 s; 41 s with the cover's trace), plays into gameplay, gets a cover, keeps its memory card across a rebuild, is **clean under `--differential` for 6,300 scripted fields**, and reports its native share (96.951 % by instructions and 40.376 % by address without a trace; 99.995 % by instructions with one). Windows export works; a release packs `gcrecomp` and `runtimes/runtime-gc`. See [P6](#p6-hub-integration-and-the-first-game). |
 | P7 | Not started. |
 | P8 | Not started. |
 
@@ -672,7 +672,7 @@ string can be mistaken for a `this` pointer.
 operation rounding exactly once and on the host's exception flags being
 readable straight afterwards. MSVC's default `/fp:precise` contracts
 `a*b+c` into a fused multiply-add and moves operations across flag reads; it
-cost 46 vector cases before `runtime-gc/CMakeLists.txt` set `/fp:strict`
+cost 46 vector cases before `runtimes/runtime-gc/CMakeLists.txt` set `/fp:strict`
 (and `-ffp-contract=off -frounding-math` elsewhere). Every generated project
 will need the same setting.
 
@@ -788,7 +788,7 @@ the write-gather pipe into a ring buffer in main memory, and the graphics
 processor reads that ring and executes it: a register write, a matrix, a
 display list and a triangle are all commands in the same stream.
 
-`runtime-gc/src/gc_gx.c` is the reader. The FIFO plumbing is modelled the
+`runtimes/runtime-gc/src/gc_gx.c` is the reader. The FIFO plumbing is modelled the
 way the hardware wires it - the pipe's 32-byte bursts land at the processor
 interface's write pointer, wrap at the end of the ring, and the command
 processor reads from its own pointer behind them - so display lists, a
@@ -1093,7 +1093,7 @@ interpolated screen depth: `A/(B - zs) - C` with a perspective projection,
 reach the registers as the **top twenty bits of their float words** with
 the bottom twelve mantissa bits thrown away rather than rounded - so an
 implementation that keeps the caller's original float drifts away from one
-that rebuilds it from the twenty bits. `runtime-gc/src/gc_gx_fog.c` rebuilds
+that rebuilds it from the twenty bits. `runtimes/runtime-gc/src/gc_gx_fog.c` rebuilds
 it. The algebra and its derivation are in docs/gc-fog-indirect.md part A.
 
 Fog sits after the last combiner stage and before the framebuffer blend,
@@ -1441,7 +1441,7 @@ the machine's.
 
 ## The frontend
 
-`runtime-gc/platform/`, built as `gcplatform`, with `gc_play` for playing a
+`runtimes/runtime-gc/platform/`, built as `gcplatform`, with `gc_play` for playing a
 disc with the interpreter alone. It follows the SNES frontend closely - the
 same menu, the same preference file shape, the same pacing loop - because
 those are solved and a second solution would only be a second set of bugs.
@@ -2349,7 +2349,7 @@ The whole machine to a file and back, so that execution continues exactly as
 if it had never stopped. Two users, in this order: `--differential`, which
 used to interpret Shrek 2's whole intro (8-20 minutes) before it reached
 anything worth comparing, and players, who get ten slots in the overlay menu.
-`runtime-gc/include/gc_state.h` has the format; `src/gc_state.c` the code,
+`runtimes/runtime-gc/include/gc_state.h` has the format; `src/gc_state.c` the code,
 with each subsystem's private state saved by functions at the ends of
 `gc_pad.c`, `gc_card.c`, `gc_ax.c` and `gc_audio.c`.
 
@@ -2583,7 +2583,7 @@ mixing, the ADPCM - is still ahead, and is what turns this into sound.
 
 ## The recompiler
 
-`recompiler-gc/`, built as `gcrecomp`. It takes a `.dol` or an ELF and
+`recompilers/recompiler-gc/`, built as `gcrecomp`. It takes a `.dol` or an ELF and
 writes a C project that *is* that program: one function per basic block,
 one call per guest instruction, and a dispatcher that picks the block for
 the current program counter. ELF is accepted deliberately - every program
@@ -2826,7 +2826,7 @@ ninja's default 22 jobs, another session compiling at the same time):
 | `recompiled_blocks_005.c` | 328 |
 | `recompiled_blocks_004.c` | 253 |
 | `recompiled_blocks_010.c` | 86 |
-| `runtime-gc/src/gc_cpu.c` | 45 |
+| `runtimes/runtime-gc/src/gc_cpu.c` | 45 |
 | the other seven block files | 4 - 33 each |
 | everything, recorded | 1,327 plus 006 |
 
@@ -3819,9 +3819,9 @@ cutscene (2,400-3,000) and the snail walk (3,600-4,800):
 
 #### Design
 
-`recompiler-gc/src/block.cpp` writes a whole block as one C function over
-locals. The runtime side is `runtime-gc/include/gc_recompiled_rt.h` and
-`runtime-gc/src/gc_recompiled_rt.c`.
+`recompilers/recompiler-gc/src/block.cpp` writes a whole block as one C function over
+locals. The runtime side is `runtimes/runtime-gc/include/gc_recompiled_rt.h` and
+`runtimes/runtime-gc/src/gc_recompiled_rt.c`.
 
 - **Registers in locals.** A block loads the GPRs, CR, XER, LR, CTR and FPRs
   it reads before writing, and writes back the ones it wrote. The FPRs are
@@ -3945,7 +3945,7 @@ yet write.
 
 ## The OpenGL path
 
-`runtime-gc/src/gc_gl.c` (the machine's side: batches, textures, the
+`runtimes/runtime-gc/src/gc_gl.c` (the machine's side: batches, textures, the
 register carry, copies), `gc_gl_render.c` (the render and readback
 threads, every OpenGL call), `gc_gl_shader.c` (the program text),
 `gc_gl_programs.c` (compiling, the compile thread, the disk cache),
@@ -4620,7 +4620,7 @@ loads and stores 7 %, the dispatcher 3 %.
 
 #### The changes
 
-- **Pointer roots** (`recompiler-gc/src/analyzer.cpp`, `pointer_roots`).
+- **Pointer roots** (`recompilers/recompiler-gc/src/analyzer.cpp`, `pointer_roots`).
   Every word of a data segment holding the address of an instruction and
   every `lis rD` followed within eight instructions by `addi rX, rD` or
   `ori rX, rD` building one is a root. Shrek 2: 1,522 roots, 105,777 blocks,
@@ -4654,7 +4654,7 @@ loads and stores 7 %, the dispatcher 3 %.
   instruction) and 64 for anything else. The first version used 64 bytes for
   everything and stepped nothing, because Shrek 2's reads land 32-58 bytes
   past the buffer.
-- **Lighter glue** (`recompiler-gc/src/emitter.cpp`). Every instruction but
+- **Lighter glue** (`recompilers/recompiler-gc/src/emitter.cpp`). Every instruction but
   the branches and `rfi` is `GC_INSN_PLAIN`: the check for what is due, the
   handler, then only whether it raised an exception or stopped the program;
   68 handlers that touch nothing but the registers they compute into are
@@ -4885,7 +4885,7 @@ instruction count - from the audio or card merge, not these changes.)
 
 Branch `feature/gc-gx-thread`. The goal: take the command stream's drawing
 off the game's thread, with nothing the game can observe moved by one
-instruction. `runtime-gc/src/gc_gx_thread.c` (the queue, the thread, the
+instruction. `runtimes/runtime-gc/src/gc_gx_thread.c` (the queue, the thread, the
 shadow machine), `gc_gx.c` (`scan_stream`, the walk on the machine's thread,
 and `gc_gx_exec_commands`), `gc_memory.c` (tracked pages), `gc_gx_raster.c`
 (held triangles per drawing thread). `GC_GX_THREAD=0` keeps the
@@ -6016,7 +6016,7 @@ The embedded framebuffer is 640x528 of colour and depth on the graphics
 chip. It is not main memory and it is not laid out like memory: the CPU
 reaches it through an address window where the pixel's coordinates *are*
 the address - x at bits 2 to 11, y at bits 12 to 21, bit 22 choosing colour
-or depth - so `runtime-gc/src/gc_efb.c` models two planes of pixels and
+or depth - so `runtimes/runtime-gc/src/gc_efb.c` models two planes of pixels and
 decodes the address, rather than a block of bytes.
 
 It also holds fewer bits than it looks like it does. The pixel format
@@ -6053,7 +6053,7 @@ whole test is the copy.
 
 ## The disc
 
-`runtime-gc/src/gc_disc.c` opens an image, reads its header and filesystem,
+`runtimes/runtime-gc/src/gc_disc.c` opens an image, reads its header and filesystem,
 and serves reads at an offset; `gc_io.c` turns the DVD interface's four
 command registers into those reads; and `gc_attach_disc` does what the
 apploader does - the filesystem into memory, and the low-memory globals that
@@ -6114,7 +6114,7 @@ now. `gcrecomp` emits a `main` that prefers `gc_sdl_main` and falls back to
 the headless runner - including when the arguments are the runner's own,
 which is how the test tooling drives a generated game without a screen - and
 a `CMakeLists.txt` that looks for SDL2 *before* it adds the runtime, because
-that is what decides whether the window is built at all. `runtime-gc`'s
+that is what decides whether the window is built at all. `runtimes/runtime-gc`'s
 Dear ImGui path had to stop being relative to `PROJECT_SOURCE_DIR`, which is
 the generated directory in a generated project and the repository root in
 this one.

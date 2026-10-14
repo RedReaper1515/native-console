@@ -37,8 +37,8 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-LIFT_INCLUDE = REPO / "runtime" / "include"  # gblift.h ships with the runtime
-CHECKER_DIR = REPO / "lift" / "checker"
+LIFT_INCLUDE = REPO / "runtimes" / "runtime-gb" / "include"  # gblift.h ships with the runtime
+CHECKER_DIR = REPO / "lift" / "checkers" / "checker-gb"
 CHECKER_SOURCES = ("lift_machine.c", "lift_cpu.c", "lift_check.c")
 EXPORT_SCHEMA = "gbrecomp.lift-export"
 
@@ -809,7 +809,7 @@ ENTRY_STATES_MAGIC = b"GBLIFTEN"
 def read_entry_states(path: Path) -> dict:
     """The head of a file a game wrote with --entry-states: its numbers, and
     for each function how often control arrived there and how many states
-    were kept (runtime/src/gbrt_entry_states.c has the format)."""
+    were kept (runtimes/runtime-gb/src/gbrt_entry_states.c has the format)."""
     with open(path, "rb") as file:
         header = file.read(48)
         if len(header) != 48 or header[:8] != ENTRY_STATES_MAGIC or struct.unpack_from("<I", header, 8)[0] != 1:
@@ -930,7 +930,7 @@ EXECUTED_SAYS = {
 def read_executed(path: Path) -> tuple[bytearray, int]:
     """The map a game wrote with --executed: a byte for each byte of the ROM
     (bit 0: an executed instruction began there; bit 1: a later byte of one),
-    and how many instructions were run. runtime/include/gbrt_executed.h has
+    and how many instructions were run. runtimes/runtime-gb/include/gbrt_executed.h has
     the format."""
     data = path.read_bytes()
     if len(data) < 28 or data[:8] != EXECUTED_MAGIC or struct.unpack_from("<I", data, 8)[0] != 1:

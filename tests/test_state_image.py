@@ -38,7 +38,7 @@ from fixtures.make_mapper_rom import NINTENDO_LOGO
 START = 0x0150
 ONCE = 0x0200            # two bytes the game reads as it starts
 AGAIN = 0x0210           # one it reads every time round its loop
-HEADER = struct.Struct("<IIQIIIIIIIII")     # GBSavestateFileHeader in runtime/src/gbrt.c, without its last field
+HEADER = struct.Struct("<IIQIIIIIIIII")     # GBSavestateFileHeader in runtimes/runtime-gb/src/gbrt.c, without its last field
 BUILT_FROM = HEADER.size                    # where that field is: four bytes that used to be padding
 OTHER_IMAGE = "was made with another ROM image of this game"
 REFUSED = "Savestate ROM mismatch"

@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_OUT = REPO_ROOT / "runtime-gc" / "include" / "gc_estimate_tables.h"
+DEFAULT_OUT = REPO_ROOT / "runtimes" / "runtime-gc" / "include" / "gc_estimate_tables.h"
 
 MANTISSA = (1 << 52) - 1
 SEGMENT_SHIFT = 47

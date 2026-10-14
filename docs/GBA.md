@@ -10,11 +10,11 @@ results are in [docs/GBA-PLAN.md](GBA-PLAN.md).
 ## Layout
 
 ```text
-runtime-gba/      ARM7TDMI core (interpreter + shared instruction handlers),
+runtimes/runtime-gba/      ARM7TDMI core (interpreter + shared instruction handlers),
                   machine (memory, I/O, timers, DMA, IRQs, PPU, APU, saves,
                   HLE BIOS), recompiled-code dispatcher, headless runner,
                   SDL2 frontend (platform/)
-recompiler-gba/   gbarecomp: analyzer and C emitter
+recompilers/recompiler-gba/   gbarecomp: analyzer and C emitter
 tests/gba/        SingleStepTests harness, EEPROM test, test-ROM gates
 tools/gba/        test-ROM runners, recompile suite, frame tools
 ```
@@ -83,7 +83,7 @@ headless interpreter runner.
 Every control can be rebound in the settings menu (two keyboard and two
 controller bindings per action; hold modifiers while choosing a key to bind
 a combination). The defaults follow the hardware the build targets
-(`runtime-gba/platform/gba_input.cpp`):
+(`runtimes/runtime-gba/platform/gba_input.cpp`):
 
 | Action | Windows | Mac | Steam Deck (Linux) |
 | --- | --- | --- | --- |
@@ -131,14 +131,14 @@ are `<id>.state1` to `<id>.state10` next to the battery save. A state is
 the whole machine and loads only into the same ROM built with the same
 runtime; it includes the battery save as it was, but loading one leaves the
 `.sav` on disk alone until the game saves again. The menu uses the Dear
-ImGui copy in `runtime/vendor/imgui`; gbarecomp copies it into generated
+ImGui copy in `runtimes/runtime-gb/vendor/imgui`; gbarecomp copies it into generated
 projects as `runtime-gba/vendor/imgui`.
 
 Scale filters: **Nearest** and **Linear** scale the 240x160 frame in one
 step. **Sharp Linear** scales by the largest whole number that fits with
 nearest-neighbour on the GPU, then smooths only the remaining fraction, so
 pixels stay square and even at sizes such as 4K (13.5x). **Smooth (MMPX)**
-runs the MMPX pixel-art magnifier (`runtime-gba/src/gba_upscale.c`, MIT,
+runs the MMPX pixel-art magnifier (`runtimes/runtime-gba/src/gba_upscale.c`, MIT,
 McGuire and Gagiu) twice on the CPU for a 960x640 frame that redraws
 stair-step edges and diagonals, then scales linearly to the window; it costs
 about 2 ms per frame.
@@ -152,7 +152,7 @@ along the bottom of each pixel row. The lines appear once a GBA pixel is at
 least 3 screen pixels wide.
 
 **CRT** draws the picture as a CRT television shows it
-(`runtime-gba/src/gba_crt.c`): each line is a glowing beam, blurred a little
+(`runtimes/runtime-gba/src/gba_crt.c`): each line is a glowing beam, blurred a little
 along the line, that is thin where the picture is dark and swells as it
 brightens, so dark areas show black gaps between lines and bright ones
 nearly close them. An aperture grille of red, green and blue stripes, one
@@ -230,7 +230,7 @@ working when the other window has focus), and open their windows side by
 side. Player 1 uses the ordinary files, so its save is the single-player
 one. Keyboard input goes to the focused window only.
 
-How it works (runtime-gba `gba_link.c`, `gba_net.c`): the machines run in
+How it works (runtimes/runtime-gba `gba_link.c`, `gba_net.c`): the machines run in
 lockstep on the parent's cycle clock. A transfer the parent starts at time
 T completes at T + its wire time on every machine, a child never runs more
 than 4,096 cycles (less than the shortest transfer) past what the parent

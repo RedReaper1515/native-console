@@ -9,10 +9,10 @@ src/nds_rom_database.h, one {game code, ROM size, save type} entry a game.
 
 This script converts that file, at a pinned commit and SHA-256, into
 
-    runtime-nds/src/nds_save_db.c
+    runtimes/runtime-nds/src/nds_save_db.c
 
 a sorted array of one 32-bit word a game that nds_save_lookup() searches
-(runtime-nds/include/nds_save.h describes the packing), with the original
+(runtimes/runtime-nds/include/nds_save.h describes the packing), with the original
 notices in its header comment.
 
     python tools/nds/gen_save_db.py            # fetch if needed, generate
@@ -57,7 +57,7 @@ from collections import Counter
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-OUTPUT = REPO_ROOT / "runtime-nds" / "src" / "nds_save_db.c"
+OUTPUT = REPO_ROOT / "runtimes" / "runtime-nds" / "src" / "nds_save_db.c"
 DEFAULT_CACHE = REPO_ROOT / "roms" / "nds" / "skyemu"
 
 SOURCE = {

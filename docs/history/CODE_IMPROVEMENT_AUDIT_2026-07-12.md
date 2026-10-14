@@ -94,7 +94,7 @@ PyBoy:       2,269.2 guest FPS, 61.5 MiB peak RSS
 
 Artifact: `logs/audit_tetris_benchmark_20260712.json`.
 
-This is **not a full-runtime performance claim**. In the current tree, benchmark mode sets `gbrt_rgb_framebuffer_enabled = false`; `ppu_render_scanline()` then returns before both background and sprite rendering (`runtime/src/ppu.c:783-831`). The result should be labeled **core-only benchmark** until the profiles are split. Older JSON files should not be compared directly without checking their feature flags and source revision.
+This is **not a full-runtime performance claim**. In the current tree, benchmark mode sets `gbrt_rgb_framebuffer_enabled = false`; `ppu_render_scanline()` then returns before both background and sprite rendering (`runtimes/runtime-gb/src/ppu.c:783-831`). The result should be labeled **core-only benchmark** until the profiles are split. Older JSON files should not be compared directly without checking their feature flags and source revision.
 
 ## Prioritized findings
 
@@ -102,7 +102,7 @@ This is **not a full-runtime performance claim**. In the current tree, benchmark
 
 #### P0.1 — Generated MBC1 fast reads can index before the ROM buffer
 
-**Evidence:** The active generated helper in `recompiler/src/codegen/c_emitter.cpp:2290-2304` excludes the lower ROM window from the bank-0 branch when `mbc_mode == 1`, then accepts the same address in `addr < 0x8000` and computes `addr - 0x4000u`. For `addr < 0x4000`, that subtraction underflows. Direct ROM reads also omit the `rom_size` validation used by the shared runtime.
+**Evidence:** The active generated helper in `recompilers/recompiler-gb/src/codegen/c_emitter.cpp:2290-2304` excludes the lower ROM window from the bank-0 branch when `mbc_mode == 1`, then accepts the same address in `addr < 0x8000` and computes `addr - 0x4000u`. For `addr < 0x4000`, that subtraction underflows. Direct ROM reads also omit the `rom_size` validation used by the shared runtime.
 
 **Impact:** Generated code can read outside the ROM allocation. MBC1 mode-1 software can return corrupt data or crash; invalid/out-of-range bank selections can also become host memory-safety bugs. This helper is emitted into normal generated projects, not only benchmark builds.
 
@@ -129,7 +129,7 @@ This is **not a full-runtime performance claim**. In the current tree, benchmark
 
 #### P0.3 — MBC5's 9-bit ROM bank is truncated across the recompiler
 
-**Evidence:** Pan Docs permits MBC5 banks `$000-$1FF` (`tech_docs/pan_docs.md:10472-10495`), and `ROM::bank_count()` supports 512 banks. However, `ROM::read_banked()` takes `uint8_t` (`recompiler/include/recompiler/rom.h:180`), analyzer bank packing/extraction uses eight bits (`recompiler/src/analyzer.cpp:23-29`), symbol parsing rejects banks above `0xFF` (`recompiler/src/symbol_table.cpp:139`), and generated dispatch narrows `ctx->rom_bank` to `uint8_t` (`recompiler/src/codegen/c_emitter.cpp:2996`). The analyzer also uses `uint8_t` loop counters against a wider `bank_count()` (`analyzer.cpp:629,654`), which can wrap indefinitely at 256+ banks.
+**Evidence:** Pan Docs permits MBC5 banks `$000-$1FF` (`tech_docs/pan_docs.md:10472-10495`), and `ROM::bank_count()` supports 512 banks. However, `ROM::read_banked()` takes `uint8_t` (`recompilers/recompiler-gb/include/recompiler/rom.h:180`), analyzer bank packing/extraction uses eight bits (`recompilers/recompiler-gb/src/analyzer.cpp:23-29`), symbol parsing rejects banks above `0xFF` (`recompilers/recompiler-gb/src/symbol_table.cpp:139`), and generated dispatch narrows `ctx->rom_bank` to `uint8_t` (`recompilers/recompiler-gb/src/codegen/c_emitter.cpp:2996`). The analyzer also uses `uint8_t` loop counters against a wider `bank_count()` (`analyzer.cpp:629,654`), which can wrap indefinitely at 256+ banks.
 
 **Impact:** An 8 MiB MBC5 ROM may hang analysis. Banks 256-511 cannot be decoded, named, compiled, dispatched, or distinguished in hotspot reports.
 
@@ -139,7 +139,7 @@ This is **not a full-runtime performance claim**. In the current tree, benchmark
 
 #### P0.4 — Multi-ROM analysis has a data race and leaks state between ROMs
 
-**Evidence:** `recompiler/src/analyzer.cpp:1342-1393` declares `aggressive_regions` as a function-local `static std::set` and mutates it. Multi-ROM generation calls `analyze()` concurrently (`recompiler/src/main.cpp:1719-1743`). Even in serial execution, later ROMs inherit scanned addresses from earlier ROMs.
+**Evidence:** `recompilers/recompiler-gb/src/analyzer.cpp:1342-1393` declares `aggressive_regions` as a function-local `static std::set` and mutates it. Multi-ROM generation calls `analyze()` concurrently (`recompilers/recompiler-gb/src/main.cpp:1719-1743`). Even in serial execution, later ROMs inherit scanned addresses from earlier ROMs.
 
 **Impact:** Parallel analysis performs unsynchronized container mutation (undefined behavior). Serial and parallel results can omit different code regions, making launcher output nondeterministic and order-dependent.
 
@@ -149,7 +149,7 @@ This is **not a full-runtime performance claim**. In the current tree, benchmark
 
 #### P0.5 — Analyzer abstract state is unsound at control-flow joins and calls
 
-**Evidence:** `AnalysisState` carries known registers and the current bank, but visited-state deduplication is only by bank/address (`recompiler/src/analyzer.cpp:716-717,833-848`). The first path processed wins; divergent constants are neither joined nor reprocessed. The handwritten transfer chain (`analyzer.cpp:933-1061`) has no conservative default invalidation, so many loads, arithmetic/rotate/CB operations, and calls leave stale constants. CALL fallthrough preserves every known register (`analyzer.cpp:1168-1170`) even though the SM83 has no callee-saved convention.
+**Evidence:** `AnalysisState` carries known registers and the current bank, but visited-state deduplication is only by bank/address (`recompilers/recompiler-gb/src/analyzer.cpp:716-717,833-848`). The first path processed wins; divergent constants are neither joined nor reprocessed. The handwritten transfer chain (`analyzer.cpp:933-1061`) has no conservative default invalidation, so many loads, arithmetic/rotate/CB operations, and calls leave stale constants. CALL fallthrough preserves every known register (`analyzer.cpp:1168-1170`) even though the SM83 has no callee-saved convention.
 
 The mapper model compounds this: it recognizes only one immediate-address store shape, treats bank switching as a generic eight-bit value, forces zero to one for every mapper, misses MBC1 high/mode and MBC5's ninth bit, and can lose the selected switchable bank when entering a fixed-bank helper (`analyzer.cpp:1066-1076,1160`). Constant ROM loads through HL use the code bank instead of the mapped data bank (`analyzer.cpp:954,966`).
 
@@ -168,7 +168,7 @@ The mapper model compounds this: it recognizes only one immediate-address store 
 
 #### P0.6 — MBC1 runtime mapping and generated code dispatch disagree
 
-**Evidence:** In MBC1 mode 1, writes to the high register update `ram_bank` but can leave the upper ROM-bank state stale (`runtime/src/gbrt.c:1707-1716`). `gb_read8()` maps the lower ROM window to banks `$20/$40/$60` in advanced mode (`gbrt.c:1535-1545`), while generated dispatch forces every PC below `$4000` to physical bank 0 (`recompiler/src/codegen/c_emitter.cpp:2996-3001`). Pan Docs describes the secondary register and advanced-mode lower-window mapping at `tech_docs/pan_docs.md:10048-10105`.
+**Evidence:** In MBC1 mode 1, writes to the high register update `ram_bank` but can leave the upper ROM-bank state stale (`runtimes/runtime-gb/src/gbrt.c:1707-1716`). `gb_read8()` maps the lower ROM window to banks `$20/$40/$60` in advanced mode (`gbrt.c:1535-1545`), while generated dispatch forces every PC below `$4000` to physical bank 0 (`recompilers/recompiler-gb/src/codegen/c_emitter.cpp:2996-3001`). Pan Docs describes the secondary register and advanced-mode lower-window mapping at `tech_docs/pan_docs.md:10048-10105`.
 
 **Impact:** Reads and compiled instruction dispatch can observe different physical ROMs. Recompiled execution cannot represent code running from a remapped lower window.
 
@@ -178,7 +178,7 @@ The mapper model compounds this: it recognizes only one immediate-address store 
 
 #### P0.7 — PPU timing is structurally unable to represent important hardware behavior
 
-**Evidence:** The runtime uses fixed 80/172/204-cycle mode lengths (`runtime/include/ppu.h:24-28`), latches key registers once per line (`runtime/src/ppu.c:242-250`), and renders a complete line after fixed mode 3 ends (`ppu.c:984-1008`). Pan Docs documents variable mode 3, fetch stalls, mid-line effects, FIFO mixing, palette blocking, and STAT timing (`tech_docs/pan_docs.md:2423-2486`). SameBoy uses a guarded batch path and falls back to a FIFO state machine (`SameBoy/Core/display.c:1854-1872,1942-2042`).
+**Evidence:** The runtime uses fixed 80/172/204-cycle mode lengths (`runtimes/runtime-gb/include/ppu.h:24-28`), latches key registers once per line (`runtimes/runtime-gb/src/ppu.c:242-250`), and renders a complete line after fixed mode 3 ends (`ppu.c:984-1008`). Pan Docs documents variable mode 3, fetch stalls, mid-line effects, FIFO mixing, palette blocking, and STAT timing (`tech_docs/pan_docs.md:2423-2486`). SameBoy uses a guarded batch path and falls back to a FIFO state machine (`SameBoy/Core/display.c:1854-1872,1942-2042`).
 
 **Impact:** Raster effects, window/sprite timing, STAT behavior, CGB palette access, and game-specific artifacts cannot be fixed reliably with more scanline-end special cases.
 
@@ -188,7 +188,7 @@ The mapper model compounds this: it recognizes only one immediate-address store 
 
 #### P0.8 — HDMA and OAM DMA do not charge/model the hardware they block
 
-**Evidence:** HDMA copies blocks immediately (`runtime/src/gbrt.c:1429-1521`) and uses `stopped` without advancing the other devices through the documented transfer time. Pan Docs specifies 8 normal-speed or 16 double-speed M-cycles per block (`tech_docs/pan_docs.md:4374-4400`). OAM DMA currently permits all `$FF00+` CPU access and directly writes OAM (`gbrt.c:1528-1533,1686-1690,3234-3279`), while DMG and CGB have different source-bus ownership/conflict rules (`pan_docs.md:1747-1765`; `SameBoy/Core/memory.c:253-269`).
+**Evidence:** HDMA copies blocks immediately (`runtimes/runtime-gb/src/gbrt.c:1429-1521`) and uses `stopped` without advancing the other devices through the documented transfer time. Pan Docs specifies 8 normal-speed or 16 double-speed M-cycles per block (`tech_docs/pan_docs.md:4374-4400`). OAM DMA currently permits all `$FF00+` CPU access and directly writes OAM (`gbrt.c:1528-1533,1686-1690,3234-3279`), while DMG and CGB have different source-bus ownership/conflict rules (`pan_docs.md:1747-1765`; `SameBoy/Core/memory.c:253-269`).
 
 **Impact:** Timer, PPU, APU, interrupt, and CPU phases diverge around HDMA; DMA-from-HRAM code, CGB opposite-bus access, and PPU/OAM conflicts behave incorrectly.
 
@@ -198,7 +198,7 @@ The mapper model compounds this: it recognizes only one immediate-address store 
 
 #### P0.9 — Release archives do not contain a usable recompiler distribution
 
-**Evidence:** Generated CMake refers to the repository's external `runtime/` tree (`recompiler/src/codegen/c_emitter.cpp:4010-4072`), while release packaging archives the recompiler binary and README without the runtime sources/libraries required to configure a generated project (`.github/workflows/release.yml:37-43` and peer platform jobs).
+**Evidence:** Generated CMake refers to the repository's external `runtimes/runtime-gb/` tree (`recompilers/recompiler-gb/src/codegen/c_emitter.cpp:4010-4072`), while release packaging archives the recompiler binary and README without the runtime sources/libraries required to configure a generated project (`.github/workflows/release.yml:37-43` and peer platform jobs).
 
 **Impact:** A downloaded release can generate source that cannot be built outside the repository checkout.
 
@@ -210,7 +210,7 @@ The mapper model compounds this: it recognizes only one immediate-address store 
 
 #### P1.1 — Direct target-bank resolution is discarded; `JP HL` tables can read the wrong bank
 
-The analyzer stores an instruction before setting the local copy's `resolved_target_bank` (`recompiler/src/analyzer.cpp:1104-1106,1146,1175`). IR lowering reads the already-stored value (`recompiler/src/ir/ir_builder.cpp:540,597`), so absolute CALL/JP targets remain unknown and take slower runtime dispatch. Separately, the `JP HL` table heuristic uses flat `rom.read()` for banked addresses (`analyzer.cpp:1276-1305`), which reads the wrong physical table above bank 1.
+The analyzer stores an instruction before setting the local copy's `resolved_target_bank` (`recompilers/recompiler-gb/src/analyzer.cpp:1104-1106,1146,1175`). IR lowering reads the already-stored value (`recompilers/recompiler-gb/src/ir/ir_builder.cpp:540,597`), so absolute CALL/JP targets remain unknown and take slower runtime dispatch. Separately, the `JP HL` table heuristic uses flat `rom.read()` for banked addresses (`analyzer.cpp:1276-1305`), which reads the wrong physical table above bank 1.
 
 **Recommendation:** Fix the banked table read immediately, rejecting ambiguous mapper state. Persist resolved direct targets only **after P0.5 makes the state/mapper model sound**; the current unknown target forces a safe dispatch and may be masking bad analysis.
 
@@ -218,7 +218,7 @@ The analyzer stores an instruction before setting the local copy's `resolved_tar
 
 #### P1.2 — Differential mode is valuable but too expensive and not an independent oracle
 
-`runtime/src/differential.c:303-424,551-590,712-716` byte-compares WRAM, VRAM, OAM, HRAM, IO, palettes, ERAM, and three framebuffers after every instruction. Fixed regions alone total about 211 KiB per step—roughly 98 GiB scanned during a 500,000-step run. Meanwhile both sides share mapper, PPU, DMA, timer, and APU implementations.
+`runtimes/runtime-gb/src/differential.c:303-424,551-590,712-716` byte-compares WRAM, VRAM, OAM, HRAM, IO, palettes, ERAM, and three framebuffers after every instruction. Fixed regions alone total about 211 KiB per step—roughly 98 GiB scanned during a 500,000-step run. Meanwhile both sides share mapper, PPU, DMA, timer, and APU implementations.
 
 **Recommendation:** Use `memcmp` or region hashes as the first gate and localize only after a mismatch; then add dirty pages/ranges while retaining `--differential-full` as a strict/debug option. Maintain a three-layer accuracy ladder:
 
@@ -230,7 +230,7 @@ The analyzer stores an instruction before setting the local copy's `resolved_tar
 
 #### P1.3 — Benchmark mode changes the emulated workload
 
-The helper always supplies `--benchmark` (`tools/benchmark_emulators.py:203-227`). That mode disables `gbrt_rgb_framebuffer_enabled`; `ppu_render_scanline()` exits before raw background and sprite rendering (`runtime/src/ppu.c:783-831`). Current fast-tick logic also batches/simplifies device work. This conflicts with documentation that describes skipping output-only work.
+The helper always supplies `--benchmark` (`tools/benchmark_emulators.py:203-227`). That mode disables `gbrt_rgb_framebuffer_enabled`; `ppu_render_scanline()` exits before raw background and sprite rendering (`runtimes/runtime-gb/src/ppu.c:783-831`). Current fast-tick logic also batches/simplifies device work. This conflicts with documentation that describes skipping output-only work.
 
 **Recommendation:** Define two explicit profiles:
 
@@ -245,7 +245,7 @@ Record all feature flags, git SHA/dirty state, ROM/executable hashes, compiler, 
 
 **Status (2026-07-13): completed.** APU channel advancement, sample deadlines, and DIV-driven frame-sequencer edges are now processed chronologically. An exact rational accumulator emits 44,100 samples per 4,194,304 system cycles without the drift from the former rounded fixed-point period. Repository regressions prove identical PCM hashes and serialized APU state for coarse and fine direct stepping, HALT-heavy runtime stepping, and CGB double-speed stepping; DIV reset is also constrained to its single documented falling edge. A freshly generated Tetris capture produced the same non-silent 10-second PCM hash twice (`b684c7a8a5c18196e05514fc5bb28506dd44879a9ecdc1cf7aa6b5ffba013754`).
 
-`gb_audio_step()` advances channels over an entire cycle batch before emitting sample boundaries (`runtime/src/audio.c:757-984`). HALT fast-forward can submit 80-456 cycles at once (`runtime/src/gbrt.c:3388-3419,3619-3625,3715-3717`), spanning multiple 44.1 kHz sample points.
+`gb_audio_step()` advances channels over an entire cycle batch before emitting sample boundaries (`runtimes/runtime-gb/src/audio.c:757-984`). HALT fast-forward can submit 80-456 cycles at once (`runtimes/runtime-gb/src/gbrt.c:3388-3419,3619-3625,3715-3717`), spanning multiple 44.1 kHz sample points.
 
 **Impact:** HALT-heavy scenes can repeat an end-of-batch channel state, alias, and generate different PCM for the same guest execution under different scheduler chunking.
 
@@ -257,7 +257,7 @@ Record all feature flags, git SHA/dirty state, ROM/executable hashes, compiler, 
 
 **Status (2026-07-13): completed.** Mute and volume controls are atomic, callback underruns are accumulated atomically and published to the main-thread stats snapshot, and the callback consumes contiguous ring spans with block copies. The producer now publishes one write position per 32-frame batch instead of per sample. A two-million-frame producer/callback stress completed under ThreadSanitizer without a diagnostic while toggling mute and volume and checking PCM block integrity and counter behavior. A separate 20-million-frame synthetic pipeline profile reduced producer publications by about 32x and warm-run user CPU from 0.22-0.24 seconds to 0.10-0.11 seconds; this is callback-pipeline evidence, not full interactive-runtime performance. Device reset and reopen remain serialized with SDL's audio-device lock/close lifecycle.
 
-The callback reads non-atomic mute/volume controls and updates non-atomic stats (`runtime/src/platform_sdl.cpp:2686-2723`), while the main/UI thread writes/reads them (`platform_sdl.cpp:1223-1225,2145-2155,2381-2386,2601-2603`). Inline audio stats are also unsynchronized, and the producer performs atomic ring operations/stat updates per sample (`platform_sdl.cpp:2726-2748`).
+The callback reads non-atomic mute/volume controls and updates non-atomic stats (`runtimes/runtime-gb/src/platform_sdl.cpp:2686-2723`), while the main/UI thread writes/reads them (`platform_sdl.cpp:1223-1225,2145-2155,2381-2386,2601-2603`). Inline audio stats are also unsynchronized, and the producer performs atomic ring operations/stat updates per sample (`platform_sdl.cpp:2726-2748`).
 
 **Recommendation:** Use atomics or SDL device locking for callback controls/counters, aggregate stats locally, and publish audio in blocks with one ring update per block.
 
@@ -265,7 +265,7 @@ The callback reads non-atomic mute/volume controls and updates non-atomic stats 
 
 #### P1.6 — Save, RTC, and savestate writes are not transactional or portable
 
-Savestates overwrite the final slot directly and serialize native structs/padding (`runtime/src/gbrt.c:1173-1233`; `runtime/include/ppu.h:101-152`). Battery and RTC files are also overwritten directly (`runtime/src/platform_sdl.cpp:3463-3502`).
+Savestates overwrite the final slot directly and serialize native structs/padding (`runtimes/runtime-gb/src/gbrt.c:1173-1233`; `runtimes/runtime-gb/include/ppu.h:101-152`). Battery and RTC files are also overwritten directly (`runtimes/runtime-gb/src/platform_sdl.cpp:3463-3502`).
 
 **Impact:** A crash, short write, or full disk can destroy the last good save. Savestates are compiler/architecture/layout dependent.
 
@@ -275,7 +275,7 @@ Savestates overwrite the final slot directly and serialize native structs/paddin
 
 #### P1.7 — Generated-project writes are non-atomic and report weak errors
 
-`recompiler/src/codegen/c_emitter.cpp:4139+` checks file open but not final write/flush/close state, writes the target directory in place, and collapses exceptions to a generic failure. A failed generation can leave a mixed old/new tree.
+`recompilers/recompiler-gb/src/codegen/c_emitter.cpp:4139+` checks file open but not final write/flush/close state, writes the target directory in place, and collapses exceptions to a generic failure. A failed generation can leave a mixed old/new tree.
 
 **Recommendation:** Generate into a sibling staging directory, verify each stream, emit the exact failed path/operation, and atomically replace the destination after all artifacts and metadata are complete.
 
@@ -283,7 +283,7 @@ Savestates overwrite the final slot directly and serialize native structs/paddin
 
 #### P1.8 — Compiler portability is contradicted by emitted GNU/Clang syntax
 
-The active emitter writes `__builtin_expect` unconditionally (`recompiler/src/codegen/c_emitter.cpp:2292,2315,2331,2351`), while the project advertises MSVC support. Runtime code also contains unguarded GNU weak attributes (`runtime/src/gbrt.c:3029,3035`), and generated/runtime CMake emits Unix-style optimization flags in multiple places.
+The active emitter writes `__builtin_expect` unconditionally (`recompilers/recompiler-gb/src/codegen/c_emitter.cpp:2292,2315,2331,2351`), while the project advertises MSVC support. Runtime code also contains unguarded GNU weak attributes (`runtimes/runtime-gb/src/gbrt.c:3029,3035`), and generated/runtime CMake emits Unix-style optimization flags in multiple places.
 
 **Recommendation:** Centralize `GB_LIKELY`, `GB_UNLIKELY`, weak-symbol/export, visibility, and optimization configuration behind compiler feature macros and CMake target properties. Add at least compile-only generated-project jobs for MSVC and AppleClang/GCC.
 
@@ -295,7 +295,7 @@ The only workflow is release-oriented and builds the repository, but it does not
 
 #### P1.10 — Build profiles and runtime integration are duplicated and drifting
 
-Single-ROM generation defaults to the smaller iteration profile, while multi-ROM generation emits a distinct Release/O3/IPO-on policy. Runtime source/library logic is duplicated among `runtime/CMakeLists.txt`, single-ROM output, multi-ROM output, and Android generation. This has already produced different behavior and compiler assumptions across output modes.
+Single-ROM generation defaults to the smaller iteration profile, while multi-ROM generation emits a distinct Release/O3/IPO-on policy. Runtime source/library logic is duplicated among `runtimes/runtime-gb/CMakeLists.txt`, single-ROM output, multi-ROM output, and Android generation. This has already produced different behavior and compiler assumptions across output modes.
 
 **Recommendation:** One generated-CMake module/template should own runtime discovery/embedding and build profiles. Make profile selection explicit and identical for single/multi-ROM unless the user requests otherwise.
 
@@ -305,16 +305,16 @@ These are high-confidence static risks, but measured benefit should be establish
 
 #### P2.1 — Analyzer scans scale poorly
 
-- `AnnotationIndex::contains_data()` linearly scans ranges (`recompiler/src/analyzer.cpp:41-55`) inside byte-level scans. Use sorted, merged per-bank intervals plus binary search.
+- `AnnotationIndex::contains_data()` linearly scans ranges (`recompilers/recompiler-gb/src/analyzer.cpp:41-55`) inside byte-level scans. Use sorted, merged per-bank intervals plus binary search.
 - Pointer and aggressive discovery walk almost every ROM byte (`analyzer.cpp:629-661,1329-1404`) and repeatedly run entropy/pattern/decoder checks. Cache plausibility by physical ROM offset and make expensive heuristic passes targeted or explicit.
 - Pointer discovery can probe every switchable bank for each fixed-bank candidate, approaching quadratic behavior as bank count grows.
-- Dense bank/address state is stored in allocation-heavy `std::map`/`std::set` containers (`recompiler/include/recompiler/analyzer.h:107+`). Prefer vectors/bitsets indexed by physical ROM offset and sparse maps only for metadata.
+- Dense bank/address state is stored in allocation-heavy `std::map`/`std::set` containers (`recompilers/recompiler-gb/include/recompiler/analyzer.h:107+`). Prefer vectors/bitsets indexed by physical ROM offset and sparse maps only for metadata.
 - Function construction performs a new CFG BFS per call target (`analyzer.cpp:1519-1593`), repeatedly traversing shared tails. Compute block ownership/components once.
-- Symbol loading decodes every byte/bank before normal analysis (`recompiler/src/symbol_table.cpp:172+`). Reuse a shared decode index or defer heuristic inference.
+- Symbol loading decodes every byte/bank before normal analysis (`recompilers/recompiler-gb/src/symbol_table.cpp:172+`). Reuse a shared decode index or defer heuristic inference.
 
 #### P2.2 — Code generation creates avoidable memory and compiler load
 
-The emitter retains complete function-body strings before copying them into chunks (`recompiler/src/codegen/c_emitter.cpp:3371-3422`) and serializes every ROM byte as textual C (`c_emitter.cpp:3462-3489`). Stream/move completed chunks, and embed/link ROM data as a binary object or generated binary resource. Measure peak generator RSS, generated bytes, C compiler peak RSS, and clean/incremental build time.
+The emitter retains complete function-body strings before copying them into chunks (`recompilers/recompiler-gb/src/codegen/c_emitter.cpp:3371-3422`) and serializes every ROM byte as textual C (`c_emitter.cpp:3462-3489`). Stream/move completed chunks, and embed/link ROM data as a binary object or generated binary resource. Measure peak generator RSS, generated bytes, C compiler peak RSS, and clean/incremental build time.
 
 #### P2.3 — Dead duplicate pipelines make correctness work harder
 
@@ -328,7 +328,7 @@ The obsolete `CEmitter` class, a file-local `Generator`, unused IR lowering help
 
 #### P2.5 — CLI parsing can abort or silently accept malformed input
 
-Numeric parsing uses uncaught `std::stoi`/`std::stoul`, and some missing flag values fall through without a focused error (`recompiler/src/main.cpp:1542-1610`). A direct `--limit nope` check aborted the process rather than producing normal CLI help. Generated runtime parsing has similar ad hoc behavior.
+Numeric parsing uses uncaught `std::stoi`/`std::stoul`, and some missing flag values fall through without a focused error (`recompilers/recompiler-gb/src/main.cpp:1542-1610`). A direct `--limit nope` check aborted the process rather than producing normal CLI help. Generated runtime parsing has similar ad hoc behavior.
 
 **Recommendation:** Use one typed parser with range validation, consistent `--help`, unknown-option errors, nonzero usage exits, and tests for every flag/value edge.
 
@@ -336,7 +336,7 @@ Numeric parsing uses uncaught `std::stoi`/`std::stoul`, and some missing flag va
 
 Debug logging flushes frequently and can perturb the timing being investigated. The accuracy runner also rebuilds the shared runtime separately for each test and runs sequentially. Add buffered/binary trace modes, shared content-addressed runtime builds, and bounded parallel test execution while keeping per-test logs deterministic.
 
-#### P2.7 — Core runtime/platform coupling limits portability and profiling
+#### P2.7 — Core runtimes/runtime-gb/platform coupling limits portability and profiling
 
 `gbrt` currently bundles core emulation with SDL/ImGui. Split a platform-neutral `gbrt_core` from SDL/UI adapters. This makes headless tests, fuzzing, WebAssembly/low-end ports, and core-only profiling smaller and less ambiguous.
 

@@ -1,7 +1,7 @@
 # Native Console Hub: library, import/build pipeline, and launcher.
 # Built from the root project when SDL2 is available (BUILD_HUB=ON).
 
-set(HUB_IMGUI_DIR "${PROJECT_SOURCE_DIR}/runtime/vendor/imgui")
+set(HUB_IMGUI_DIR "${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/vendor/imgui")
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/HubVoxelProfiles.cmake)
 hub_generate_voxel_profiles("${CMAKE_CURRENT_BINARY_DIR}/hub_builtin_voxel_profiles.cpp")
@@ -31,7 +31,7 @@ add_executable(native_console_hub WIN32
     src/hub_texture_packs.cpp
     src/hub_voxel_profiles.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/hub_builtin_voxel_profiles.cpp
-    ${PROJECT_SOURCE_DIR}/runtime/src/gbrt_hash.c
+    ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/src/gbrt_hash.c
     ${HUB_IMGUI_DIR}/imgui.cpp
     ${HUB_IMGUI_DIR}/imgui_draw.cpp
     ${HUB_IMGUI_DIR}/imgui_tables.cpp
@@ -55,7 +55,7 @@ endif()
 target_include_directories(native_console_hub PRIVATE
     src
     ${HUB_IMGUI_DIR}
-    ${PROJECT_SOURCE_DIR}/runtime/include
+    ${PROJECT_SOURCE_DIR}/runtimes/runtime-gb/include
 )
 target_compile_features(native_console_hub PRIVATE cxx_std_20 c_std_11)
 target_link_libraries(native_console_hub PRIVATE SDL2::SDL2)

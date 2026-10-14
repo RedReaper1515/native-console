@@ -1,6 +1,6 @@
-"""Generates runtime-nes/src/nes_apu_tables.c.
+"""Generates runtimes/runtime-nes/src/nes_apu_tables.c.
 
-    python tools/nes/gen_apu_tables.py runtime-nes/src/nes_apu_tables.c
+    python tools/nes/gen_apu_tables.py runtimes/runtime-nes/src/nes_apu_tables.c
 
 Needs numpy (for the FIR prototype only).
 

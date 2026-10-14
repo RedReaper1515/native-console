@@ -1986,7 +1986,7 @@
       "rom": "blocksds-tests/ipc_transfer_region.nds",
       "about": "The real-time clock reaches the ARM9: time() gives the clock the runner starts with",
       "frames": 120,
-      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input); the runner's clock at reset is 2026-01-01 12:00:00 (NDS_RTC_DEFAULT_BASE in runtime-nds/include/nds.h)",
+      "source": "tests/ipc/transfer_region: source/main.c; VERDICTS.md 3.3 (nothing to judge without input); the runner's clock at reset is 2026-01-01 12:00:00 (NDS_RTC_DEFAULT_BASE in runtimes/runtime-nds/include/nds.h)",
       "note": "Two seconds in. Only a runner that starts its clock there can pass.",
       "checks": [
         {

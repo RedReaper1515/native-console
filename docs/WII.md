@@ -17,7 +17,7 @@ has played it by hand.
 has the phases, the gates and what is open.
 
 The Wii is the second console of the GameCube family. It shares
-`runtime-gc/` and `gcrecomp` with the GameCube and adds the files named
+`runtimes/runtime-gc/` and `gcrecomp` with the GameCube and adds the files named
 `wii_*`; everything in [docs/GC-PLAN.md](GC-PLAN.md) about the
 processor, the graphics chip and the renderers applies to both.
 
@@ -69,7 +69,7 @@ cp "game.wbfs" output/game/build/game.gcdata   # or a hard link
 ./output/game/build/game
 ```
 
-The headless runner's options are the GameCube's (`runtime-gc/include/
+The headless runner's options are the GameCube's (`runtimes/runtime-gc/include/
 gc_runner.h`): `--frames`, `--dump-frame`, `--differential`, `--coverage`,
 `--trace-out`, `--input`, `--auto-input`. On a Wii, scripted input drives the
 first remote (with a Nunchuk) through the same names, and the script's

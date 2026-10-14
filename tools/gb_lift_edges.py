@@ -12,7 +12,7 @@ Where the call to the helper is made, though, the registers it reads usually
 hold constants, and the export records them (`known`). So for each such call
 the helper is run, from the ROM, in the checker's interpreter, with those
 constants and everything else made up, several times over
-(lift/checker/lift_probe.c). If it leaves for the same address in the same
+(lift/checkers/checker-gb/lift_probe.c). If it leaves for the same address in the same
 bank every time, that is where this call goes.
 
 A helper that looks its target up in a table goes somewhere different each
@@ -27,7 +27,7 @@ entries points to, or at a function something calls.
 
 What the ROM cannot say, playing can. A game run with `--evidence FILE`
 records every jump it makes that its code does not spell out
-(runtime/include/gbrt_evidence.h): the instruction, where it went, and the
+(runtimes/runtime-gb/include/gbrt_evidence.h): the instruction, where it went, and the
 CALL that entered the function it happened in. Those are merged in here.
 They are facts about one run: what was not played is not in them, and a call
 seen going to three places may go to a fourth.

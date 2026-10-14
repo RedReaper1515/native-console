@@ -9,7 +9,7 @@ are unchanged.
 ./output/game/build/game --texture-pack game-hd.gbtp
 ```
 
-The runtime API is `runtime/include/gbrt_texture_pack.h`. The authoring tool
+The runtime API is `runtimes/runtime-gb/include/gbrt_texture_pack.h`. The authoring tool
 is `tools/gb_texture_pack.py`, which uses only the Python standard library.
 
 ## How replacement works
@@ -183,7 +183,7 @@ Measured on Link's Awakening, Windows, Release build:
 
 GBA games take `--texture-pack FILE.gbatp` too (the SDL game and the
 headless runner, where `--dump-frame` then writes the composed frame). The
-runtime API is `runtime-gba/include/gba_texture_pack.h`; the build tool is
+runtime API is `runtimes/runtime-gba/include/gba_texture_pack.h`; the build tool is
 `tools/gba_texture_pack.py` (standard library; Pillow speeds up PNG
 decoding); packs are made from recordings of play with the pipeline in
 [tools/gba/texpack](../tools/gba/texpack/README.md), which upscales whole

@@ -38,7 +38,7 @@ and its linked result reports.
   portable compiler abstractions.
 - [ ] Run generation, generated-project build, execution, differential smoke,
   and release relocation on ordinary CI pushes and pull requests.
-- [ ] Unify single-ROM, multi-ROM, and Android runtime/CMake templates and make
+- [ ] Unify single-ROM, multi-ROM, and Android runtimes/runtime-gb/CMake templates and make
   build-profile defaults consistent.
 - [ ] Add a tested Python dependency manifest for PyBoy, psutil, and Pillow.
 - [ ] Add Git state, ROM/binary hashes, compiler profile, runtime flags, and
@@ -126,7 +126,7 @@ and its linked result reports.
 - [ ] Add a custom Android app icon.
 - [ ] Add an optional touch gameplay overlay for Android.
 - [ ] Add multi-ROM Android output after the single-ROM lifecycle is stable.
-- [ ] Add WebAssembly support after the runtime/platform split.
+- [ ] Add WebAssembly support after the runtimes/runtime-gb/platform split.
 - [ ] Add shader support without coupling core emulation to a renderer.
 - [ ] Benchmark representative low-end hardware with clearly labeled profiles.
 

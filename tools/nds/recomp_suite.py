@@ -86,7 +86,7 @@ from run_nds_tests import (EXE, REPO, ROMS, TESTS, TestsError, input_options, lo
                            select_entries)
 
 RESULTS = REPO / "logs" / "nds_recomp_suite.json"
-RUNTIME = REPO / "runtime-nds"
+RUNTIME = REPO / "runtimes" / "runtime-nds"
 # The oracle suites that are homebrew test ROMs. Named, never globbed: the
 # oracle folder also holds data made from a commercial game.
 ORACLE_SUITES = ("armwrestler", "rockwrestler", "polyrastertest")

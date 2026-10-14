@@ -26,7 +26,7 @@ expected to find gaps; see [What is not done](#what-is-not-done).
 ## Layout
 
 ```text
-runtime-nds/     ARM9 (ARMv5TE) and ARM7 (ARMv4T) cores from one set of
+runtimes/runtime-nds/     ARM9 (ARMv5TE) and ARM7 (ARMv4T) cores from one set of
                  instruction handlers, the machine (both memory maps, I/O,
                  timers, DMA, the IPC FIFO, the maths unit, the card, the
                  two-CPU scheduler), 2D engines, 3D geometry and software
@@ -34,7 +34,7 @@ runtime-nds/     ARM9 (ARMv5TE) and ARM7 (ARMv4T) cores from one set of
                  RTC, save chips, replacement BIOS images, recompiled-code
                  dispatcher, headless runner, SDL2 frontend and overlay
                  menu (platform/)
-recompiler-nds/  ndsrecomp: ROM and overlay reader, analyzer, C emitter
+recompilers/recompiler-nds/  ndsrecomp: ROM and overlay reader, analyzer, C emitter
 tests/nds/       instruction vectors, device unit tests, analyzer tests,
                  test-ROM baselines, the menu self-test
 tools/nds/       test-ROM runners, the recompile suite, oracle scripts
@@ -71,7 +71,7 @@ out/build/game --frames 600 --dump-frame title.ppm --quiet
 
 The executable opens a window unless a test option asks for a headless run
 (`--frames`, `--dump-frame`, `--differential`, `--coverage` and the rest of
-[nds_runner.c](../runtime-nds/src/nds_runner.c)'s list). `nds_run` and
+[nds_runner.c](../runtimes/runtime-nds/src/nds_runner.c)'s list). `nds_run` and
 `nds_play` are the same two programs for a ROM file, with the interpreter
 alone.
 

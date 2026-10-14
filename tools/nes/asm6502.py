@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A small two-pass 6502 assembler for the project's own NES test ROMs.
 
-The opcode table comes from runtime-nes/include/nes_cpu_decode.h (the
+The opcode table comes from runtimes/runtime-nes/include/nes_cpu_decode.h (the
 NES_OPINFO_TABLE lines), the same table the recompiler and the disassembler
 use, so the assembler, the analyzer and the interpreter agree on every
 encoding.
@@ -54,7 +54,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-DECODE_H = REPO / "runtime-nes" / "include" / "nes_cpu_decode.h"
+DECODE_H = REPO / "runtimes" / "runtime-nes" / "include" / "nes_cpu_decode.h"
 
 # Operand bytes per addressing mode.
 MODE_BYTES = {"IMP": 0, "ACC": 0, "IMM": 1, "ZP": 1, "ZPX": 1, "ZPY": 1, "ABS": 2, "ABSX": 2, "ABSY": 2,

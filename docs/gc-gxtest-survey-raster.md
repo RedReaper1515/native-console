@@ -12,8 +12,8 @@ Files read:
 - `roms/gc/hwtests/gxtest/cgx.cpp`, `cgx.h`, `cgx_defaults.h`
 - supporting register definitions in `roms/gc/hwtests/gxtest/BPMemory.h`, `XFMemory.h`
 
-Current backend state for reference: `runtime-gc/src/gc_gx.c` parses the FIFO and
-`runtime-gc/include/gc_gx_draw.h` declares the transform stage and primitive assembly.
+Current backend state for reference: `runtimes/runtime-gc/src/gc_gx.c` parses the FIFO and
+`runtimes/runtime-gc/include/gc_gx_draw.h` declares the transform stage and primitive assembly.
 There is no rasteriser, no EFB, no TEV and no copy pipeline yet, which is what these two
 programs need.
 

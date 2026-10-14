@@ -72,7 +72,7 @@ scripts and CI work without special cases.
 - The project contains a snapshot of the runtime in `DIR/runtime-<f>/`. That
   folder name is what the backend's `runtime_folder()` returns. The
   recompiler looks for the runtime sources in `--runtime DIR`, then
-  `$<F>RECOMP_RUNTIME_DIR`, then `runtime-<f>/` next to its executable (a
+  `$<F>RECOMP_RUNTIME_DIR`, then `runtimes/runtime-<f>/` next to its executable (a
   release archive), two folders up (`build/bin` in a checkout), and last
   the directory compiled in at build time (`<F>RECOMP_DEFAULT_RUNTIME_DIR`).
 - `<f>recomp --version-json` prints `{"schema":"<f>recomp.version",
@@ -115,7 +115,7 @@ scripts and CI work without special cases.
   `Threads` wherever threads are used.
 - The runtime carries `cmake/NativeConsoleMacBundle.cmake`, `Info.plist.in`
   and `make_macos_app.sh`. These are identical copies of the files in
-  `runtime/cmake/`, and CTest compares them.
+  `runtimes/runtime-gb/cmake/`, and CTest compares them.
 
 ### Game executable
 
@@ -158,8 +158,8 @@ Every console's games have an in-game overlay menu. Players get the same
 controls whichever console a game came from. The Game Boy runtime's settings
 menu is the reference: see the controls table and the settings menu in
 [RUNTIME.md](RUNTIME.md). It is built with the Dear ImGui copy vendored in
-`runtime/vendor/imgui`. The GBA menu is in progress; the SNES frontend
-(`runtime-snes/platform/snes_sdl.cpp`) was adapted from it and has a
+`runtimes/runtime-gb/vendor/imgui`. The GBA menu is in progress; the SNES frontend
+(`runtimes/runtime-snes/platform/snes_sdl.cpp`) was adapted from it and has a
 self-test (`--menu-selftest`, CTest `snes_menu_selftest`) that drives the
 menu with synthetic keyboard and controller events, the model for the P5
 menu gate.
@@ -439,8 +439,8 @@ New directories and files:
 
 | Path | Contents |
 |---|---|
-| `recompiler-<f>/` | `CMakeLists.txt` (`<f>recomp_core`, `<f>recomp`, `<F>RECOMP_DEFAULT_RUNTIME_DIR`), `src/` rom, analyzer, emitter, CLI |
-| `runtime-<f>/` | `include/`, `src/`, `platform/` (SDL frontend and overlay menu), `tools/` (`<f>_run`, `<f>_play`), `cmake/` (the three macOS files) |
+| `recompilers/recompiler-<f>/` | `CMakeLists.txt` (`<f>recomp_core`, `<f>recomp`, `<F>RECOMP_DEFAULT_RUNTIME_DIR`), `src/` rom, analyzer, emitter, CLI |
+| `runtimes/runtime-<f>/` | `include/`, `src/`, `platform/` (SDL frontend and overlay menu), `tools/` (`<f>_run`, `<f>_play`), `cmake/` (the three macOS files) |
 | `tests/<f>/` | `CMakeLists.txt`, vector harness, device unit tests, ROM baseline. Name every test `<f>_*` so `ctest -R <f>` selects them. Register tests that need fetched data only when `roms/<f>/` exists, and print a status message when it does not. Runners fail closed. |
 | `tools/<f>/` | `run_<f>_tests.py`, `recomp_suite.py`, frame tools |
 | `tools/fetch_<f>_tests.py` | Pinned test-data downloads and `MANIFEST.json` |
@@ -451,8 +451,8 @@ Existing files:
 
 | File | Change |
 |---|---|
-| `CMakeLists.txt` | `add_subdirectory(runtime-<f>)`, `add_subdirectory(recompiler-<f>)`, and `tests/<f>` under `BUILD_TESTS` |
-| `tests/CMakeLists.txt` | Add `runtime-<f>` to the macOS bundle copy comparison |
+| `CMakeLists.txt` | `add_subdirectory(runtimes/runtime-<f>)`, `add_subdirectory(recompilers/recompiler-<f>)`, and `tests/<f>` under `BUILD_TESTS` |
+| `tests/CMakeLists.txt` | Add `runtimes/runtime-<f>` to the macOS bundle copy comparison |
 | `.gitignore` | ROM extensions |
 | `hub/src/hub_consoles.cpp` | Declare `make_<f>_backend()`, push it in `backends()`, add the console ids to `all_consoles()` |
 | `hub/CMakeLists.txt` | `src/console_<f>.cpp` |
@@ -742,7 +742,7 @@ day one, labelled evidence layers, fail closed.
 | Source | License | What we take |
 
 ## Layout
-Directory tree of runtime-<f>/, recompiler-<f>/, tests/<f>/, tools/<f>/.
+Directory tree of runtimes/runtime-<f>/, recompilers/recompiler-<f>/, tests/<f>/, tools/<f>/.
 
 ## Phases
 P0-P8 from docs/ADDING-A-CONSOLE.md, each with the concrete suites and

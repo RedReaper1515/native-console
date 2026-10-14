@@ -37,7 +37,7 @@ A result below says which machine it is from.
    PIF's joybus side is high-level.
 3. **One semantics source.** The interpreter and generated C call the same
    force-inlined handlers `n64_op_<name>(c, insn)` in
-   `runtime-n64/include/n64_cpu_impl.h` and `n64_fpu_impl.h`. The vectors
+   `runtimes/runtime-n64/include/n64_cpu_impl.h` and `n64_fpu_impl.h`. The vectors
    validate the handlers once; the emitter only sequences them, and the
    instruction word is a constant in generated code, so field extraction
    folds away.
@@ -65,7 +65,7 @@ A result below says which machine it is from.
 | Source | License | What we take |
 |---|---|---|
 | [ares](https://github.com/ares-emulator/ares) 9408cb43 | ISC | Behaviour reference and ported code: VR4300 exceptions, COP0, address translation and TLB, the FPU's unimplemented-operation rules; the RSP scalar unit, vector unit, DMA and the reciprocal tables; MI, VI (timing; the window of `VI::refresh`, that is which lines and columns are drawn and the guard band; and its nearest-neighbour scan-out, kept as the unfiltered path), AI, PI (DMA timing and block quirks), RI, SI; the PIF joybus, controller and Controller Pak, EEPROM; the FlashRAM model; the game database (save type, size, accessories) as data. Rewritten in C. |
-| [parallel-rdp-standalone](https://github.com/Themaister/parallel-rdp-standalone) 388d70f5 (upstream parallel-rdp 1cecd042) | MIT | The RDP: the command interface, triangle setup and span walk, TMEM and the texture unit, the colour combiner, the blender, depth, coverage and dither, ported from its GLSL shaders to C (`runtime-n64/src/n64_rdp*.c`). The VI stage too (`n64_vi.c`, `n64_vi_luts.c`): fetch with the hidden coverage bits, anti-aliasing, dither filter, divot filter, the fetch bug, bilinear scaling, gamma and gamma dither, from `video_interface.cpp` and `extract_vram.comp`, `vi_fetch.frag`, `vi_divot.frag`, `vi_scale.frag`, `noise.h`. |
+| [parallel-rdp-standalone](https://github.com/Themaister/parallel-rdp-standalone) 388d70f5 (upstream parallel-rdp 1cecd042) | MIT | The RDP: the command interface, triangle setup and span walk, TMEM and the texture unit, the colour combiner, the blender, depth, coverage and dither, ported from its GLSL shaders to C (`runtimes/runtime-n64/src/n64_rdp*.c`). The VI stage too (`n64_vi.c`, `n64_vi_luts.c`): fetch with the hidden coverage bits, anti-aliasing, dither filter, divot filter, the fetch bug, bilinear scaling, gamma and gamma dither, from `video_interface.cpp` and `extract_vram.comp`, `vi_fetch.frag`, `vi_divot.frag`, `vi_scale.frag`, `noise.h`. |
 | [cen64](https://github.com/n64dev/cen64) `si/cic.c` | BSD-3-Clause | The table of IPL3 CRCs that identifies the CIC chip. |
 | [PeterLemon/N64](https://github.com/PeterLemon/N64) (krom) 7085543e | Unlicense | CPU, FPU, RSP, RDP and interface test ROMs. Local test data. |
 | [lemmy-64/n64-systemtest](https://github.com/lemmy-64/n64-systemtest) 196f5421 | MIT | Expected values for RSP corner cases, used as data in `tests/n64/n64_rsp_test.c`. The test ROM itself needs a Rust MIPS toolchain to build and is not run yet. |
@@ -79,7 +79,7 @@ sparse git checkout into `roms/n64/` and writes `MANIFEST.json`.
 ## Layout
 
 ```text
-runtime-n64/
+runtimes/runtime-n64/
   include/n64_cpu.h         VR4300 state, COP0, TLB, FPU registers
   include/n64_cpu_decode.h  opcode table and classifier (analyzer, emitter, tools)
   include/n64_cpu_impl.h    integer, memory, branch and COP0 handlers, force-inlined
@@ -108,7 +108,7 @@ runtime-n64/
   src/n64_runner.c          headless runner and --differential
   platform/                 SDL2 frontend and overlay menu
   tools/n64_run.c, n64_play
-recompiler-n64/src/         image (views of RDRAM), analyzer, emitter, CLI (n64recomp)
+recompilers/recompiler-n64/src/         image (views of RDRAM), analyzer, emitter, CLI (n64recomp)
 tests/n64/                  vectors, CPU/RSP/RDP unit tests, ROM baseline, fixture
 tests/fixtures/make_n64_rom.py   repository-owned MIPS assembler and fixture ROM
 hub/src/console_n64.cpp     hub backend

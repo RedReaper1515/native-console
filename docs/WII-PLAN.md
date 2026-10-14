@@ -14,7 +14,7 @@ results. [GC-PLAN.md](GC-PLAN.md) has everything the two consoles share.
   BAT pairs; Hollywood contains Flipper unchanged. The processor core, the
   recompiler, the command processor, both renderers, the video interface,
   the controller ports, the sound path, save states, the frontend and the
-  overlay menu are `runtime-gc/` and `recompiler-gc/` as they are. A Wii
+  overlay menu are `runtimes/runtime-gc/` and `recompilers/recompiler-gc/` as they are. A Wii
   adds files named `wii_*` to those directories and a mode the machine is
   created in. The hub shows Wii as its own console (id `wii`) served by the
   `gc` family backend, the way `gbc` is served by the Game Boy family.
@@ -72,7 +72,7 @@ no answer the license file was read.
 
 | Source | License | What we take |
 |---|---|---|
-| `runtime-gc/`, `recompiler-gc/` (this repository) | MIT | Everything a Wii shares with a GameCube |
+| `runtimes/runtime-gc/`, `recompilers/recompiler-gc/` (this repository) | MIT | Everything a Wii shares with a GameCube |
 | [devkitPro/libogc](https://github.com/devkitPro/libogc) v3.1.0 (`c70bdf2`) | zlib (its `wiiuse/` is GPL-3: not read for code; `lwbt/` is BSD) | The client side of every IOS request: numbers, structure layouts, vector formats. What the test programs are built with. |
 | [doldecomp/ogws](https://github.com/doldecomp/ogws) `src/revolution/BTE` | Apache-2.0 (Broadcom's stack) | What a retail game's Bluetooth stack sends and expects, read as a reference. The SDK decompilation beside it (IPC, NAND, WPAD) is reference only. |
 | [xwiimote](https://github.com/xwiimote/xwiimote) `doc/PROTOCOL` | MIT-style | The remote's report protocol, extensions, EEPROM layout |
@@ -93,22 +93,22 @@ no answer the license file was read.
 ## Layout
 
 ```
-runtime-gc/include/wii.h          the Wii's state, Hollywood, Broadway, boot state
-runtime-gc/include/wii_ios.h      IOS: request blocks, the device interface
-runtime-gc/include/wii_crypto.h   AES-128 and SHA-1 (from the standards)
-runtime-gc/src/wii.c              console selection, Hollywood's registers, interrupts
-runtime-gc/src/wii_ios.c          the kernel: descriptors, acknowledgements, answers
-runtime-gc/src/wii_ios_es.c       /dev/es
-runtime-gc/src/wii_ios_di.c       /dev/di
-runtime-gc/src/wii_ios_fs.c       /dev/fs and the flash filesystem's files
-runtime-gc/src/wii_nand.c         the flash filesystem's contents, one file on the host
-runtime-gc/src/wii_sysconf.c      SYSCONF and setting.txt, as a new console's
-runtime-gc/include/wii_bt.h       the Bluetooth controller's state and its interface
-runtime-gc/include/wii_remote.h   a remote's input as the frontend sets it
-runtime-gc/src/wii_ios_bt.c       /dev/usb/oh1/57e/305: the device a game opens
-runtime-gc/src/wii_bt.c           the controller: HCI, L2CAP, service discovery
-runtime-gc/src/wii_remote.c       the remotes: reports, memory, camera, extensions
-runtime-gc/src/wii_disc.c         partitions, title keys, WBFS
+runtimes/runtime-gc/include/wii.h          the Wii's state, Hollywood, Broadway, boot state
+runtimes/runtime-gc/include/wii_ios.h      IOS: request blocks, the device interface
+runtimes/runtime-gc/include/wii_crypto.h   AES-128 and SHA-1 (from the standards)
+runtimes/runtime-gc/src/wii.c              console selection, Hollywood's registers, interrupts
+runtimes/runtime-gc/src/wii_ios.c          the kernel: descriptors, acknowledgements, answers
+runtimes/runtime-gc/src/wii_ios_es.c       /dev/es
+runtimes/runtime-gc/src/wii_ios_di.c       /dev/di
+runtimes/runtime-gc/src/wii_ios_fs.c       /dev/fs and the flash filesystem's files
+runtimes/runtime-gc/src/wii_nand.c         the flash filesystem's contents, one file on the host
+runtimes/runtime-gc/src/wii_sysconf.c      SYSCONF and setting.txt, as a new console's
+runtimes/runtime-gc/include/wii_bt.h       the Bluetooth controller's state and its interface
+runtimes/runtime-gc/include/wii_remote.h   a remote's input as the frontend sets it
+runtimes/runtime-gc/src/wii_ios_bt.c       /dev/usb/oh1/57e/305: the device a game opens
+runtimes/runtime-gc/src/wii_bt.c           the controller: HCI, L2CAP, service discovery
+runtimes/runtime-gc/src/wii_remote.c       the remotes: reports, memory, camera, extensions
+runtimes/runtime-gc/src/wii_disc.c         partitions, title keys, WBFS
 tests/wii/                        unit tests and tests/wii/programs (libogc guests)
 tools/wii/                        build_wii_programs.py and friends
 ```

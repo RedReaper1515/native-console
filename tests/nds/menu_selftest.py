@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Overlay menu gate for the DS frontend (runtime-nds/platform/nds_sdl.cpp,
+"""Overlay menu gate for the DS frontend (runtimes/runtime-nds/platform/nds_sdl.cpp,
 --menu-selftest): the menu opens and closes from the keyboard and from a
 controller alone and pauses the game; bindings are changed through it, with
 the layout, stylus and lid bindings among them, are saved, and are put back

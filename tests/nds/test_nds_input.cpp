@@ -1,5 +1,5 @@
 /*
- * DS frontend input (runtime-nds/platform/nds_input.cpp) and the choice
+ * DS frontend input (runtimes/runtime-nds/platform/nds_input.cpp) and the choice
  * between window and headless runner (nds_sdl_wants_headless):
  *
  * Bindings
@@ -30,7 +30,7 @@
  * Headless
  * - Every option of the headless runner sends a command line there; the
  *   window's own options, and the ones the two share, do not. Given the
- *   path of runtime-nds/src/nds_runner.c, the runner's options are also
+ *   path of runtimes/runtime-nds/src/nds_runner.c, the runner's options are also
  *   read from its source, so one added there and forgotten in the frontend
  *   fails here.
  */
@@ -661,7 +661,7 @@ static void test_headless(void)
     }
 }
 
-/* test_nds_input [runtime-nds/src/nds_runner.c] */
+/* test_nds_input [runtimes/runtime-nds/src/nds_runner.c] */
 int main(int argc, char **argv)
 {
     test_bindings();

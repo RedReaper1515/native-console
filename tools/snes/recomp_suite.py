@@ -57,7 +57,7 @@ def build_one(rom: Path, name: str, out_root: Path, env: dict, build: Path) -> t
     cmake = shutil.which("cmake", path=path) or "cmake"
     ninja = shutil.which("ninja", path=path) or "ninja"
     cfg = subprocess.run([cmake, "-G", "Ninja", "-S", str(out), "-B", str(out / "build"), "-DCMAKE_BUILD_TYPE=Release",
-                          f"-DSNESRT_PREBUILT_LIBS={libs}", f"-DSNESRT_PREBUILT_INCLUDE={REPO / 'runtime-snes' / 'include'}"],
+                          f"-DSNESRT_PREBUILT_LIBS={libs}", f"-DSNESRT_PREBUILT_INCLUDE={REPO / 'runtimes' / 'runtime-snes' / 'include'}"],
                          capture_output=True, text=True, env=env)
     if cfg.returncode:
         return None, "configure failed: " + (cfg.stdout[-400:] + cfg.stderr[-400:])
